@@ -38,3 +38,12 @@ coverage/
 
 # OS
 Thumbs.db
+
+/src/generated/prisma
+
+
+# AI/Assistant tools
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
