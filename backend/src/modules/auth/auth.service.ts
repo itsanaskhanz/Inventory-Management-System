@@ -3,6 +3,7 @@ import { signToken } from "../../utils/jwt.js";
 import { createUser, findByEmail } from "./auth.repository.js";
 import { IRegister, ILogin } from "./auth.interface.js";
 import { comparePassword, hashPassword } from "../../utils/bcrypt.js";
+import { excludePassword } from "../../utils/helpers.js";
 
 const registerService = async ({ name, email, password, role }: IRegister) => {
   const exists = await findByEmail(email);
@@ -21,11 +22,7 @@ const loginService = async ({ email, password }: ILogin) => {
   return {
     message: "Login successfull",
     data: {
-      user: {
-        id: user?.id,
-        name: user?.name,
-        email: user?.email,
-      },
+      user: excludePassword(user),
       token: token,
     },
   };

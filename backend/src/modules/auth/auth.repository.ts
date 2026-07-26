@@ -8,7 +8,7 @@ const findById = async (id: string) => {
 };
 
 const findByEmail = async (email: string) => {
-  const user = await prisma.user.findUnique({ where: { email: email } });
+  const user = await prisma.user.findUnique({ where: { email } });
   return user;
 };
 const createUser = async ({ name, email, password, role }: IRegister) => {
