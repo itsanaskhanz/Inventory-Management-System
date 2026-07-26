@@ -3,5 +3,5 @@ import env from "./config/env.js";
 const PORT = env.PORT || 9000;
 
 app.listen(PORT, () => {
-  console.log("Server is running on port 9000");
+  console.log(`Server is running on port ${PORT}`);
 });
