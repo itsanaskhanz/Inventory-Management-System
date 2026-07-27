@@ -18,6 +18,7 @@ model User {
   password  String
   name      String
   role      Role     @default(ADMIN)
+  products  Product[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -25,4 +26,28 @@ model User {
 enum Role {
   SUPER_ADMIN
   ADMIN
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  costPrice   Float
+  stock       Int      @default(0)
+  minStock    Int      @default(5)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  isActive    Boolean  @default(true)
+  status      Status   @default(IN_STOCK)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+enum Status {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+  DISCONTINUED
 }
