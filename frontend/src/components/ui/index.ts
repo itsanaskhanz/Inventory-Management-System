@@ -11,3 +11,10 @@ import type { TypographyProps } from "./Typography";
 
 export { Typography };
 export type { TypographyProps };
+
+// Input
+import { Input } from "./Input";
+import type { InputProps } from "./Input";
+
+export { Input };
+export type { InputProps };

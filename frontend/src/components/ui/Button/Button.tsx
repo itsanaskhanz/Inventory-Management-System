@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { baseStyles, sizes, variants } from "./Button.styles";
+import { baseStyles, roundedSizes, sizes, variants } from "./Button.styles";
 import { ButtonProps } from "./Button.types";
 const Button = ({
   children,
@@ -9,6 +9,8 @@ const Button = ({
   disabled = false,
   loading = false,
   size = "md",
+  fullWidth = false,
+  rounded = "sm",
   ...props
 }: ButtonProps) => {
   return (
@@ -21,6 +23,8 @@ const Button = ({
           "opacity-50 cursor-not-allowed": disabled || loading,
           "cursor-pointer": !disabled && !loading,
         },
+        fullWidth && "w-full",
+        rounded && roundedSizes[rounded],
         className,
       )}
       onClick={onClick}

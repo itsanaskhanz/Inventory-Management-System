@@ -6,4 +6,6 @@ export interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   size?: "sm" | "md" | "lg";
+  fullWidth?: boolean;
+  rounded?: "sm" | "md" | "lg";
 }
