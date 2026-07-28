@@ -16,9 +16,9 @@ const getProducts = async (req: any, res: Response) => {
     successRes(res, data.message, data.statusCode, data.data);
   } catch (error) {
     if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode, null);
+      errorRes(res, error.message, error.statusCode);
     } else {
-      errorRes(res, "Internal Server Error", 500, null);
+      errorRes(res, "Internal Server Error", 500);
     }
   }
 };
@@ -29,9 +29,9 @@ const getProductById = async (req: any, res: Response) => {
     successRes(res, data.message, data.statusCode, data.data);
   } catch (error) {
     if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode, null);
+      errorRes(res, error.message, error.statusCode);
     } else {
-      errorRes(res, "Internal Server Error", 500, null);
+      errorRes(res, "Internal Server Error", 500);
     }
   }
 };
@@ -43,9 +43,9 @@ const createProduct = async (req: any, res: Response) => {
     successRes(res, data.message, data.statusCode, data.data);
   } catch (error) {
     if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode, null);
+      errorRes(res, error.message, error.statusCode);
     } else {
-      errorRes(res, "Internal Server Error", 500, null);
+      errorRes(res, "Internal Server Error", 500);
     }
   }
 };
@@ -57,9 +57,9 @@ const updateProduct = async (req: any, res: Response) => {
     successRes(res, data.message, data.statusCode, data.data);
   } catch (error) {
     if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode, null);
+      errorRes(res, error.message, error.statusCode);
     } else {
-      errorRes(res, "Internal Server Error", 500, null);
+      errorRes(res, "Internal Server Error", 500);
     }
   }
 };
@@ -70,9 +70,9 @@ const deleteProduct = async (req: any, res: Response) => {
     successRes(res, data.message, data.statusCode, data.data);
   } catch (error) {
     if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode, null);
+      errorRes(res, error.message, error.statusCode);
     } else {
-      errorRes(res, "Internal Server Error", 500, null);
+      errorRes(res, "Internal Server Error", 500);
     }
   }
 };

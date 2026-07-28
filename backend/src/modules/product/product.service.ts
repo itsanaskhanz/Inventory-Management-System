@@ -14,7 +14,6 @@ const getProductsService = async (userId: string) => {
     statusCode: 200,
     message: "Products fetched successfully",
     data: { products: products },
-    success: true,
   };
 };
 const getProductByIdService = async (id: string) => {
@@ -26,7 +25,6 @@ const getProductByIdService = async (id: string) => {
     statusCode: 200,
     message: "Product fetched successfully",
     data: { product: product },
-    success: true,
   };
 };
 const createProductService = async (data: ICreateProduct, userId: string) => {
@@ -39,7 +37,6 @@ const createProductService = async (data: ICreateProduct, userId: string) => {
     statusCode: 201,
     message: "Product created successfully",
     data: { product: product },
-    success: true,
   };
 };
 const updateProductService = async (id: string, data: any) => {
@@ -52,7 +49,6 @@ const updateProductService = async (id: string, data: any) => {
     statusCode: 200,
     message: "Product updated successfully",
     data: { product: products },
-    success: true,
   };
 };
 const deleteProductService = async (id: string) => {
@@ -65,7 +61,6 @@ const deleteProductService = async (id: string) => {
     statusCode: 200,
     message: "Product deleted successfully",
     data: { product: product },
-    success: true,
   };
 };
 

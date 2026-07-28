@@ -1,7 +1,7 @@
 import AppError from "../../utils/error.js";
 import { signToken } from "../../utils/jwt.js";
 import { createUser, findByEmail } from "./auth.repository.js";
-import { IRegister, ILogin } from "./auth.interface.js";
+import { IRegister, ILogin, IUser } from "./auth.interface.js";
 import { comparePassword, hashPassword } from "../../utils/bcrypt.js";
 import { excludePassword } from "../../utils/helpers.js";
 
@@ -27,5 +27,13 @@ const loginService = async ({ email, password }: ILogin) => {
     },
   };
 };
-
-export { registerService, loginService };
+const profileService = async (user: IUser) => {
+  return {
+    statusCode: 200,
+    message: "Profile fetched successfully",
+    data: {
+      user: excludePassword(user),
+    },
+  };
+};
+export { registerService, loginService, profileService };
