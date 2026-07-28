@@ -19,6 +19,7 @@ model User {
   name      String
   role      Role     @default(ADMIN)
   products  Product[]
+  categories  Category[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -38,6 +39,8 @@ model Product {
   minStock    Int      @default(5)
   userId      String?
   user        User?    @relation(fields: [userId], references: [id])
+  categoryId  String? 
+  category    Category? @relation(fields: [categoryId], references: [id]) 
   isActive    Boolean  @default(true)
   status      Status   @default(IN_STOCK)
   createdAt   DateTime @default(now())
@@ -50,4 +53,14 @@ enum Status {
   LOW_STOCK
   OUT_OF_STOCK
   DISCONTINUED
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
