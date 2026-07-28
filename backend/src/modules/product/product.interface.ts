@@ -25,4 +25,5 @@ export interface ICreateProduct {
   userId?: string;
   isActive?: boolean;
   status?: Status;
+  categoryId?: string;
 }

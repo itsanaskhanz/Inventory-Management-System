@@ -10,30 +10,8 @@ const findById = async (id: string) => {
   const product = await prisma.product.findUnique({ where: { id } });
   return product;
 };
-const create = async ({
-  name,
-  description,
-  price,
-  costPrice,
-  stock,
-  minStock,
-  userId,
-  isActive,
-  status,
-}: ICreateProduct) => {
-  const Product = await prisma.product.create({
-    data: {
-      name,
-      description,
-      price,
-      costPrice,
-      stock,
-      minStock,
-      userId,
-      isActive,
-      status,
-    },
-  });
+const create = async (data: ICreateProduct) => {
+  const Product = await prisma.product.create({ data });
   return Product;
 };
 
