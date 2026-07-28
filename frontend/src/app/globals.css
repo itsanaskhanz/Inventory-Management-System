@@ -17,7 +17,7 @@
   --primary-light: #333333;
 
   /* Status Colors */
-  --success: #0070f3;
+  --success: #22bb33;
   --warning: #f5a623;
   --danger: #e00;
   --info: #0070f3;
@@ -109,7 +109,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
