@@ -1,7 +1,9 @@
-export interface ButtonProps {
+import { ButtonHTMLAttributes } from "react";
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e: React.FormEvent) => void;
   variant?: "primary" | "secondary" | "ghost";
   disabled?: boolean;
   loading?: boolean;

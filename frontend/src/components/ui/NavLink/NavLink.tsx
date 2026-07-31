@@ -1,9 +1,9 @@
-import React from "react";
-import { NavLinkProps } from "./NavLink.types";
-import Link from "next/link";
+"use client";
 import clsx from "clsx";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeStyles, baseStyles } from "./NavLink.styles";
+import { NavLinkProps } from "./NavLink.types";
 const NavLink = ({ children, className, href, ...props }: NavLinkProps) => {
   const pathname = usePathname();
 
