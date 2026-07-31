@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import env from "../config/env.js";
-
+import { UserRole } from "../modules/auth/auth.interface.js";
 interface TokenPayload {
   id: string;
-  email: string;
+  role: UserRole;
 }
 const signToken = (payload: TokenPayload) => {
   const token = jwt.sign(payload, env.JWT_SECRET as string, {

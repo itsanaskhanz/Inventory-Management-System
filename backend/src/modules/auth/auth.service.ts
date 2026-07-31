@@ -1,9 +1,9 @@
+import { comparePassword } from "../../utils/bcrypt.js";
 import AppError from "../../utils/error.js";
-import { signToken } from "../../utils/jwt.js";
-import { createUser, findByEmail } from "./auth.repository.js";
-import { IRegister, ILogin, IUser } from "./auth.interface.js";
-import { comparePassword, hashPassword } from "../../utils/bcrypt.js";
 import { excludePassword } from "../../utils/helpers.js";
+import { signToken } from "../../utils/jwt.js";
+import { ILogin, IRegister, IUser, UserRole } from "./auth.interface.js";
+import { createUser, findByEmail } from "./auth.repository.js";
 
 const registerService = async ({ name, email, password, role }: IRegister) => {
   const exists = await findByEmail(email);
@@ -17,7 +17,7 @@ const loginService = async ({ email, password }: ILogin) => {
 
   const isValid = await comparePassword(password, user.password);
   if (!isValid) throw new AppError("Invalid credentials", 400, true);
-  const token = signToken({ id: user.id, email: user.email });
+  const token = signToken({ id: user.id, role: user.role as UserRole });
 
   return {
     message: "Login successfull",
@@ -36,4 +36,4 @@ const profileService = async (user: IUser) => {
     },
   };
 };
-export { registerService, loginService, profileService };
+export { loginService, profileService, registerService };
