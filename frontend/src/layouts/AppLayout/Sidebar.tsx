@@ -1,23 +1,17 @@
 "use client";
 import { Button, Logo, NavLink, Typography } from "@/components/ui";
-import React from "react";
+import { UserRole } from "@/config/roles";
+import { getNavigationForRole } from "@/config/routes";
 
 const Sidebar = () => {
-  const navItems = [
-    { name: "Dashboard", icon: "📊", path: "/" },
-    { name: "Users", icon: "👥", path: "/users" },
-    { name: "Products", icon: "📦", path: "/products" },
-    { name: "Orders", icon: "🛒", path: "/orders" },
-    { name: "Settings", icon: "⚙️", path: "/settings" },
-  ];
+  const navItems = getNavigationForRole("ADMIN" as UserRole);
   return (
     <div className="h-full w-75 p-4 flex flex-col gap-6">
       <Logo size="md" />
       <div className="flex flex-col gap-2">
         {navItems.map((navItem, key) => (
-          <NavLink href={navItem.path} key={key}>
-            <span className="text-lg">{navItem.icon}</span>
-            {navItem.name}
+          <NavLink href={navItem.href} key={key}>
+            {navItem.label}
           </NavLink>
         ))}
       </div>

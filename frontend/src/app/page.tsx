@@ -1,7 +1,7 @@
-import React from "react";
+import AppLayout from "@/layouts/AppLayout";
 
 const page = () => {
-  return <div>page</div>;
+  return <AppLayout>page</AppLayout>;
 };
 
 export default page;
