@@ -44,3 +44,10 @@ export interface ProfileResponse {
     user: User;
   };
 }
+
+export interface JwtPayload {
+  id: string;
+  role: UserRole;
+  iat: number;
+  exp: number;
+}
