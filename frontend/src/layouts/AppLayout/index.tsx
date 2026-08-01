@@ -21,10 +21,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         {topBarOpen && user && (
           <>
             <Topbar />
-            <hr />
           </>
         )}
-        <main className={clsx("flex-1 overflow-auto p-4")}>{children}</main>
+        <main className={clsx("flex-1 overflow-auto p-6")}>{children}</main>
       </div>
     </div>
   );

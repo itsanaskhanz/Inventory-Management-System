@@ -46,3 +46,10 @@ import { Icon } from "./Icon";
 
 export { Icon };
 export type { IconProps };
+
+// Modal
+import type { ModalProps } from "./Modal";
+import { Modal } from "./Modal";
+
+export { Modal };
+export type { ModalProps };

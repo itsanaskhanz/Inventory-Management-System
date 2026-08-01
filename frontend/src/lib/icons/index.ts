@@ -6,6 +6,7 @@ import {
   LogOut,
   Newspaper,
   ShoppingBag,
+  X,
 } from "lucide-react";
 
 export const Icons = {
@@ -16,4 +17,5 @@ export const Icons = {
   LayoutDashboard,
   ShoppingBag,
   LogOut,
+  X,
 };
