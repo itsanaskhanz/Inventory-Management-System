@@ -4,6 +4,7 @@ import { UserRole } from "@/config/roles";
 import { useGetProfileQuery, useLogoutMutation } from "@/lib/api/authApi";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { User } from "../types/auth.types";
 interface IAppContext {
   appConfig: AppConfig;
@@ -33,9 +34,14 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const { mutate: logoutMutate } = useLogoutMutation();
 
   const logout = () => {
-    logoutMutate();
-    setUser(null);
-    router.push("/login");
+    try {
+      logoutMutate();
+      setUser(null);
+      toast.success("Logged out successfully");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
   };
   useEffect(() => {
     const fetchUser = async () => {

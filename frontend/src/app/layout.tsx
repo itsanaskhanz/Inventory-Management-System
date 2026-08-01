@@ -1,5 +1,6 @@
 import { AppContextProvider } from "@/contexts/AppContext";
 import QueryProvider from "@/providers/QueryClient";
+import ToastProvider from "@/providers/ToastProvider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -31,7 +32,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <AppContextProvider>{children}</AppContextProvider>
+          <AppContextProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </AppContextProvider>
         </QueryProvider>
       </body>
     </html>

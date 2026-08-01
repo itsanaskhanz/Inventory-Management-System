@@ -6,6 +6,7 @@ import { User } from "@/types/auth.types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const Page = () => {
   // Router Hook for navigation
@@ -30,10 +31,10 @@ const Page = () => {
         onSuccess: (data) => {
           router.push("/");
           setUser(data.data?.user as User);
-          console.log(data);
+          toast.success(data.message || "Login Successful");
         },
         onError: (error) => {
-          console.log(error);
+          toast.error("Login Failed");
         },
         onSettled: () => {
           setEmail("");
