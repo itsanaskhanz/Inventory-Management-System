@@ -32,3 +32,10 @@ import type { LogoProps } from "./Logo";
 
 export { Logo };
 export type { LogoProps };
+
+// Spinner
+import { Spinner } from "./Spinner";
+import type { SpinnerProps } from "./Spinner";
+
+export { Spinner };
+export type { SpinnerProps };

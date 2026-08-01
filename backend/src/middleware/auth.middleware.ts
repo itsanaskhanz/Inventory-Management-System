@@ -1,9 +1,9 @@
-import type { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../utils/jwt.js";
-import { findByEmail } from "../modules/auth/auth.repository.js";
+import type { NextFunction, Response } from "express";
+import { findById } from "../modules/auth/auth.repository.js";
 import AppError from "../utils/error.js";
-import { errorRes } from "../utils/response.js";
 import { excludePassword } from "../utils/helpers.js";
+import { verifyToken } from "../utils/jwt.js";
+import { errorRes } from "../utils/response.js";
 const authenticate = async (req: any, res: Response, next: NextFunction) => {
   try {
     const token = req?.cookies?.token;
@@ -11,7 +11,7 @@ const authenticate = async (req: any, res: Response, next: NextFunction) => {
       throw new AppError("Not authenticated", 401, true);
     }
     const decoded = verifyToken(token);
-    const user = await findByEmail(decoded?.email);
+    const user = await findById(decoded?.id);
     req.user = excludePassword(user);
     next();
   } catch (error) {
