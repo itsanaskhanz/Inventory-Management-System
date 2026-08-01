@@ -1,13 +1,14 @@
 import type { Request, Response } from "express";
+import { clearCookies, setCookies } from "../../utils/cookie.js";
 import AppError from "../../utils/error.js";
 import { errorRes, successRes } from "../../utils/response.js";
 import { ILogin, IRegister } from "./auth.interface.js";
 import {
+  getAdminsService,
   loginService,
   profileService,
   registerService,
 } from "./auth.service.js";
-import { clearCookies, setCookies } from "../../utils/cookie.js";
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -63,4 +64,16 @@ const profile = async (req: any, res: Response) => {
   }
 };
 
-export { register, login, logout, profile };
+const getAdmins = async (req: Request, res: Response) => {
+  try {
+    const data = await getAdminsService();
+    successRes(res, data.message, data.statusCode, data.data);
+  } catch (error) {
+    if (error instanceof AppError) {
+      errorRes(res, error.message, error.statusCode);
+    } else {
+      errorRes(res, "Internal Server Error", 500);
+    }
+  }
+};
+export { getAdmins, login, logout, profile, register };

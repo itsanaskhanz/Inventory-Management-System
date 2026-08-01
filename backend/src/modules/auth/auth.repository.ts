@@ -1,9 +1,13 @@
 import prisma from "../../config/database.js";
 import { hashPassword } from "../../utils/bcrypt.js";
-import { IRegister } from "./auth.interface.js";
+import { IRegister, UserRole } from "./auth.interface.js";
 
 const findById = async (id: string) => {
   const user = await prisma.user.findUnique({ where: { id: id } });
+  return user;
+};
+const findByRole = async (role: UserRole) => {
+  const user = await prisma.user.findMany({ where: { role: role } });
   return user;
 };
 
@@ -19,4 +23,4 @@ const createUser = async ({ name, email, password, role }: IRegister) => {
   return user;
 };
 
-export { findByEmail, findById, createUser };
+export { createUser, findByEmail, findById, findByRole };
