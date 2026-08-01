@@ -35,3 +35,11 @@ export const useGetProfileQuery = () => {
     },
   });
 };
+
+export const useLogoutMutation = () => {
+  return useMutation({
+    mutationFn: async (): Promise<void> => {
+      await apiClient.post("/auth/logout");
+    },
+  });
+};

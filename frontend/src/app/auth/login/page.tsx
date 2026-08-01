@@ -1,6 +1,8 @@
 "use client";
 import { Button, Input, Typography } from "@/components/ui";
+import { useAppContext } from "@/contexts/AppContext";
 import { useLoginMutation } from "@/lib/api/authApi";
+import { User } from "@/types/auth.types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +13,8 @@ const Page = () => {
   // States
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
+  // AppContext Hook
+  const { setUser } = useAppContext();
   // Mutations Hook
   const { mutate, isPending, error, isSuccess, data } = useLoginMutation();
   // Handle Login Function
@@ -25,6 +29,7 @@ const Page = () => {
       {
         onSuccess: (data) => {
           router.push("/");
+          setUser(data.data?.user as User);
           console.log(data);
         },
         onError: (error) => {
