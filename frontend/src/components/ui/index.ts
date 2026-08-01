@@ -53,3 +53,10 @@ import { Modal } from "./Modal";
 
 export { Modal };
 export type { ModalProps };
+
+// StatCard
+import type { StatCardProps } from "./StatCard";
+import { StatCard } from "./StatCard";
+
+export { StatCard };
+export type { StatCardProps };
