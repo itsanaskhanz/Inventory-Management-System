@@ -1,3 +1,4 @@
+import { Icons } from "@/lib/icons";
 import { UserRole } from "./roles";
 
 export interface IRoute {
@@ -5,6 +6,7 @@ export interface IRoute {
   label: string;
   href: string;
   roles: UserRole[];
+  icon?: keyof typeof Icons;
 }
 const APP_ROUTES: IRoute[] = [
   {
@@ -12,18 +14,21 @@ const APP_ROUTES: IRoute[] = [
     label: "Dashboard",
     href: "/",
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    icon: "LayoutDashboard",
   },
   {
     id: "Contractors",
     label: "Contractors",
     href: "/contractors",
     roles: [UserRole.SUPER_ADMIN],
+    icon: "Newspaper",
   },
   {
     id: "Products",
     label: "Products",
     href: "/products",
     roles: [UserRole.ADMIN],
+    icon: "ShoppingBag",
   },
 ];
 

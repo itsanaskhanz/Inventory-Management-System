@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useState } from "react";
+import { Icon } from "../Icon";
 import { baseStyles, roundedSizes, sizes } from "./Input.styles";
 import { InputProps } from "./Input.types";
 
@@ -38,9 +39,9 @@ export const Input = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none cursor-pointer"
         >
-          {showPassword ? "🙈" : "👁️"}
+          {showPassword ? <Icon name="Eye" /> : <Icon name="EyeClosed" />}
         </button>
       )}
     </div>

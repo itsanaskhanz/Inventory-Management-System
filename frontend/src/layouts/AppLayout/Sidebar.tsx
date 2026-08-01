@@ -1,8 +1,9 @@
 "use client";
-import { Button, Logo, NavLink, Typography } from "@/components/ui";
+import { Button, Icon, Logo, NavLink, Typography } from "@/components/ui";
 import { UserRole } from "@/config/roles";
 import { getNavigationForRole } from "@/config/routes";
 import { useAppContext } from "@/contexts/AppContext";
+import { Icons } from "@/lib/icons";
 
 const Sidebar = () => {
   const { user, logout } = useAppContext();
@@ -18,20 +19,19 @@ const Sidebar = () => {
       <div className="flex flex-col gap-2">
         {navItems.map((navItem, key) => (
           <NavLink href={navItem.href} key={key}>
+            <Icon name={navItem.icon as keyof typeof Icons} />
             {navItem.label}
           </NavLink>
         ))}
       </div>
-      <div className="mt-auto flex items-center justify-between">
+      <div className="mt-auto flex flex-col gap-4">
         <div>
           <Typography variant="body1">{user?.email}</Typography>
           <Typography variant="body2">{user?.role}</Typography>
         </div>
-        <div>
-          <Button variant="secondary" onClick={logout}>
-            Logout
-          </Button>
-        </div>
+        <Button variant="secondary" onClick={logout} className="">
+          Logout <Icon name="LogOut" />
+        </Button>
       </div>
     </div>
   );
