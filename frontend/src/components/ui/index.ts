@@ -60,3 +60,10 @@ import { StatCard } from "./StatCard";
 
 export { StatCard };
 export type { StatCardProps };
+
+// Table
+import type { TableProps } from "./Table";
+import { Table } from "./Table";
+
+export { Table };
+export type { TableProps };
