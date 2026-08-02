@@ -1,79 +1,47 @@
 import type { Request, Response } from "express";
 import { clearCookies, setCookies } from "../../utils/cookie.js";
-import AppError from "../../utils/error.js";
-import { errorRes, successRes } from "../../utils/response.js";
-import { ILogin, IRegister } from "./auth.interface.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import { successRes } from "../../utils/response.js";
+import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
+import { ILogin, IRegister, IUser, UserRole } from "./auth.interface.js";
 import {
-  getAdminsService,
+  getUsersByRoleService,
   loginService,
   profileService,
   registerService,
 } from "./auth.service.js";
 
-const register = async (req: Request, res: Response) => {
-  try {
-    const body: IRegister = req.body;
-    const data = await registerService(body);
-    successRes(res, data.message, 200, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const login = async (req: Request, res: Response) => {
-  try {
-    const body: ILogin = req.body;
-    const data = await loginService(body);
-    setCookies(res, data?.data?.token);
-    successRes(res, data.message, 200, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
+const register = asyncHandler(async (req: Request, res: Response) => {
+  const body: IRegister = req.body;
+  const data = await registerService(body);
+  successRes(res, data.message, data.statusCode, data.data);
+});
+
+const login = asyncHandler(async (req: Request, res: Response) => {
+  const body: ILogin = req.body;
+  const data = await loginService(body);
+  setCookies(res, data.data?.token as string);
+  successRes(res, data.message, data.statusCode, data.data);
+});
+
+const logout = (_req: Request, res: Response) => {
+  clearCookies(res);
+  successRes(res, "Logged out successfully", 200);
 };
 
-const logout = (req: Request, res: Response) => {
-  try {
-    clearCookies(res);
-    successRes(res, "Logged out successfully", 200);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const profile = async (req: any, res: Response) => {
-  try {
-    const user = req.user;
-    const data = await profileService(user);
+const profile = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const data = await profileService(req.user as IUser);
     successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
+  },
+);
 
-const getAdmins = async (req: Request, res: Response) => {
-  try {
-    const data = await getAdminsService();
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-export { getAdmins, login, logout, profile, register };
+const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
+  const role = req.params.role as UserRole;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+  const data = await getUsersByRoleService(role, page, limit);
+  successRes(res, data.message, data.statusCode, data.data);
+});
+
+export { getUsersByRole, login, logout, profile, register };

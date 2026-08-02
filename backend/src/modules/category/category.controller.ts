@@ -1,6 +1,9 @@
-import type { Request, Response } from "express";
-import AppError from "../../utils/error.js";
-import { errorRes, successRes } from "../../utils/response.js";
+import type { Response } from "express";
+import asyncHandler from "../../utils/asyncHandler.js";
+import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
+import { successRes } from "../../utils/response.js";
+import { getRouteId } from "../../utils/helpers.js";
+import type { IUser } from "../auth/auth.interface.js";
 import {
   createCategoryService,
   deleteCategoryService,
@@ -8,78 +11,55 @@ import {
   getCategoryByIdService,
   updateCategoryService,
 } from "./category.service.js";
-const createCategory = async (req: any, res: Response) => {
-  try {
-    const userId = req.user.id;
-    const body = req.body;
-    const data = await createCategoryService(userId, body);
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
+
+const getCurrentUserId = (req: AuthenticatedRequest): string => {
+  return (req.user as IUser).id;
 };
-const updateCategory = async (req: any, res: Response) => {
-  try {
-    const id = req.params.id;
-    const body = req.body;
-    const data = await updateCategoryService(id, body);
+
+const createCategory = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await createCategoryService(userId, req.body);
     successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const deleteCategory = async (req: any, res: Response) => {
-  try {
-    const id = req.params.id;
-    const data = await deleteCategoryService(id);
+  },
+);
+
+const updateCategory = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await updateCategoryService(getRouteId(req.params.id), req.body, userId);
     successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const getCategoryById = async (req: any, res: Response) => {
-  try {
-    const id = req.params.id;
-    const data = await getCategoryByIdService(id);
+  },
+);
+
+const deleteCategory = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await deleteCategoryService(getRouteId(req.params.id), userId);
     successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const getCategories = async (req: any, res: Response) => {
-  try {
-    const userId = req.user.id;
+  },
+);
+
+const getCategoryById = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await getCategoryByIdService(getRouteId(req.params.id), userId);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const getCategories = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
     const data = await getCategoriesService(userId);
     successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
+  },
+);
 
 export {
   createCategory,
-  updateCategory,
   deleteCategory,
-  getCategoryById,
   getCategories,
+  getCategoryById,
+  updateCategory,
 };

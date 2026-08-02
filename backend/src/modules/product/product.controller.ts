@@ -1,6 +1,9 @@
-import type { Request, Response } from "express";
-import AppError from "../../utils/error.js";
-import { errorRes, successRes } from "../../utils/response.js";
+import type { Response } from "express";
+import asyncHandler from "../../utils/asyncHandler.js";
+import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
+import { successRes } from "../../utils/response.js";
+import { getRouteId } from "../../utils/helpers.js";
+import type { IUser } from "../auth/auth.interface.js";
 import {
   createProductService,
   deleteProductService,
@@ -9,78 +12,56 @@ import {
   updateProductService,
 } from "./product.service.js";
 
-const getProducts = async (req: any, res: Response) => {
-  try {
-    const userId = req.user.id;
-    const data = await getProductsService(userId);
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const getProductById = async (req: any, res: Response) => {
-  try {
-    const id = req.params.id;
-    const data = await getProductByIdService(id);
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const createProduct = async (req: any, res: Response) => {
-  try {
-    const userId = req.user.id;
-    const body = req.body;
-    const data = await createProductService(body, userId);
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const updateProduct = async (req: any, res: Response) => {
-  try {
-    const id = req.params.id;
-    const body = req.body;
-    const data = await updateProductService(id, body);
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
-};
-const deleteProduct = async (req: any, res: Response) => {
-  try {
-    const id = req.params.id;
-    const data = await deleteProductService(id);
-    successRes(res, data.message, data.statusCode, data.data);
-  } catch (error) {
-    if (error instanceof AppError) {
-      errorRes(res, error.message, error.statusCode);
-    } else {
-      errorRes(res, "Internal Server Error", 500);
-    }
-  }
+const getCurrentUserId = (req: AuthenticatedRequest): string => {
+  return (req.user as IUser).id;
 };
 
+const getProducts = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const data = await getProductsService(userId, page, limit);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const getProductById = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await getProductByIdService(getRouteId(req.params.id), userId);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const createProduct = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await createProductService(req.body, userId);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const updateProduct = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await updateProductService(getRouteId(req.params.id), req.body, userId);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const deleteProduct = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const data = await deleteProductService(getRouteId(req.params.id), userId);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
 export {
-  getProductById,
-  getProducts,
   createProduct,
   deleteProduct,
+  getProductById,
+  getProducts,
   updateProduct,
 };

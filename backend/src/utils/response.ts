@@ -1,32 +1,28 @@
-import { Response } from "express";
+import type { Response } from "express";
 
 const successRes = (
   res: Response,
   message: string,
   statusCode: number,
-  data?: any,
+  data?: unknown,
 ) => {
-  res
-    .json({
-      success: true,
-      message: message,
-      data: data,
-    })
-    .status(statusCode);
+  res.status(statusCode).json({
+    success: true,
+    message,
+    data,
+  });
 };
 
 const errorRes = (
   res: Response,
   message: string,
   statusCode: number,
-  data?: any,
+  data?: unknown,
 ) => {
-  res
-    .json({
-      success: false,
-      message: message,
-      data: data,
-    })
-    .status(statusCode);
+  res.status(statusCode).json({
+    success: false,
+    message,
+    data,
+  });
 };
 export { successRes, errorRes };
