@@ -67,3 +67,10 @@ import { Table } from "./Table";
 
 export { Table };
 export type { TableProps };
+
+// Pagination
+import type { PaginationProps } from "./Pagination";
+import { Pagination } from "./Pagination";
+
+export { Pagination };
+export type { PaginationProps };

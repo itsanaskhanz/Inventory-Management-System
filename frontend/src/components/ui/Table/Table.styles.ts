@@ -11,7 +11,7 @@ export const headerCellStyles =
 export const rowStyles =
   "border-b border-border transition-colors duration-150 last:border-0 hover:bg-background-tertiary";
 
-export const cellStyles = "px-4 py-3 whitespace-nowrap text-foreground";
+export const cellStyles = "px-4 py-6 whitespace-nowrap text-foreground";
 
 export const emptyStateStyles =
   "px-4 py-10 text-center text-sm text-foreground-tertiary";
