@@ -1,7 +1,6 @@
-enum UserRole {
-  ADMIN = "ADMIN",
-  SUPER_ADMIN = "SUPER_ADMIN",
-}
+import { UserRole } from "@/config/roles";
+
+export { UserRole };
 export interface User {
   id: string;
   email: string;
@@ -50,4 +49,19 @@ export interface JwtPayload {
   role: UserRole;
   iat: number;
   exp: number;
+}
+
+export interface GetUsersByRoleResponse {
+  message: string;
+  success: boolean;
+  data: {
+    users: User[];
+    pagination: {
+      total: number;
+      limit: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  };
 }

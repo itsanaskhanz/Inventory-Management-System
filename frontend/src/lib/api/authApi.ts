@@ -1,4 +1,6 @@
+import { UserRole } from "@/config/roles";
 import {
+  GetUsersByRoleResponse,
   LoginRequest,
   LoginResponse,
   ProfileResponse,
@@ -33,6 +35,7 @@ export const useGetProfileQuery = () => {
       const response = await apiClient.get("/auth/profile");
       return response.data;
     },
+    retry: false,
   });
 };
 
@@ -40,6 +43,22 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: async (): Promise<void> => {
       await apiClient.post("/auth/logout");
+    },
+  });
+};
+
+export const useGetUsersByRole = (
+  role: UserRole = UserRole.ADMIN,
+  page: number,
+  limit: number,
+) => {
+  return useQuery({
+    queryKey: [`users-${role}-${page}-${limit}`],
+    queryFn: async (): Promise<GetUsersByRoleResponse> => {
+      const response = await apiClient.get(
+        `/auth/getUsersByRole/${role}?page=${page}&limit=${limit}`,
+      );
+      return response.data;
     },
   });
 };
