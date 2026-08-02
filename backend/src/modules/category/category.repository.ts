@@ -2,24 +2,27 @@ import prisma from "../../config/database.js";
 import { ICreateCategory } from "./category.interface.js";
 
 const create = async (data: ICreateCategory) => {
-  const category = await prisma.category.create({ data });
-  return category;
+  return prisma.category.create({ data });
 };
+
 const findAll = async (userId: string) => {
-  const categories = await prisma.category.findMany({ where: { userId } });
-  return categories;
+  return prisma.category.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    include: { products: true },
+  });
 };
+
 const findById = async (id: string) => {
-  const category = await prisma.category.findUnique({ where: { id } });
-  return category;
+  return prisma.category.findUnique({ where: { id } });
 };
+
+const update = async (id: string, data: Partial<ICreateCategory>) => {
+  return prisma.category.update({ where: { id }, data });
+};
+
 const remove = async (id: string) => {
-  const category = await prisma.category.delete({ where: { id } });
-  return category;
-};
-const update = async (data: ICreateCategory, id: string) => {
-  const category = await prisma.category.update({ where: { id }, data });
-  return category;
+  return prisma.category.delete({ where: { id } });
 };
 
 export { create, findAll, findById, remove, update };

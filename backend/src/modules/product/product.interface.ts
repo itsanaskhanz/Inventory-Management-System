@@ -11,6 +11,7 @@ export interface IProduct {
   userId?: string | null;
   isActive: boolean;
   status: Status;
+  categoryId?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,3 +28,5 @@ export interface ICreateProduct {
   status?: Status;
   categoryId?: string;
 }
+
+export type IUpdateProduct = Partial<Omit<ICreateProduct, "userId">>;
