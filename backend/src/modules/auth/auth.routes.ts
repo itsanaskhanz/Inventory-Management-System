@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware.js";
 import {
-  getAdmins,
+  getUsersByRole,
   login,
   logout,
   profile,
@@ -14,6 +14,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
 router.get("/profile", authenticate, profile);
-router.get("/getAdmins", authenticate, getAdmins);
+router.get("/getUsersByRole/:role", authenticate, getUsersByRole);
 
 export default router;

@@ -6,9 +6,31 @@ const findById = async (id: string) => {
   const user = await prisma.user.findUnique({ where: { id: id } });
   return user;
 };
-const findByRole = async (role: UserRole) => {
-  const user = await prisma.user.findMany({ where: { role: role } });
-  return user;
+const findByRole = async (
+  role: UserRole,
+  start: number,
+  end: number,
+  limit: number,
+) => {
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: role },
+      skip: start,
+      take: limit,
+    }),
+    prisma.user.count({ where: { role: role } }),
+  ]);
+
+  return {
+    users,
+    pagination: {
+      total,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: end < total,
+      hasPreviousPage: start > 0,
+    },
+  };
 };
 
 const findByEmail = async (email: string) => {
