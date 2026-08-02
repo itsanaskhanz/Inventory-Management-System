@@ -3,42 +3,39 @@ import { Button, Input, Typography } from "@/components/ui";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLoginMutation } from "@/lib/api/authApi";
 import { User } from "@/types/auth.types";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 const Page = () => {
-  // Router Hook for navigation
   const router = useRouter();
-  // States
-  const [Email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
-  // AppContext Hook
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { setUser } = useAppContext();
-  // Mutations Hook
-  const { mutate, isPending, error, isSuccess, data } = useLoginMutation();
-  // Handle Login Function
+  const { mutate, isPending } = useLoginMutation();
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!Email || !Password) {
-      alert("Please fill in all fields");
+    if (!email || !password) {
+      toast.warn("Please fill in all fields");
       return;
     }
     mutate(
-      { email: Email, password: Password },
+      { email, password },
       {
         onSuccess: (data) => {
-          router.push("/");
           setUser(data.data?.user as User);
-          toast.success(data.message || "Login Successful");
+          toast.success(data.message || "Login successful");
+          router.push("/");
         },
         onError: (error) => {
-          toast.error("Login Failed");
-        },
-        onSettled: () => {
-          setEmail("");
-          setPassword("");
+          if (axios.isAxiosError(error)) {
+            toast.error(error.response?.data?.message || "Login failed");
+          } else {
+            toast.error("Login failed");
+          }
         },
       },
     );
@@ -58,24 +55,18 @@ const Page = () => {
             placeholder="Email"
             fullWidth
             type="email"
-            value={Email}
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input
             placeholder="Password"
             fullWidth
             type="password"
-            value={Password}
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={(e: React.FormEvent) => handleLogin(e)}
-          loading={isPending}
-          type="submit"
-        >
+        <Button variant="primary" fullWidth loading={isPending} type="submit">
           Login
         </Button>
         <Typography variant="body2" align="center">

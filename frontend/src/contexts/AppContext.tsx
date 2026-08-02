@@ -3,9 +3,10 @@ import appConfig, { AppConfig } from "@/config/app.config";
 import { UserRole } from "@/config/roles";
 import { useGetProfileQuery, useLogoutMutation } from "@/lib/api/authApi";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { toast } from "react-toastify";
-import { User } from "../types/auth.types";
+import { ProfileResponse, User } from "../types/auth.types";
+
 interface IAppContext {
   appConfig: AppConfig;
   user: User | null;
@@ -20,6 +21,7 @@ interface IAppContext {
   isLoading: boolean;
   logout: () => void;
 }
+
 const appContext = createContext({} as IAppContext);
 
 const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
@@ -32,28 +34,28 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<"light" | "dark">(appConfig.appTheme);
   const { data: response, isLoading } = useGetProfileQuery();
   const { mutate: logoutMutate } = useLogoutMutation();
+  const [loadedProfile, setLoadedProfile] = useState<ProfileResponse | null>(
+    null,
+  );
+
+  if (response && response !== loadedProfile) {
+    setLoadedProfile(response);
+    setUser(response?.data?.user ?? null);
+  }
 
   const logout = () => {
-    try {
-      logoutMutate();
-      setUser(null);
-      toast.success("Logged out successfully");
-      router.push("/login");
-    } catch (error) {
-      toast.error("Error logging out");
-    }
+    logoutMutate(undefined, {
+      onSuccess: () => {
+        setUser(null);
+        toast.success("Logged out successfully");
+        router.push("/auth/login");
+      },
+      onError: () => {
+        toast.error("Error logging out");
+      },
+    });
   };
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setUser(response?.data?.user as User);
-      } catch (error) {
-        console.log("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-    // Call the async function
-  }, [response]);
+
   return (
     <appContext.Provider
       value={{
@@ -67,7 +69,7 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
         setIsTopBarOpen,
         theme,
         setTheme,
-        isSuperAdmin: user?.role === UserRole.SUPER_ADMIN ? true : false,
+        isSuperAdmin: user?.role === UserRole.SUPER_ADMIN,
         isLoading,
       }}
     >

@@ -19,7 +19,7 @@ const Sidebar = () => {
   const navItems = getNavigationForRole(user?.role as UserRole);
 
   return (
-    <div className="h-full w-75 p-4 flex flex-col gap-6 ">
+    <div className="h-full w-85 p-4 flex flex-col gap-6 border-r border-border">
       <Logo size="md" />
       <div className="flex flex-col gap-2 border-t border-border py-6">
         {navItems.map((navItem, key) => (

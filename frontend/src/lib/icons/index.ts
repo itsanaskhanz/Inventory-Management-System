@@ -2,10 +2,14 @@ import {
   Eye,
   EyeClosed,
   LayoutDashboard,
+  LayoutGrid,
   Loader,
   LogOut,
   Newspaper,
+  Package,
   ShoppingBag,
+  TrendingUp,
+  Users,
   X,
 } from "lucide-react";
 
@@ -18,4 +22,8 @@ export const Icons = {
   ShoppingBag,
   LogOut,
   X,
+  Users,
+  Package,
+  LayoutGrid,
+  TrendingUp,
 };

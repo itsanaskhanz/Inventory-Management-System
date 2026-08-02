@@ -1,40 +1,38 @@
 "use client";
 import { Button, Input, Typography } from "@/components/ui";
 import { useRegisterMutation } from "@/lib/api/authApi";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const Page = () => {
-  // Router Hook for navigation
   const router = useRouter();
-  // States
-  const [Name, setName] = useState("");
-  const [Email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
-  // Mutations Hook
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { mutate, isPending } = useRegisterMutation();
-  // Handle Register Function
+
   const handleRegister = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!Name || !Email || !Password) {
-      alert("Please fill in all fields");
+    if (!name || !email || !password) {
+      toast.warn("Please fill in all fields");
       return;
     }
     mutate(
-      { name: Name, email: Email, password: Password },
+      { name, email, password },
       {
         onSuccess: (data) => {
+          toast.success(data.message || "Account created successfully");
           router.push("/auth/login");
-          console.log(data);
         },
         onError: (error) => {
-          console.log(error);
-        },
-        onSettled: () => {
-          setName("");
-          setEmail("");
-          setPassword("");
+          if (axios.isAxiosError(error)) {
+            toast.error(error.response?.data?.message || "Registration failed");
+          } else {
+            toast.error("Registration failed");
+          }
         },
       },
     );
@@ -54,31 +52,25 @@ const Page = () => {
             placeholder="Name"
             fullWidth
             type="text"
-            value={Name}
+            value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <Input
             placeholder="Email"
             fullWidth
             type="email"
-            value={Email}
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input
             placeholder="Password"
             fullWidth
             type="password"
-            value={Password}
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button
-          variant="primary"
-          fullWidth
-          type="submit"
-          onClick={(e: React.FormEvent) => handleRegister(e)}
-          loading={isPending}
-        >
+        <Button variant="primary" fullWidth type="submit" loading={isPending}>
           Register
         </Button>
         <Typography variant="body2" align="center">
