@@ -1,3 +1,4 @@
+import { Status } from "../../generated/prisma/enums.js";
 import AppError from "../../utils/error.js";
 import {
   ICreateProduct,
@@ -64,9 +65,22 @@ const getProductByIdService = async (id: string, userId: string) => {
   };
 };
 
+const getProductStatus = (
+  stock: number,
+  minStock: number,
+): Status => {
+  if (stock <= 0) return Status.OUT_OF_STOCK;
+  if (stock <= minStock) return Status.LOW_STOCK;
+  return Status.IN_STOCK;
+};
+
 const createProductService = async (data: ICreateProduct, userId: string) => {
   await ensureCategoryBelongsToUser(data.categoryId, userId);
-  const product = await create({ ...data, userId });
+  const product = await create({
+    ...data,
+    userId,
+    status: getProductStatus(data.stock ?? 0, data.minStock ?? 5),
+  });
   return {
     statusCode: 201,
     message: "Product created successfully",
@@ -85,7 +99,12 @@ const updateProductService = async (
   }
   ensureOwnership(exists, userId);
   await ensureCategoryBelongsToUser(data.categoryId, userId);
-  const product = await update(id, data);
+  const newStock = data.stock ?? exists.stock;
+  const newMinStock = data.minStock ?? exists.minStock;
+  const product = await update(id, {
+    ...data,
+    status: getProductStatus(newStock, newMinStock),
+  });
   return {
     statusCode: 200,
     message: "Product updated successfully",

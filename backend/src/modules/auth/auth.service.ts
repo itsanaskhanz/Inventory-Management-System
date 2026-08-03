@@ -1,9 +1,21 @@
-import { comparePassword } from "../../utils/bcrypt.js";
+import { comparePassword, hashPassword } from "../../utils/bcrypt.js";
 import AppError from "../../utils/error.js";
 import { excludePassword } from "../../utils/helpers.js";
 import { signToken } from "../../utils/jwt.js";
-import { ILogin, IRegister, IUser, UserRole } from "./auth.interface.js";
-import { createUser, findByEmail, findByRole } from "./auth.repository.js";
+import {
+  ILogin,
+  IRegister,
+  IUpdateProfile,
+  IUser,
+  UserRole,
+} from "./auth.interface.js";
+import {
+  createUser,
+  deleteUser,
+  findByEmail,
+  findByRole,
+  updateUser,
+} from "./auth.repository.js";
 
 const registerService = async ({ name, email, password }: IRegister) => {
   const exists = await findByEmail(email);
@@ -46,6 +58,39 @@ const profileService = async (user: IUser) => {
   };
 };
 
+const updateProfileService = async (
+  userId: string,
+  { name, email, password }: IUpdateProfile,
+) => {
+  if (email) {
+    const exists = await findByEmail(email);
+    if (exists && exists.id !== userId) {
+      throw new AppError("Email already in use", 409, true);
+    }
+  }
+
+  const data: { name?: string; email?: string; password?: string } = {};
+  if (name) data.name = name;
+  if (email) data.email = email;
+  if (password) data.password = await hashPassword(password);
+
+  const user = await updateUser(userId, data);
+  return {
+    statusCode: 200,
+    message: "Profile updated successfully",
+    data: { user: excludePassword(user) },
+  };
+};
+
+const deleteAccountService = async (user: IUser) => {
+  await deleteUser(user.id);
+  return {
+    statusCode: 200,
+    message: "Account deleted successfully",
+    data: null,
+  };
+};
+
 const getUsersByRoleService = async (
   role: UserRole,
   page: number,
@@ -66,4 +111,11 @@ const getUsersByRoleService = async (
     },
   };
 };
-export { getUsersByRoleService, loginService, profileService, registerService };
+export {
+  deleteAccountService,
+  getUsersByRoleService,
+  loginService,
+  profileService,
+  registerService,
+  updateProfileService,
+};

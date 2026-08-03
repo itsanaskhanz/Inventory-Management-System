@@ -3,12 +3,20 @@ import { clearCookies, setCookies } from "../../utils/cookie.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { successRes } from "../../utils/response.js";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
-import { ILogin, IRegister, IUser, UserRole } from "./auth.interface.js";
 import {
+  ILogin,
+  IRegister,
+  IUpdateProfile,
+  IUser,
+  UserRole,
+} from "./auth.interface.js";
+import {
+  deleteAccountService,
   getUsersByRoleService,
   loginService,
   profileService,
   registerService,
+  updateProfileService,
 } from "./auth.service.js";
 
 const register = asyncHandler(async (req: Request, res: Response) => {
@@ -36,6 +44,22 @@ const profile = asyncHandler(
   },
 );
 
+const updateProfile = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const body: IUpdateProfile = req.body;
+    const data = await updateProfileService((req.user as IUser).id, body);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const deleteAccount = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const data = await deleteAccountService(req.user as IUser);
+    clearCookies(res);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
 const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
   const role = req.params.role as UserRole;
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -44,4 +68,12 @@ const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
   successRes(res, data.message, data.statusCode, data.data);
 });
 
-export { getUsersByRole, login, logout, profile, register };
+export {
+  deleteAccount,
+  getUsersByRole,
+  login,
+  logout,
+  profile,
+  register,
+  updateProfile,
+};

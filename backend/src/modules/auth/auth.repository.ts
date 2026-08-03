@@ -45,4 +45,22 @@ const createUser = async ({ name, email, password, role }: IRegister) => {
   return user;
 };
 
-export { createUser, findByEmail, findById, findByRole };
+const updateUser = async (
+  id: string,
+  data: { name?: string; email?: string; password?: string },
+) => {
+  const user = await prisma.user.update({
+    where: { id },
+    data,
+  });
+  return user;
+};
+
+const deleteUser = async (id: string) => {
+  const user = await prisma.user.delete({
+    where: { id },
+  });
+  return user;
+};
+
+export { createUser, deleteUser, findByEmail, findById, findByRole, updateUser };

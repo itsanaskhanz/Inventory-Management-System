@@ -11,3 +11,6 @@ export const getRouteId = (id: string | string[] | undefined): string => {
   }
   return id as string;
 };
+
+export const generateOrderNumber = (): string =>
+  `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
