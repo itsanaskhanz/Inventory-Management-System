@@ -20,6 +20,7 @@ model User {
   role      Role     @default(ADMIN)
   products  Product[]
   categories  Category[]
+  orders  Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -38,13 +39,14 @@ model Product {
   stock       Int      @default(0)
   minStock    Int      @default(5)
   userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   categoryId  String? 
-  category    Category? @relation(fields: [categoryId], references: [id]) 
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade) 
   isActive    Boolean  @default(true)
   status      Status   @default(IN_STOCK)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  orderProducts OrderProducts[]
 }
 
 
@@ -57,10 +59,37 @@ enum Status {
 
 model Category {
   id        String    @id @default(cuid())
-  name      String
+  name      String    
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   products  Product[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  subtotal      Float
+  tax           Float
+  total         Float
+  status        String      @default("completed") 
+  customerName  String?
+  customerPhone String? 
+  createdAt     DateTime    @default(now())  
+  userId        String?
+  user          User?  @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  products      OrderProducts[]
+}
+
+model OrderProducts {
+  id          String   @id @default(cuid())
+  quantity    Int
+  price       Float
+  subtotal    Float   
+  orderId     String
+  order       Order  @relation (fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String 
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
