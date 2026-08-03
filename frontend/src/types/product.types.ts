@@ -41,3 +41,11 @@ export interface ProductsResponse {
     pagination: Pagination;
   };
 }
+
+export interface ProductResponse {
+  message: string;
+  success: boolean;
+  data: {
+    product: Product;
+  };
+}

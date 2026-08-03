@@ -1,4 +1,4 @@
-import { CategoriesResponse } from "@/types/category.types";
+import { CategoriesResponse, CategoryResponse } from "@/types/category.types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
 
@@ -11,6 +11,17 @@ export const useGetCategoriesQuery = (page: number, limit: number) => {
       );
       return response.data;
     },
+  });
+};
+
+export const useGetCategoryByIdQuery = (id: string) => {
+  return useQuery({
+    queryKey: ["category", id],
+    queryFn: async (): Promise<CategoryResponse> => {
+      const response = await apiClient.get(`/categories/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
   });
 };
 

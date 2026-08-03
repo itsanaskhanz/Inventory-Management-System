@@ -23,3 +23,11 @@ export interface CategoriesResponse {
     pagination: Pagination;
   };
 }
+
+export interface CategoryResponse {
+  message: string;
+  success: boolean;
+  data: {
+    category: Category;
+  };
+}

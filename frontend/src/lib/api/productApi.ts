@@ -1,4 +1,4 @@
-import { ProductsResponse } from "@/types/product.types";
+import { ProductsResponse, ProductResponse } from "@/types/product.types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
 
@@ -30,6 +30,17 @@ export const useGetProductsQuery = (page: number, limit: number) => {
       );
       return response.data;
     },
+  });
+};
+
+export const useGetProductByIdQuery = (id: string) => {
+  return useQuery({
+    queryKey: ["product", id],
+    queryFn: async (): Promise<ProductResponse> => {
+      const response = await apiClient.get(`/products/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
   });
 };
 
