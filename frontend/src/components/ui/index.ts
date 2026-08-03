@@ -74,3 +74,17 @@ import { Pagination } from "./Pagination";
 
 export { Pagination };
 export type { PaginationProps };
+
+// CategoryFilter
+import type { CategoryFilterProps } from "./CategoryFilter";
+import { CategoryFilter } from "./CategoryFilter";
+
+export { CategoryFilter };
+export type { CategoryFilterProps };
+
+// StatusBadge
+import type { StatusBadgeProps } from "./StatusBadge";
+import { StatusBadge } from "./StatusBadge";
+
+export { StatusBadge };
+export type { StatusBadgeProps };
