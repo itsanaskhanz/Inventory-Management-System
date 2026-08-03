@@ -70,3 +70,26 @@ export const useDeleteUserMutation = () => {
     },
   });
 };
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+
+export const useUpdateProfileMutation = () => {
+  return useMutation({
+    mutationFn: async (data: UpdateProfileRequest): Promise<ProfileResponse> => {
+      const response = await apiClient.put("/auth/profile", data);
+      return response.data;
+    },
+  });
+};
+
+export const useDeleteAccountMutation = () => {
+  return useMutation({
+    mutationFn: async (): Promise<void> => {
+      await apiClient.delete("/auth/profile");
+    },
+  });
+};

@@ -18,6 +18,9 @@ const UpdateProductForm = ({
   const { data: categoriesData } = useGetCategoriesQuery(1, 100);
   const categories = categoriesData?.data?.categories || [];
   const [name, setName] = useState(product ? product.name : "");
+  const [description, setDescription] = useState(
+    product?.description ?? "",
+  );
   const [price, setPrice] = useState(product ? String(product.price) : "");
   const [costPrice, setCostPrice] = useState(
     product ? String(product.costPrice) : "",
@@ -27,6 +30,7 @@ const UpdateProductForm = ({
     product ? String(product.minStock) : "",
   );
   const [categoryId, setCategoryId] = useState(product?.categoryId || "");
+  const [isActive, setIsActive] = useState(product?.isActive ?? true);
 
   const handleUpdateProduct = () => {
     if (!product) return;
@@ -39,10 +43,12 @@ const UpdateProductForm = ({
         id: product.id,
         data: {
           name,
+          description: description || undefined,
           price: Number(price),
           costPrice: Number(costPrice),
           stock: Number(stock),
           minStock: Number(minStock),
+          isActive,
           categoryId: categoryId || undefined,
         },
       },
@@ -95,6 +101,13 @@ const UpdateProductForm = ({
             </option>
           ))}
         </select>
+        <textarea
+          placeholder="Description"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary resize-none"
+        />
         <Input
           placeholder="Price"
           fullWidth
@@ -123,6 +136,15 @@ const UpdateProductForm = ({
           value={minStock}
           onChange={(e) => setMinStock(e.target.value)}
         />
+        <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="h-4 w-4 accent-primary"
+          />
+          Active
+        </label>
       </div>
     </Modal>
   );

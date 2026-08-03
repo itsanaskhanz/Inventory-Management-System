@@ -9,6 +9,7 @@ export interface CreateProductRequest {
   costPrice: number;
   stock: number;
   minStock: number;
+  isActive?: boolean;
   categoryId?: string;
 }
 
