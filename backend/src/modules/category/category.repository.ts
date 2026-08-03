@@ -5,12 +5,32 @@ const create = async (data: ICreateCategory) => {
   return prisma.category.create({ data });
 };
 
-const findAll = async (userId: string) => {
-  return prisma.category.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    include: { products: true },
-  });
+const findAll = async (
+  userId: string,
+  start: number,
+  end: number,
+  limit: number,
+) => {
+  const [categories, total] = await Promise.all([
+    prisma.category.findMany({
+      where: { userId },
+      skip: start,
+      take: limit,
+      include: { products: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.category.count({ where: { userId } }),
+  ]);
+  return {
+    categories,
+    pagination: {
+      total,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: end < total,
+      hasPreviousPage: start > 0,
+    },
+  };
 };
 
 const findById = async (id: string) => {

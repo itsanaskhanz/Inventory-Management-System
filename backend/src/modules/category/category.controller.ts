@@ -1,8 +1,8 @@
 import type { Response } from "express";
-import asyncHandler from "../../utils/asyncHandler.js";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
-import { successRes } from "../../utils/response.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 import { getRouteId } from "../../utils/helpers.js";
+import { successRes } from "../../utils/response.js";
 import type { IUser } from "../auth/auth.interface.js";
 import {
   createCategoryService,
@@ -27,7 +27,11 @@ const createCategory = asyncHandler(
 const updateCategory = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = getCurrentUserId(req);
-    const data = await updateCategoryService(getRouteId(req.params.id), req.body, userId);
+    const data = await updateCategoryService(
+      getRouteId(req.params.id),
+      req.body,
+      userId,
+    );
     successRes(res, data.message, data.statusCode, data.data);
   },
 );
@@ -43,7 +47,10 @@ const deleteCategory = asyncHandler(
 const getCategoryById = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = getCurrentUserId(req);
-    const data = await getCategoryByIdService(getRouteId(req.params.id), userId);
+    const data = await getCategoryByIdService(
+      getRouteId(req.params.id),
+      userId,
+    );
     successRes(res, data.message, data.statusCode, data.data);
   },
 );
@@ -51,7 +58,9 @@ const getCategoryById = asyncHandler(
 const getCategories = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = getCurrentUserId(req);
-    const data = await getCategoriesService(userId);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const data = await getCategoriesService(userId, page, limit);
     successRes(res, data.message, data.statusCode, data.data);
   },
 );

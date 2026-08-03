@@ -1,4 +1,5 @@
 import AppError from "../../utils/error.js";
+import { countByCategoryId } from "../product/product.repository.js";
 import { ICreateCategory } from "./category.interface.js";
 import {
   create,
@@ -7,7 +8,6 @@ import {
   remove,
   update,
 } from "./category.repository.js";
-import { countByCategoryId } from "../product/product.repository.js";
 
 const ensureOwnership = (
   category: { userId: string | null },
@@ -22,10 +22,7 @@ const ensureOwnership = (
   }
 };
 
-const createCategoryService = async (
-  userId: string,
-  data: ICreateCategory,
-) => {
+const createCategoryService = async (userId: string, data: ICreateCategory) => {
   const category = await create({ name: data.name, userId });
   return {
     statusCode: 201,
@@ -87,12 +84,18 @@ const getCategoryByIdService = async (id: string, userId: string) => {
   };
 };
 
-const getCategoriesService = async (userId: string) => {
-  const categories = await findAll(userId);
+const getCategoriesService = async (
+  userId: string,
+  page: number,
+  limit: number,
+) => {
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const { categories, pagination } = await findAll(userId, start, end, limit);
   return {
     statusCode: 200,
     message: "Categories found successfully",
-    data: { categories },
+    data: { categories, pagination },
   };
 };
 
