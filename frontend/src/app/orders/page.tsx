@@ -1,0 +1,362 @@
+"use client";
+import {
+  Button,
+  CategoryFilter,
+  Icon,
+  Input,
+  Modal,
+  Pagination,
+  Typography,
+} from "@/components/ui";
+import AppLayout from "@/layouts/AppLayout";
+import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
+import { useCreateOrderMutation } from "@/lib/api/orderApi";
+import { useGetProductsQuery } from "@/lib/api/productApi";
+import { CreateOrder } from "@/types/order.types";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useState } from "react";
+import { toast } from "react-toastify";
+
+const Page = () => {
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const queryClient = useQueryClient();
+  const { mutate: createOrder, isPending: isCreatingOrderLoading } =
+    useCreateOrderMutation();
+  const { data: categoriesResponse } = useGetCategoriesQuery(1, 10);
+  const categoriesData = categoriesResponse?.data.categories;
+  const { data: productsResponse } = useGetProductsQuery(page, limit);
+  const { products: productsData, pagination } = productsResponse?.data || {};
+  const totalPages = pagination?.totalPages || 1;
+
+  const [cartItems, setCartItems] = useState<
+    { id: string; name: string; price: number; quantity: number }[]
+  >([]);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+  const tax = subtotal * 0.0;
+  const total = subtotal + tax;
+
+  const handleConfirmOrder = () => {
+    if (!customerName.trim() || !customerPhone.trim()) {
+      toast.error("Please provide customer name and phone");
+      return;
+    }
+    setIsConfirmOpen(false);
+    handleSubmitOrder();
+  };
+
+  const handleSubmitOrder = () => {
+    if (cartItems.length === 0) return;
+
+    const payload: CreateOrder = {
+      subtotal,
+      tax,
+      total,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      products: cartItems.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+      })),
+    };
+
+    createOrder(payload, {
+      onSuccess: () => {
+        toast.success("Order placed successfully");
+        setCartItems([]);
+        setCustomerName("");
+        setCustomerPhone("");
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+      },
+      onError: (error) => {
+        if (axios.isAxiosError(error)) {
+          toast.error(error.response?.data?.message || "Failed to place order");
+        } else {
+          toast.error("Failed to place order");
+        }
+      },
+    });
+  };
+
+  const updateQuantity = (id: string, delta: number) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+            : item,
+        )
+        .filter((item) => item.quantity > 0),
+    );
+  };
+  const addToCart = (id: string) => {
+    const existing = cartItems.find((i) => i.id === id);
+
+    const product = productsData?.find((p) => p.id === id);
+    if (!product) return;
+
+    if (existing) {
+      updateQuantity(id, 1);
+    } else {
+      setCartItems((prev) => [
+        ...prev,
+        {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: 1,
+        },
+      ]);
+    }
+  };
+  const filteredProducts = productsData?.filter((product) => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(search.toLowerCase().trim());
+    const matchesCategory =
+      selectedCategory === "All" || product.categoryId === selectedCategory;
+    const isActive = product.isActive !== false;
+    return isActive && matchesSearch && matchesCategory;
+  });
+
+  return (
+    <AppLayout>
+      <div className="h-full flex gap-6 p-4">
+        <div className="flex-1 flex flex-col gap-6">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products..."
+            fullWidth
+          />
+
+          <CategoryFilter
+            categories={categoriesData}
+            selected={selectedCategory}
+            onSelect={setSelectedCategory}
+          />
+
+          <div className="flex-1">
+            <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {filteredProducts && filteredProducts.length > 0 ? (
+                filteredProducts.map((product, key) => (
+                  <button
+                    key={key}
+                    onClick={() => addToCart(product.id)}
+                    className="hover:bg-background-tertiary border border-border rounded-lg p-3 transition-all hover:border-primary/20 cursor-pointer"
+                  >
+                    <div className="aspect-square bg-background-tertiary rounded-lg mb-2 flex items-center justify-center">
+                      <Icon
+                        name="Package"
+                        className="text-foreground-tertiary/40"
+                      />
+                    </div>
+                    <Typography variant="body2" weight="medium">
+                      {product.name}
+                    </Typography>
+                    <Typography variant="caption" color="secondary">
+                      Price: {product.price}
+                    </Typography>
+                  </button>
+                ))
+              ) : (
+                <div className="col-span-full h-64 flex flex-col items-center justify-center text-center">
+                  <Icon name="Package" className="mb-2 opacity-30" />
+                  <Typography variant="body2" color="secondary">
+                    No products available
+                  </Typography>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-center mt-6">
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="min-w-100 w-100 h-full border border-border rounded-lg p-4 flex flex-col ">
+          <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center mb-4">
+            <Typography variant="h3">${total.toFixed(2)}</Typography>
+            <Typography variant="caption" color="secondary">
+              {cartItems.length} items
+            </Typography>
+          </div>
+
+          <div className="flex justify-between items-center mb-3">
+            <Typography variant="h6" weight="bold">
+              Order
+            </Typography>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setCartItems([])}
+            >
+              Clear
+            </Button>
+          </div>
+
+          <div className="flex-1 px-2 ">
+            {cartItems.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center">
+                <Icon name="ShoppingBag" className="mb-2 opacity-30" />
+                <Typography variant="body2">Cart is empty</Typography>
+              </div>
+            ) : (
+              cartItems.map((item, key) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between py-3 border-b border-border"
+                >
+                  <div className="flex-1">
+                    <Typography variant="body2">{item.name}</Typography>
+                    <Typography variant="caption" color="secondary">
+                      ${item.price.toFixed(2)} × {item.quantity}
+                    </Typography>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => updateQuantity(item.id, -1)}
+                    >
+                      <Icon name="Minus" />
+                    </Button>
+                    <Typography variant="body2">{item.quantity}</Typography>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => updateQuantity(item.id, 1)}
+                    >
+                      <Icon name="Plus" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between text-sm">
+              <Typography variant="body2" color="secondary">
+                Subtotal
+              </Typography>
+              <Typography variant="body2">${subtotal.toFixed(2)}</Typography>
+            </div>
+            <div className="flex justify-between">
+              <Typography variant="body2" color="secondary">
+                Tax
+              </Typography>
+              <Typography variant="body2">${tax.toFixed(2)}</Typography>
+            </div>
+            <div className="flex justify-between">
+              <Typography variant="body1" weight="bold">
+                Total
+              </Typography>
+              <Typography variant="body1" weight="bold">
+                ${total.toFixed(2)}
+              </Typography>
+            </div>
+            <Button
+              variant="primary"
+              fullWidth
+              disabled={cartItems.length === 0 || isCreatingOrderLoading}
+              onClick={() => setIsConfirmOpen(true)}
+            >
+              {isCreatingOrderLoading
+                ? "Placing order..."
+                : `Pay $${total.toFixed(2)}`}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <Modal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onCancel={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmOrder}
+        title="Confirm Order"
+        description="Are you sure you want to place this order?"
+        confirmText="Confirm"
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <Typography variant="body2" weight="medium">
+              Customer Name
+            </Typography>
+            <Input
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Enter customer name"
+              fullWidth
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Typography variant="body2" weight="medium">
+              Customer Phone
+            </Typography>
+            <Input
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Enter customer phone"
+              fullWidth
+            />
+          </div>
+          <hr className="my-2" />
+          {cartItems.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between text-sm"
+            >
+              <Typography variant="body2">
+                {item.name} × {item.quantity}
+              </Typography>
+              <Typography variant="body2">
+                ${(item.price * item.quantity).toFixed(2)}
+              </Typography>
+            </div>
+          ))}
+          <hr className="my-2" />
+          <div className="flex items-center justify-between">
+            <Typography variant="body2" color="secondary">
+              Subtotal
+            </Typography>
+            <Typography variant="body2">${subtotal.toFixed(2)}</Typography>
+          </div>
+          <div className="flex items-center justify-between">
+            <Typography variant="body2" color="secondary">
+              Tax
+            </Typography>
+            <Typography variant="body2">${tax.toFixed(2)}</Typography>
+          </div>
+          <div className="flex items-center justify-between">
+            <Typography variant="body1" weight="bold">
+              Total
+            </Typography>
+            <Typography variant="body1" weight="bold">
+              ${total.toFixed(2)}
+            </Typography>
+          </div>
+        </div>
+      </Modal>
+    </AppLayout>
+  );
+};
+
+export default Page;
