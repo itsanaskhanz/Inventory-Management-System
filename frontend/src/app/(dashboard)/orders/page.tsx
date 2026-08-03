@@ -8,7 +8,6 @@ import {
   Pagination,
   Typography,
 } from "@/components/ui";
-import AppLayout from "@/layouts/AppLayout";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
@@ -132,8 +131,8 @@ const Page = () => {
   });
 
   return (
-    <AppLayout>
-      <div className="h-full flex gap-6 p-4">
+    <>
+      <div className="h-full flex gap-6">
         <div className="flex-1 flex flex-col gap-6">
           <Input
             value={search}
@@ -190,7 +189,7 @@ const Page = () => {
           </div>
         </div>
 
-        <div className="min-w-100 w-100 h-full border border-border rounded-lg p-4 flex flex-col ">
+        <div className="min-w-100 w-100 h-full border border-border rounded-lg p-6 flex flex-col ">
           <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center mb-4">
             <Typography variant="h3">${total.toFixed(2)}</Typography>
             <Typography variant="caption" color="secondary">
@@ -355,7 +354,7 @@ const Page = () => {
           </div>
         </div>
       </Modal>
-    </AppLayout>
+    </>
   );
 };
 

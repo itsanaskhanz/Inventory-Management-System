@@ -3,7 +3,6 @@ import { Button, Icon, Spinner, Table } from "@/components/ui";
 import CreateContractorModal from "@/components/domain/contractors/CreateContractorModal";
 import DeleteContractorModal from "@/components/domain/contractors/DeleteContractorModal";
 import { UserRole } from "@/config/roles";
-import AppLayout from "@/layouts/AppLayout";
 import { useGetUsersByRole } from "@/lib/api/authApi";
 import { User } from "@/types/auth.types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -96,8 +95,8 @@ const Page = () => {
   ];
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-4">
+    <>
+      <div className="flex flex-col gap-6">
         <div className="flex items-center justify-end">
           <Button onClick={() => setIsCreateContractorModalOpen(true)}>
             Create New Contractor
@@ -129,7 +128,7 @@ const Page = () => {
         isOpen={isCreateContractorModalOpen}
         onClose={() => setIsCreateContractorModalOpen(false)}
       />
-    </AppLayout>
+    </>
   );
 };
 

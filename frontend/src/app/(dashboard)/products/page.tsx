@@ -3,11 +3,11 @@ import CreateProductModal from "@/components/domain/products/CreateProductModal"
 import DeleteProductModal from "@/components/domain/products/DeleteProductModal";
 import UpdateProductModal from "@/components/domain/products/UpdateProductModal";
 import { Button, CategoryFilter, Icon, Input, Spinner, StatusBadge, Table } from "@/components/ui";
-import AppLayout from "@/layouts/AppLayout";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useState } from "react";
 
 const Page = () => {
@@ -50,14 +50,16 @@ const Page = () => {
 
   const columns: ColumnDef<Product>[] = [
     {
-      header: "#",
-      accessorKey: "index",
-      enableSorting: false,
-      cell: ({ row }) => row.index + 1,
-    },
-    {
       header: "ID",
       accessorKey: "id",
+      cell: ({ row }) => {
+        const id = row.original.id;
+        return (
+          <Link href={`/products/${id}`} className="font-medium underline">
+            {id}
+          </Link>
+        );
+      },
     },
     {
       header: "Name",
@@ -69,22 +71,8 @@ const Page = () => {
       cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
     },
     {
-      header: "Cost Price",
-      accessorKey: "costPrice",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
-    },
-    {
       header: "Stock",
       accessorKey: "stock",
-    },
-    {
-      header: "Min Stock",
-      accessorKey: "minStock",
-    },
-    {
-      header: "Active",
-      accessorKey: "isActive",
-      cell: ({ getValue }) => (getValue() ? "Yes" : "No"),
     },
     {
       header: "Status",
@@ -95,11 +83,6 @@ const Page = () => {
       header: "Category",
       accessorKey: "category",
       cell: ({ row }) => row.original.category?.name || "—",
-    },
-    {
-      header: "Description",
-      accessorKey: "description",
-      cell: ({ getValue }) => (getValue() as string) || "—",
     },
     {
       header: "Actions",
@@ -135,27 +118,25 @@ const Page = () => {
   ];
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-end">
-          <Button onClick={() => setIsCreateProductModalOpen(true)}>
-            Create New Product
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-3">
+    <>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-3">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search products..."
             fullWidth
           />
-          <CategoryFilter
-            categories={categoriesData}
-            selected={selectedCategory}
-            onSelect={setSelectedCategory}
-          />
+          <Button onClick={() => setIsCreateProductModalOpen(true)}>
+            Create New Product
+          </Button>
         </div>
+
+        <CategoryFilter
+          categories={categoriesData}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
 
         {isLoading ? (
           <Spinner />
@@ -190,7 +171,7 @@ const Page = () => {
         isOpen={isCreateProductModalOpen}
         onClose={() => setIsCreateProductModalOpen(false)}
       />
-    </AppLayout>
+    </>
   );
 };
 

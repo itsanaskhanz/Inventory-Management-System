@@ -1,6 +1,5 @@
 "use client";
 import { Button, Spinner, StatusBadge, Table, Typography } from "@/components/ui";
-import AppLayout from "@/layouts/AppLayout";
 import { useGetOrderByIdQuery } from "@/lib/api/orderApi";
 import { IOrderProduct } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -34,8 +33,7 @@ const OrderDetailPage = () => {
   ];
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <Typography variant="h5" weight="bold">
             Order Details
@@ -138,7 +136,6 @@ const OrderDetailPage = () => {
           </div>
         )}
       </div>
-    </AppLayout>
   );
 };
 

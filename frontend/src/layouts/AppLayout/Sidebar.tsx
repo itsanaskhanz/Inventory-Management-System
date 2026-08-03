@@ -10,8 +10,8 @@ function Sidebar() {
   const navItems = getNavigationForRole(user?.role as UserRole);
 
   return (
-    <div className="shrink-0 h-fit w-22 m-4 py-5 flex flex-col items-center gap-6 rounded-2xl bg-background border border-border shadow-lg shadow-black/5">
-      <div className="flex flex-col gap-2 border-t border-border pt-5 w-full px-2">
+    <div className="shrink-0 h-80wh w-22 m-4 py-5 flex flex-col items-center gap-6 rounded-2xl bg-background border border-border shadow-lg shadow-black/5">
+      <div className="flex flex-col gap-2 border-t border-border pt-5 w-full px-2 h-full">
         {navItems.map((navItem, key) => (
           <NavLink
             href={navItem.href}

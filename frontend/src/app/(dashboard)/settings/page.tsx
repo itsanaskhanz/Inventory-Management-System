@@ -1,6 +1,5 @@
 "use client";
 import { Button, Input, Modal, Typography } from "@/components/ui";
-import AppLayout from "@/layouts/AppLayout";
 import {
   useDeleteAccountMutation,
   useUpdateProfileMutation,
@@ -70,7 +69,7 @@ const SettingsPage = () => {
     (password && password.length > 0);
 
   return (
-    <AppLayout>
+    <>
       <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
         <Typography variant="h5" weight="bold" align="center">
           Settings
@@ -178,7 +177,7 @@ const SettingsPage = () => {
           You will be logged out of the application.
         </Typography>
       </Modal>
-    </AppLayout>
+    </>
   );
 };
 

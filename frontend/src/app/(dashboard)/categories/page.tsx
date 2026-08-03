@@ -3,10 +3,10 @@ import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
 import CreateCategoryModal from "@/components/domain/categories/CreateCategoryModal";
 import DeleteCategoryModal from "@/components/domain/categories/DeleteCategoryModal";
 import UpdateCategoryModal from "@/components/domain/categories/UpdateCategoryModal";
-import AppLayout from "@/layouts/AppLayout";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { Category } from "@/types/category.types";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useState } from "react";
 
 const Page = () => {
@@ -43,14 +43,16 @@ const Page = () => {
   // Columns
   const columns: ColumnDef<Category>[] = [
     {
-      header: "#",
-      accessorKey: "index",
-      enableSorting: false,
-      cell: ({ row }) => row.index + 1,
-    },
-    {
       header: "ID",
       accessorKey: "id",
+      cell: ({ row }) => {
+        const id = row.original.id;
+        return (
+          <Link href={`/categories/${id}`} className="font-medium underline">
+            {id}
+          </Link>
+        );
+      },
     },
     {
       header: "Name",
@@ -60,22 +62,6 @@ const Page = () => {
       header: "Products",
       accessorKey: "products",
       cell: ({ row }) => row.original.products?.length ?? 0,
-    },
-    {
-      header: "Created At",
-      accessorKey: "createdAt",
-      cell: ({ getValue }) => {
-        const date = getValue() as string;
-        return new Date(date).toLocaleDateString();
-      },
-    },
-    {
-      header: "Updated At",
-      accessorKey: "updatedAt",
-      cell: ({ getValue }) => {
-        const date = getValue() as string;
-        return new Date(date).toLocaleDateString();
-      },
     },
     {
       header: "Actions",
@@ -111,8 +97,8 @@ const Page = () => {
   ];
 
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-4">
+    <>
+      <div className="flex flex-col gap-6">
         <div className="flex items-center justify-end">
           <Button onClick={() => setIsCreateCategoryModalOpen(true)}>
             Create New Category
@@ -159,7 +145,7 @@ const Page = () => {
         isOpen={isCreateCategoryModalOpen}
         onClose={() => setIsCreateCategoryModalOpen(false)}
       />
-    </AppLayout>
+    </>
   );
 };
 
