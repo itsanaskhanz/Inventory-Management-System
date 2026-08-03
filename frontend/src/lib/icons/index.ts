@@ -13,13 +13,14 @@ import {
   Pencil,
   Plus,
   Printer,
+  Search,
+  Settings,
   ShoppingBag,
   Store,
   Trash,
   TrendingUp,
   Users,
   X,
-  Settings,
 } from "lucide-react";
 
 export const Icons = {
@@ -43,5 +44,6 @@ export const Icons = {
   CreditCard,
   Printer,
   Clock,
+  Search,
   Settings,
 };

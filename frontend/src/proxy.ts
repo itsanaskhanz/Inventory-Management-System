@@ -3,13 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { hasAccessToRoute } from "./config/routes";
 import { JwtPayload } from "./types/auth.types";
 
-const SKIP_MIDDLEWARE = [
-  "/_next/",
-  "/favicon.ico",
-  "/images/",
-  "/fonts/",
-];
-const PUBLIC_PATHS = ["/auth/login", "/auth/register"];
+const SKIP_MIDDLEWARE = ["/_next/", "/favicon.ico", "/images/", "/fonts/"];
+const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/home", "/color-guid"];
 
 export const proxy = async (request: NextRequest) => {
   const pathname = request.nextUrl.pathname;

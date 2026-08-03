@@ -1,3 +1,4 @@
+import { Icons } from "@/lib/icons";
 import { InputHTMLAttributes } from "react";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -8,4 +9,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
   inputSize?: "sm" | "md" | "lg";
   rounded?: "sm" | "md" | "lg";
+  label?: string;
+  leftIcon?: keyof typeof Icons;
+  rightIcon?: keyof typeof Icons;
 }
