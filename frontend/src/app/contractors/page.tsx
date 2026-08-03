@@ -1,5 +1,7 @@
 "use client";
-import { Spinner, Table } from "@/components/ui";
+import { Button, Icon, Spinner, Table } from "@/components/ui";
+import CreateContractorModal from "@/components/domain/contractors/CreateContractorModal";
+import DeleteContractorModal from "@/components/domain/contractors/DeleteContractorModal";
 import { UserRole } from "@/config/roles";
 import AppLayout from "@/layouts/AppLayout";
 import { useGetUsersByRole } from "@/lib/api/authApi";
@@ -7,23 +9,30 @@ import { User } from "@/types/auth.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
-const PAGE_SIZES = [5, 10, 25, 50];
-
 const Page = () => {
-  const [limit, setLimit] = useState(10);
+  // States
+  const limit = 10;
   const [page, setPage] = useState(1);
-  const { data: response, isLoading, isError } = useGetUsersByRole(
-    UserRole.ADMIN,
-    page,
-    limit,
-  );
-
+  // Modals
+  const [isCreateContractorModalOpen, setIsCreateContractorModalOpen] =
+    useState(false);
+  const [isDeleteContractorModelOpen, setIsDeleteContractorModelOpen] =
+    useState(false);
+  const [selectedContractorToDelete, setSelectedContractorToDelete] = useState<
+    string | null
+  >(null);
+  // API Hooks
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetUsersByRole(UserRole.ADMIN, page, limit);
+  // Variables
   const users = response?.data?.users || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
-
+  // Columns
   const columns: ColumnDef<User>[] = [
     {
-      // count number
       header: "#",
       accessorKey: "count",
       enableSorting: false,
@@ -62,32 +71,37 @@ const Page = () => {
         return new Date(date).toLocaleDateString();
       },
     },
+    {
+      header: "Actions",
+      accessorKey: "actions",
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const id = row.original.id;
+        return (
+          <div className="flex items-center gap-2">
+            <button
+              className="cursor-pointer"
+              onClick={() => (
+                setIsDeleteContractorModelOpen(true),
+                setSelectedContractorToDelete(id)
+              )}
+            >
+              <Icon name="Trash" size="sm" color="red" />
+            </button>
+          </div>
+        );
+      },
+    },
   ];
 
   return (
     <AppLayout>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <label htmlFor="page-size" className="text-sm text-foreground-secondary">
-              Rows per page
-            </label>
-            <select
-              id="page-size"
-              value={limit}
-              onChange={(e) => {
-                setLimit(Number(e.target.value));
-                setPage(1);
-              }}
-              className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
-            >
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center justify-end">
+          <Button onClick={() => setIsCreateContractorModalOpen(true)}>
+            Create New Contractor
+          </Button>
         </div>
 
         {isLoading ? (
@@ -106,6 +120,15 @@ const Page = () => {
           />
         )}
       </div>
+      <DeleteContractorModal
+        isOpen={isDeleteContractorModelOpen}
+        contractorId={selectedContractorToDelete}
+        onClose={() => setIsDeleteContractorModelOpen(false)}
+      />
+      <CreateContractorModal
+        isOpen={isCreateContractorModalOpen}
+        onClose={() => setIsCreateContractorModalOpen(false)}
+      />
     </AppLayout>
   );
 };

@@ -1,17 +1,33 @@
 "use client";
-import { Spinner, Table } from "@/components/ui";
+import { Button, Icon, Spinner, Table } from "@/components/ui";
+import CreateProductModal from "@/components/domain/products/CreateProductModal";
+import DeleteProductModal from "@/components/domain/products/DeleteProductModal";
+import UpdateProductModal from "@/components/domain/products/UpdateProductModal";
 import AppLayout from "@/layouts/AppLayout";
 import { useGetProductsQuery } from "@/lib/api/productApi";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
-const PAGE_SIZES = [5, 10, 25, 50];
-
 const Page = () => {
-  const [limit, setLimit] = useState(10);
+  const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
+    useState(false);
+  const [isUpdateProductModalOpen, setIsUpdateProductModalOpen] =
+    useState(false);
+  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] =
+    useState(false);
+  const [selectedProductToDelete, setSelectedProductToDelete] = useState<
+    string | null
+  >(null);
+  const [selectedProductToUpdate, setSelectedProductToUpdate] =
+    useState<Product | null>(null);
+  const limit = 10;
   const [page, setPage] = useState(1);
-  const { data: response, isLoading, isError } = useGetProductsQuery(page, limit);
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetProductsQuery(page, limit);
 
   const products: Product[] = response?.data?.products || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
@@ -68,32 +84,46 @@ const Page = () => {
       accessorKey: "description",
       cell: ({ getValue }) => (getValue() as string) || "—",
     },
+    {
+      header: "Actions",
+      accessorKey: "actions",
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const id = row.original.id;
+        return (
+          <div className="flex items-center gap-6">
+            <button
+              className="cursor-pointer"
+              onClick={() => (
+                setSelectedProductToUpdate(row.original),
+                setIsUpdateProductModalOpen(true)
+              )}
+            >
+              <Icon name="Pencil" size="sm" />
+            </button>
+            <button
+              className="cursor-pointer"
+              onClick={() => (
+                setIsDeleteProductModalOpen(true),
+                setSelectedProductToDelete(id)
+              )}
+            >
+              <Icon name="Trash" size="sm" color="red" />
+            </button>
+          </div>
+        );
+      },
+    },
   ];
 
   return (
     <AppLayout>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <label htmlFor="page-size" className="text-sm text-foreground-secondary">
-              Rows per page
-            </label>
-            <select
-              id="page-size"
-              value={limit}
-              onChange={(e) => {
-                setLimit(Number(e.target.value));
-                setPage(1);
-              }}
-              className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
-            >
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center justify-end">
+          <Button onClick={() => setIsCreateProductModalOpen(true)}>
+            Create New Product
+          </Button>
         </div>
 
         {isLoading ? (
@@ -112,6 +142,23 @@ const Page = () => {
           />
         )}
       </div>
+      <DeleteProductModal
+        isOpen={isDeleteProductModalOpen}
+        productId={selectedProductToDelete}
+        onClose={() => setIsDeleteProductModalOpen(false)}
+      />
+      <UpdateProductModal
+        isOpen={isUpdateProductModalOpen}
+        product={selectedProductToUpdate}
+        onClose={() => {
+          setIsUpdateProductModalOpen(false);
+          setSelectedProductToUpdate(null);
+        }}
+      />
+      <CreateProductModal
+        isOpen={isCreateProductModalOpen}
+        onClose={() => setIsCreateProductModalOpen(false)}
+      />
     </AppLayout>
   );
 };
