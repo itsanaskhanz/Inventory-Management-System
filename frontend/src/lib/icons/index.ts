@@ -1,18 +1,25 @@
 import {
+  Clock,
+  CreditCard,
   Eye,
   EyeClosed,
   LayoutDashboard,
   LayoutGrid,
   Loader,
   LogOut,
+  Minus,
   Newspaper,
   Package,
   Pencil,
+  Plus,
+  Printer,
   ShoppingBag,
+  Store,
   Trash,
   TrendingUp,
   Users,
   X,
+  Settings,
 } from "lucide-react";
 
 export const Icons = {
@@ -30,4 +37,11 @@ export const Icons = {
   LayoutGrid,
   TrendingUp,
   Trash,
+  Store,
+  Plus,
+  Minus,
+  CreditCard,
+  Printer,
+  Clock,
+  Settings,
 };
