@@ -7,7 +7,9 @@ import {
   LogOut,
   Newspaper,
   Package,
+  Pencil,
   ShoppingBag,
+  Trash,
   TrendingUp,
   Users,
   X,
@@ -24,6 +26,8 @@ export const Icons = {
   X,
   Users,
   Package,
+  Pencil,
   LayoutGrid,
   TrendingUp,
+  Trash,
 };

@@ -62,3 +62,11 @@ export const useGetUsersByRole = (
     },
   });
 };
+
+export const useDeleteUserMutation = () => {
+  return useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      await apiClient.delete(`/auth/${id}`);
+    },
+  });
+};

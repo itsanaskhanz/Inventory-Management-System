@@ -1,8 +1,4 @@
-export type Status =
-  | "IN_STOCK"
-  | "LOW_STOCK"
-  | "OUT_OF_STOCK"
-  | "DISCONTINUED";
+export type Status = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | "DISCONTINUED";
 
 export interface Category {
   id: string;

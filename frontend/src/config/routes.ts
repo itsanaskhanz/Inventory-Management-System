@@ -30,6 +30,13 @@ const APP_ROUTES: IRoute[] = [
     roles: [UserRole.ADMIN],
     icon: "ShoppingBag",
   },
+  {
+    id: "Categories",
+    label: "Categories",
+    href: "/categories",
+    roles: [UserRole.ADMIN],
+    icon: "LayoutGrid",
+  },
 ];
 
 const hasAccessToRoute = (pathname: string, userRole: UserRole): boolean => {
