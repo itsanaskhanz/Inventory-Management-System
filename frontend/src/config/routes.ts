@@ -37,6 +37,27 @@ const APP_ROUTES: IRoute[] = [
     roles: [UserRole.ADMIN],
     icon: "LayoutGrid",
   },
+  {
+    id: "POS",
+    label: "POS",
+    href: "/orders",
+    roles: [UserRole.ADMIN],
+    icon: "Store",
+  },
+  {
+    id: "Order History",
+    label: "Order History",
+    href: "/orderhistory",
+    roles: [UserRole.ADMIN],
+    icon: "Clock",
+  },
+  {
+    id: "Settings",
+    label: "Settings",
+    href: "/settings",
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    icon: "Settings",
+  },
 ];
 
 const hasAccessToRoute = (pathname: string, userRole: UserRole): boolean => {

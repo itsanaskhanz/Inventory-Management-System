@@ -1,7 +1,14 @@
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import { Typography } from "../Typography";
-import { closeButton, container, overlay } from "./Modal.styles";
+import {
+  body,
+  closeButton,
+  container,
+  footer,
+  header,
+  overlay,
+} from "./Modal.styles";
 import { ModalProps } from "./Modal.types";
 
 const Modal = ({
@@ -24,24 +31,33 @@ const Modal = ({
           <Icon name="X" size="sm" />
         </Button>
 
-        {title && <Typography variant="h3">{title}</Typography>}
-        {description && (
-          <Typography variant="body2" color="secondary">
-            {description}
-          </Typography>
+        {(title || description) && (
+          <div className={header}>
+            {title && (
+              <Typography variant="h4" weight="bold">
+                {title}
+              </Typography>
+            )}
+            {description && (
+              <Typography variant="body2" color="secondary">
+                {description}
+              </Typography>
+            )}
+          </div>
         )}
-        <hr className="my-4" />
 
-        <div className="py-2 px-4">{children}</div>
+        <div className={body}>{children}</div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          {onCancel && (
-            <Button onClick={onCancel} variant="secondary">
-              {cancelText}
-            </Button>
-          )}
-          {onConfirm && <Button onClick={onConfirm}>{confirmText}</Button>}
-        </div>
+        {(onCancel || onConfirm) && (
+          <div className={footer}>
+            {onCancel && (
+              <Button onClick={onCancel} variant="secondary">
+                {cancelText}
+              </Button>
+            )}
+            {onConfirm && <Button onClick={onConfirm}>{confirmText}</Button>}
+          </div>
+        )}
       </div>
     </div>
   );
