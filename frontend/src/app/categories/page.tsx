@@ -1,5 +1,5 @@
 "use client";
-import { Button, Icon, Spinner, Table } from "@/components/ui";
+import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
 import CreateCategoryModal from "@/components/domain/categories/CreateCategoryModal";
 import DeleteCategoryModal from "@/components/domain/categories/DeleteCategoryModal";
 import UpdateCategoryModal from "@/components/domain/categories/UpdateCategoryModal";
@@ -12,6 +12,7 @@ import { useState } from "react";
 const Page = () => {
   // States
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const limit = 10;
   // API Hooks
   const {
@@ -36,6 +37,9 @@ const Page = () => {
 
   // Data to load
   const categories: Category[] = response?.data?.categories || [];
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(search.toLowerCase().trim()),
+  );
   // Columns
   const columns: ColumnDef<Category>[] = [
     {
@@ -115,6 +119,13 @@ const Page = () => {
           </Button>
         </div>
 
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search categories..."
+          fullWidth
+        />
+
         {isLoading ? (
           <Spinner />
         ) : isError ? (
@@ -123,7 +134,7 @@ const Page = () => {
           </div>
         ) : (
           <Table
-            data={categories}
+            data={filteredCategories}
             columns={columns}
             page={page}
             setPage={setPage}

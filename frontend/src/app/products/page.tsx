@@ -1,15 +1,18 @@
 "use client";
-import { Button, Icon, Spinner, Table } from "@/components/ui";
 import CreateProductModal from "@/components/domain/products/CreateProductModal";
 import DeleteProductModal from "@/components/domain/products/DeleteProductModal";
 import UpdateProductModal from "@/components/domain/products/UpdateProductModal";
+import { Button, CategoryFilter, Icon, Input, Spinner, StatusBadge, Table } from "@/components/ui";
 import AppLayout from "@/layouts/AppLayout";
+import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
 const Page = () => {
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
     useState(false);
   const [isUpdateProductModalOpen, setIsUpdateProductModalOpen] =
@@ -23,6 +26,8 @@ const Page = () => {
     useState<Product | null>(null);
   const limit = 10;
   const [page, setPage] = useState(1);
+  const { data: categoriesResponse } = useGetCategoriesQuery(1, 100);
+  const categoriesData = categoriesResponse?.data.categories;
   const {
     data: response,
     isLoading,
@@ -31,6 +36,17 @@ const Page = () => {
 
   const products: Product[] = response?.data?.products || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(search.toLowerCase().trim());
+    const matchesCategory =
+      selectedCategory === "All" ||
+      product.categoryId === selectedCategory ||
+      product.category?.id === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -73,6 +89,7 @@ const Page = () => {
     {
       header: "Status",
       accessorKey: "status",
+      cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
     },
     {
       header: "Category",
@@ -126,6 +143,20 @@ const Page = () => {
           </Button>
         </div>
 
+        <div className="flex flex-col gap-3">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products..."
+            fullWidth
+          />
+          <CategoryFilter
+            categories={categoriesData}
+            selected={selectedCategory}
+            onSelect={setSelectedCategory}
+          />
+        </div>
+
         {isLoading ? (
           <Spinner />
         ) : isError ? (
@@ -134,7 +165,7 @@ const Page = () => {
           </div>
         ) : (
           <Table
-            data={products}
+            data={filteredProducts}
             columns={columns}
             page={page}
             setPage={setPage}
