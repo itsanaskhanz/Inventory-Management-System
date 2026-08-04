@@ -16,8 +16,8 @@ const getReceiptData = (order: Order): ReceiptData => ({
   orderNumber: order.orderNumber,
   orderId: order.id,
   createdAt: order.createdAt,
-  customerName: order.customerName,
-  customerPhone: order.customerPhone,
+  customerName: order.customer?.name ?? null,
+  customerPhone: order.customer?.phone ?? null,
   items: order.products.map((p) => ({
     name: p.product?.name || p.productId,
     quantity: p.quantity,
@@ -135,23 +135,23 @@ const OrderDetailPage = () => {
                   {order.id}
                 </Typography>
               </div>
-              {order.customerName && (
+              {order.customer?.name && (
                 <div>
                   <Typography variant="body2" color="secondary">
                     Customer Name
                   </Typography>
                   <Typography variant="body1" weight="medium">
-                    {order.customerName}
+                    {order.customer.name}
                   </Typography>
                 </div>
               )}
-              {order.customerPhone && (
+              {order.customer?.phone && (
                 <div>
                   <Typography variant="body2" color="secondary">
                     Customer Phone
                   </Typography>
                   <Typography variant="body1" weight="medium">
-                    {order.customerPhone}
+                    {order.customer.phone}
                   </Typography>
                 </div>
               )}

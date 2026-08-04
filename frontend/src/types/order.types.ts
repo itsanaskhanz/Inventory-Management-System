@@ -1,4 +1,11 @@
 import { User } from "./auth.types";
+
+export interface OrderCustomer {
+  id: string;
+  name?: string | null;
+  phone?: string | null;
+}
+
 export interface IOrderProduct {
   id: string;
   quantity: number;
@@ -24,13 +31,14 @@ export interface Order {
   tax: number;
   total: number;
   status: string;
-  customerName?: string | null;
-  customerPhone?: string | null;
+  customerId?: string | null;
+  customer?: OrderCustomer | null;
   createdAt: Date;
   userId: string;
   user: User;
   products: IOrderProduct[];
 }
+
 export interface CreateOrder {
   orderNumber?: string;
   subtotal: number;
@@ -38,7 +46,6 @@ export interface CreateOrder {
   total: number;
   status?: string;
   userId?: string;
-  customerName?: string;
-  customerPhone?: string;
+  customerId?: string;
   products: CreateOrderProduct[];
 }

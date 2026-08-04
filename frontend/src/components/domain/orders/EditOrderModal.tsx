@@ -1,6 +1,8 @@
 "use client";
-import { Input, Modal, Typography } from "@/components/ui";
+import { Modal, Typography } from "@/components/ui";
+import appConfig from "@/config/app.config";
 import { ORDER_STATUSES } from "@/config/orderStatus";
+import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
 import { useUpdateOrderMutation } from "@/lib/api/orderApi";
 import { Order } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,14 +17,14 @@ const EditOrderForm = ({
 }: EditOrderModalInnerProps) => {
   const queryClient = useQueryClient();
   const { mutate: updateOrder, isPending } = useUpdateOrderMutation();
+  const { data: customers } = useGetAllCustomersQuery(appConfig.maxFetchLimit);
   const initialStatus = order.status.toUpperCase();
   const [status, setStatus] = useState<string>(
     ORDER_STATUSES.includes(initialStatus as (typeof ORDER_STATUSES)[number])
       ? initialStatus
       : order.status,
   );
-  const [customerName, setCustomerName] = useState(order.customerName ?? "");
-  const [customerPhone, setCustomerPhone] = useState(order.customerPhone ?? "");
+  const [customerId, setCustomerId] = useState(order.customerId ?? "");
 
   const statusOptions = ORDER_STATUSES.includes(
     status as (typeof ORDER_STATUSES)[number],
@@ -36,8 +38,7 @@ const EditOrderForm = ({
         id: order.id,
         data: {
           status,
-          customerName: customerName.trim(),
-          customerPhone: customerPhone.trim(),
+          customerId: customerId || undefined,
         },
       },
       {
@@ -87,20 +88,24 @@ const EditOrderForm = ({
             ))}
           </select>
         </div>
-        <Input
-          label="Customer Name"
-          placeholder="Enter customer name"
-          fullWidth
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-        />
-        <Input
-          label="Customer Phone"
-          placeholder="Enter customer phone"
-          fullWidth
-          value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value)}
-        />
+        <div className="flex flex-col gap-2">
+          <Typography variant="body2" weight="medium">
+            Customer
+          </Typography>
+          <select
+            value={customerId}
+            onChange={(e) => setCustomerId(e.target.value)}
+            className="bg-background-secondary border-1 border-border text-foreground rounded-md px-4 py-1.5 w-full focus:outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="">No customer</option>
+            {customers?.map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.name || "Unnamed"}
+                {customer.phone ? ` (${customer.phone})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </Modal>
   );

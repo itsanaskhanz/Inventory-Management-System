@@ -11,6 +11,7 @@ import {
 import appConfig from "@/config/app.config";
 import ReceiptModal from "@/components/domain/receipt/ReceiptModal";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
+import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
 import { useSearchProductsQuery } from "@/lib/api/productApi";
 import { ReceiptData, ReceiptItem } from "@/lib/receipt";
@@ -45,12 +46,15 @@ const Page = () => {
   const { products: productsData, pagination } = productsResponse?.data || {};
   const totalPages = pagination?.totalPages || 1;
 
+  const { data: customersData } = useGetAllCustomersQuery(
+    appConfig.maxFetchLimit,
+  );
+  const customers = customersData || [];
   const [cartItems, setCartItems] = useState<
     { id: string; name: string; price: number; quantity: number }[]
   >([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
   const subtotal = cartItems.reduce(
@@ -61,8 +65,8 @@ const Page = () => {
   const total = subtotal + tax;
 
   const handleConfirmOrder = () => {
-    if (!customerName.trim() || !customerPhone.trim()) {
-      toast.error("Please provide customer name and phone");
+    if (!selectedCustomerId) {
+      toast.error("Please select a customer");
       return;
     }
     setIsConfirmOpen(false);
@@ -72,12 +76,12 @@ const Page = () => {
   const handleSubmitOrder = () => {
     if (cartItems.length === 0) return;
 
+    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
     const payload: CreateOrder = {
       subtotal,
       tax,
       total,
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim(),
+      customerId: selectedCustomerId || undefined,
       products: cartItems.map((item) => ({
         productId: item.id,
         quantity: item.quantity,
@@ -101,16 +105,15 @@ const Page = () => {
           orderNumber: createdOrder.orderNumber,
           orderId: createdOrder.id,
           createdAt: createdOrder.createdAt,
-          customerName: createdOrder.customerName,
-          customerPhone: createdOrder.customerPhone,
+          customerName: selectedCustomer?.name ?? null,
+          customerPhone: selectedCustomer?.phone ?? null,
           items: receiptItems,
           subtotal: createdOrder.subtotal,
           tax: createdOrder.tax,
           total: createdOrder.total,
         });
         setCartItems([]);
-        setCustomerName("");
-        setCustomerPhone("");
+        setSelectedCustomerId("");
         queryClient.invalidateQueries({ queryKey: ["orders"] });
       },
       onError: (error) => {
@@ -353,25 +356,21 @@ const Page = () => {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
             <Typography variant="body2" weight="medium">
-              Customer Name
+              Customer
             </Typography>
-            <Input
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Enter customer name"
-              fullWidth
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Typography variant="body2" weight="medium">
-              Customer Phone
-            </Typography>
-            <Input
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="Enter customer phone"
-              fullWidth
-            />
+            <select
+              value={selectedCustomerId}
+              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+            >
+              <option value="">Select a customer</option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name || "Unnamed"}
+                  {customer.phone ? ` (${customer.phone})` : ""}
+                </option>
+              ))}
+            </select>
           </div>
           <hr className="my-2" />
           {cartItems.map((item) => (
