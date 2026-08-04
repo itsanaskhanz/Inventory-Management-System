@@ -61,7 +61,9 @@ const APP_ROUTES: IRoute[] = [
 ];
 
 const hasAccessToRoute = (pathname: string, userRole: UserRole): boolean => {
-  const route = APP_ROUTES.find((r) => r.href === pathname);
+  const route = APP_ROUTES.find(
+    (r) => pathname === r.href || pathname.startsWith(`${r.href}/`),
+  );
   if (!route) {
     console.warn(`Route not found for pathname: ${pathname}`);
     return true; // If route is not defined, allow access by default

@@ -1,6 +1,10 @@
 "use client";
 import { Icon, Input, Spinner, StatCard, Typography } from "@/components/ui";
 import appConfig from "@/config/app.config";
+import {
+  FULFILLED_ORDER_STATUSES,
+  OrderStatus,
+} from "@/config/orderStatus";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetAllOrdersQuery } from "@/lib/api/orderApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
@@ -36,20 +40,27 @@ const AdminDashboard = () => {
 
   const totalProducts = productsResponse?.data.pagination.total ?? 0;
   const totalCategories = categoriesResponse?.data.pagination.total ?? 0;
+  const fulfilledOrders = useMemo(
+    () =>
+      (ordersResponse ?? []).filter((order) =>
+        FULFILLED_ORDER_STATUSES.has(order.status.toUpperCase() as OrderStatus),
+      ),
+    [ordersResponse],
+  );
   const totalRevenue =
-    ordersResponse?.reduce((sum, order) => sum + order.total, 0) ?? 0;
+    fulfilledOrders.reduce((sum, order) => sum + order.total, 0) ?? 0;
 
   const filteredOrders = useMemo(() => {
-    if (!ordersResponse) return [];
+    if (!fulfilledOrders) return [];
     const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
     const end = endDate ? new Date(`${endDate}T23:59:59`) : null;
-    return ordersResponse.filter((order) => {
+    return fulfilledOrders.filter((order) => {
       const createdAt = new Date(order.createdAt);
       if (start && createdAt < start) return false;
       if (end && createdAt > end) return false;
       return true;
     });
-  }, [ordersResponse, startDate, endDate]);
+  }, [fulfilledOrders, startDate, endDate]);
 
   const chartData = useMemo(() => {
     const byDay = new Map<string, number>();

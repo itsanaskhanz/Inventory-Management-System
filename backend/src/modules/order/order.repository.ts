@@ -2,7 +2,11 @@ import prisma from "../../config/database.js";
 import AppError from "../../utils/error.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { Status } from "../../generated/prisma/enums.js";
-import { ICreateOrder, ICreateOrderProduct } from "./order.interface.js";
+import {
+  ICreateOrder,
+  ICreateOrderProduct,
+  IUpdateOrder,
+} from "./order.interface.js";
 
 const getProductStatus = (stock: number, minStock: number): Status => {
   if (stock <= 0) return Status.OUT_OF_STOCK;
@@ -33,6 +37,29 @@ const deductStock = async (
     }
 
     const newStock = product.stock - item.quantity;
+    await tx.product.update({
+      where: { id: item.productId },
+      data: {
+        stock: newStock,
+        status: getProductStatus(newStock, product.minStock),
+      },
+    });
+  }
+};
+
+const restoreStock = async (
+  tx: Prisma.TransactionClient,
+  products: ICreateOrderProduct[],
+) => {
+  for (const item of products) {
+    const product = await tx.product.findUnique({
+      where: { id: item.productId },
+    });
+    if (!product) {
+      throw new AppError("One or more products not found", 404, true);
+    }
+
+    const newStock = product.stock + item.quantity;
     await tx.product.update({
       where: { id: item.productId },
       data: {
@@ -146,4 +173,23 @@ const findById = async (id: string) => {
   });
 };
 
-export { create, findAll, findById, searchAll };
+export type StockAction = "deduct" | "restore" | null;
+
+const update = async (
+  id: string,
+  data: IUpdateOrder,
+  stockAction: StockAction,
+  products: ICreateOrderProduct[],
+) => {
+  return await prisma.$transaction(async (tx) => {
+    const order = await tx.order.update({ where: { id }, data });
+    if (stockAction === "restore") {
+      await restoreStock(tx, products);
+    } else if (stockAction === "deduct") {
+      await deductStock(tx, products);
+    }
+    return order;
+  });
+};
+
+export { create, findAll, findById, searchAll, update };

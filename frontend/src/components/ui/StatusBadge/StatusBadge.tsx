@@ -7,9 +7,7 @@ export const statusStyles = {
   DISCONTINUED: "bg-foreground-tertiary/15 text-foreground-secondary border-border",
   COMPLETED: "bg-success/15 text-success border-success/30",
   PENDING: "bg-warning/15 text-warning border-warning/30",
-  PROCESSING: "bg-info/15 text-info border-info/30",
   CANCELLED: "bg-danger/15 text-danger border-danger/30",
-  FAILED: "bg-danger/15 text-danger border-danger/30",
 };
 
 export const statusLabels = {
@@ -19,9 +17,7 @@ export const statusLabels = {
   DISCONTINUED: "Discontinued",
   COMPLETED: "Completed",
   PENDING: "Pending",
-  PROCESSING: "Processing",
   CANCELLED: "Cancelled",
-  FAILED: "Failed",
 };
 
 export type StatusValue = keyof typeof statusStyles;

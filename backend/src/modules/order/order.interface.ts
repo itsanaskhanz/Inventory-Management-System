@@ -42,3 +42,7 @@ export interface ICreateOrder {
   customerPhone?: string;
   products: ICreateOrderProduct[];
 }
+
+export type IUpdateOrder = Partial<
+  Pick<ICreateOrder, "status" | "customerName" | "customerPhone">
+>;

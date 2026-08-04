@@ -12,11 +12,34 @@ export const useCreateOrderMutation = () => {
   });
 };
 
+export interface UpdateOrderRequest {
+  status?: string;
+  customerName?: string;
+  customerPhone?: string;
+}
+
+export const useUpdateOrderMutation = () => {
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateOrderRequest;
+    }): Promise<CreateOrderResponse> => {
+      const response = await apiClient.put(`/orders/${id}`, data);
+      return response.data;
+    },
+  });
+};
+
 export const useGetOrdersQuery = (page: number, limit: number) => {
   return useQuery({
     queryKey: ["orders", page, limit],
     queryFn: async (): Promise<OrdersResponse> => {
-      const response = await apiClient.get(`/orders?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(
+        `/orders?page=${page}&limit=${limit}`,
+      );
       return response.data;
     },
   });
@@ -52,12 +75,10 @@ export const useGetAllOrdersQuery = (limit: number) => {
       if (pagination.totalPages <= 1) return orders;
 
       const remaining = await Promise.all(
-        Array.from(
-          { length: pagination.totalPages - 1 },
-          (_, i) =>
-            apiClient
-              .get<OrdersResponse>(`/orders?page=${i + 2}&limit=${limit}`)
-              .then((res) => res.data.data.orders),
+        Array.from({ length: pagination.totalPages - 1 }, (_, i) =>
+          apiClient
+            .get<OrdersResponse>(`/orders?page=${i + 2}&limit=${limit}`)
+            .then((res) => res.data.data.orders),
         ),
       );
 
