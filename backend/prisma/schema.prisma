@@ -21,6 +21,7 @@ model User {
   products  Product[]
   categories  Category[]
   orders  Order[]
+  customers  Customer[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -68,6 +69,17 @@ model Category {
 }
 
 
+model Customer {
+  id            String      @id @default(cuid())
+  name          String?
+  phone         String? 
+  orders        Order[]
+  userId        String?
+  user          User?  @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model Order {
   id            String      @id @default(cuid())
   orderNumber   String      @unique
@@ -75,11 +87,11 @@ model Order {
   tax           Float
   total         Float
   status        String      @default("completed") 
-  customerName  String?
-  customerPhone String? 
   createdAt     DateTime    @default(now())  
   userId        String?
   user          User?  @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  customerId    String?
+  customer      Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade) 
   products      OrderProducts[]
 }
 
