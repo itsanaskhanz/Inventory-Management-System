@@ -88,3 +88,8 @@ import { StatusBadge } from "./StatusBadge";
 
 export { StatusBadge };
 export type { StatusBadgeProps };
+
+// Footer
+import { Footer } from "./Footer";
+
+export { Footer };

@@ -1,3 +1,4 @@
+import { Footer } from "@/components/ui/Footer";
 import React from "react";
 
 const ColorsPage = () => {
@@ -29,8 +30,8 @@ const ColorsPage = () => {
   ];
 
   return (
-    <main className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto p-8">
         <h1 className="text-3xl font-bold text-foreground mb-8">Color Guide</h1>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -49,6 +50,7 @@ const ColorsPage = () => {
           ))}
         </div>
       </div>
+      <Footer />
     </main>
   );
 };
