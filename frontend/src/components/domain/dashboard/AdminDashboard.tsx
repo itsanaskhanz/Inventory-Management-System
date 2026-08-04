@@ -1,9 +1,10 @@
 "use client";
 import { Icon, Input, Spinner, StatCard, Typography } from "@/components/ui";
+import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetAllOrdersQuery } from "@/lib/api/orderApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
-import { Order } from "@/types/order.types";
+import { useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -13,7 +14,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useMemo, useState } from "react";
 
 const formatDate = (date: Date) => {
   const y = date.getFullYear();
@@ -23,13 +23,13 @@ const formatDate = (date: Date) => {
 };
 
 const AdminDashboard = () => {
-  const limit = 100;
+  const limit = appConfig.maxFetchLimit;
   const { data: productsResponse, isLoading: isProductsLoading } =
     useGetProductsQuery(1, limit);
   const { data: categoriesResponse, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery(1, limit);
   const { data: ordersResponse, isLoading: isOrdersLoading } =
-    useGetAllOrdersQuery(100);
+    useGetAllOrdersQuery(appConfig.maxFetchLimit);
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -64,8 +64,7 @@ const AdminDashboard = () => {
 
   const filteredRevenue = chartData.reduce((sum, d) => sum + d.revenue, 0);
 
-  const isLoading =
-    isProductsLoading || isCategoriesLoading || isOrdersLoading;
+  const isLoading = isProductsLoading || isCategoriesLoading || isOrdersLoading;
 
   if (isLoading) {
     return (
@@ -77,7 +76,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <StatCard
           title="Total Products"
           value={String(totalProducts)}
@@ -92,7 +91,7 @@ const AdminDashboard = () => {
         />
         <StatCard
           title="Total Revenue"
-          value={`$${totalRevenue.toFixed(2)}`}
+          value={`${appConfig.appCurrencySymbol}${totalRevenue.toFixed(2)}`}
           icon={<Icon name="TrendingUp" />}
           variant="secondary"
         />
@@ -134,7 +133,8 @@ const AdminDashboard = () => {
             {filteredOrders.length} order(s) in selected range
           </Typography>
           <Typography variant="body1" weight="bold">
-            ${filteredRevenue.toFixed(2)}
+            {appConfig.appCurrencySymbol}
+            {filteredRevenue.toFixed(2)}
           </Typography>
         </div>
 
@@ -147,11 +147,19 @@ const AdminDashboard = () => {
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 8, right: 8, bottom: 0, left: 8 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, "Revenue"]} />
+                <Tooltip
+                  formatter={(value) => [
+                    `${appConfig.appCurrencySymbol}${Number(value).toFixed(2)}`,
+                    "Revenue",
+                  ]}
+                />
                 <Line
                   type="monotone"
                   dataKey="revenue"

@@ -7,10 +7,11 @@ import { useGetUsersByRole } from "@/lib/api/authApi";
 import { User } from "@/types/auth.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
+import appConfig from "@/config/app.config";
 
 const Page = () => {
   // States
-  const limit = 10;
+  const limit = appConfig.defaultPageLimit;
   const [page, setPage] = useState(1);
   // Modals
   const [isCreateContractorModalOpen, setIsCreateContractorModalOpen] =

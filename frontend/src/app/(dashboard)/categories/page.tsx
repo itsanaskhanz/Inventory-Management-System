@@ -1,8 +1,9 @@
 "use client";
-import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
 import CreateCategoryModal from "@/components/domain/categories/CreateCategoryModal";
 import DeleteCategoryModal from "@/components/domain/categories/DeleteCategoryModal";
 import UpdateCategoryModal from "@/components/domain/categories/UpdateCategoryModal";
+import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
+import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { Category } from "@/types/category.types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -13,7 +14,7 @@ const Page = () => {
   // States
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const limit = 10;
+  const limit = appConfig.defaultPageLimit;
   // API Hooks
   const {
     data: response,
@@ -110,6 +111,7 @@ const Page = () => {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search categories..."
           fullWidth
+          leftIcon="Search"
         />
 
         {isLoading ? (

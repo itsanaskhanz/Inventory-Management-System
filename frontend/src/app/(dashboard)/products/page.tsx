@@ -2,7 +2,16 @@
 import CreateProductModal from "@/components/domain/products/CreateProductModal";
 import DeleteProductModal from "@/components/domain/products/DeleteProductModal";
 import UpdateProductModal from "@/components/domain/products/UpdateProductModal";
-import { Button, CategoryFilter, Icon, Input, Spinner, StatusBadge, Table } from "@/components/ui";
+import {
+  Button,
+  CategoryFilter,
+  Icon,
+  Input,
+  Spinner,
+  StatusBadge,
+  Table,
+} from "@/components/ui";
+import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
 import { Product } from "@/types/product.types";
@@ -24,9 +33,12 @@ const Page = () => {
   >(null);
   const [selectedProductToUpdate, setSelectedProductToUpdate] =
     useState<Product | null>(null);
-  const limit = 10;
+  const limit = appConfig.defaultPageLimit;
   const [page, setPage] = useState(1);
-  const { data: categoriesResponse } = useGetCategoriesQuery(1, 100);
+  const { data: categoriesResponse } = useGetCategoriesQuery(
+    1,
+    appConfig.maxFetchLimit,
+  );
   const categoriesData = categoriesResponse?.data.categories;
   const {
     data: response,
@@ -68,7 +80,8 @@ const Page = () => {
     {
       header: "Price",
       accessorKey: "price",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) =>
+        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
     },
     {
       header: "Stock",
@@ -120,17 +133,18 @@ const Page = () => {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products..."
-            fullWidth
-          />
+        <div className="flex items-center justify-end gap-3">
           <Button onClick={() => setIsCreateProductModalOpen(true)}>
             Create New Product
           </Button>
         </div>
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search products..."
+          fullWidth
+          leftIcon="Search"
+        />
 
         <CategoryFilter
           categories={categoriesData}

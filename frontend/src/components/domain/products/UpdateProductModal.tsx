@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import appConfig from "@/config/app.config";
 
 const UpdateProductForm = ({
   product,
@@ -15,7 +16,10 @@ const UpdateProductForm = ({
 }: UpdateProductModalInnerProps) => {
   const queryClient = useQueryClient();
   const { mutate: updateProduct } = useUpdateProductMutation();
-  const { data: categoriesData } = useGetCategoriesQuery(1, 100);
+  const { data: categoriesData } = useGetCategoriesQuery(
+    1,
+    appConfig.maxFetchLimit,
+  );
   const categories = categoriesData?.data?.categories || [];
   const [name, setName] = useState(product ? product.name : "");
   const [description, setDescription] = useState(

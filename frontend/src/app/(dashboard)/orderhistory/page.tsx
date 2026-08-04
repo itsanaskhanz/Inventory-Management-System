@@ -1,5 +1,6 @@
 "use client";
 import { Input, Spinner, StatusBadge, Table } from "@/components/ui";
+import appConfig from "@/config/app.config";
 import { useGetOrdersQuery } from "@/lib/api/orderApi";
 import { Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -9,7 +10,7 @@ import { useState } from "react";
 const Page = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const limit = 10;
+  const limit = appConfig.defaultPageLimit;
   const { data: response, isLoading, isError } = useGetOrdersQuery(page, limit);
 
   const orders: Order[] = response?.data?.orders || [];
@@ -42,17 +43,20 @@ const Page = () => {
     {
       header: "Subtotal",
       accessorKey: "subtotal",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) =>
+        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
     },
     {
       header: "Tax",
       accessorKey: "tax",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) =>
+        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
     },
     {
       header: "Total",
       accessorKey: "total",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) =>
+        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
     },
     {
       header: "Status",
@@ -73,6 +77,7 @@ const Page = () => {
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by order id..."
         fullWidth
+        leftIcon="Search"
       />
 
       {isLoading ? (

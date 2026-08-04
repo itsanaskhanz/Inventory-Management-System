@@ -4,6 +4,7 @@ import { useGetOrderByIdQuery } from "@/lib/api/orderApi";
 import { IOrderProduct } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
+import appConfig from "@/config/app.config";
 
 const OrderDetailPage = () => {
   const router = useRouter();
@@ -23,12 +24,14 @@ const OrderDetailPage = () => {
     {
       header: "Price",
       accessorKey: "price",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) =>
+        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
     },
     {
       header: "Subtotal",
       accessorKey: "subtotal",
-      cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) =>
+        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
     },
   ];
 
@@ -122,15 +125,24 @@ const OrderDetailPage = () => {
             <div className="flex flex-col gap-1 text-sm rounded-lg border border-border p-4">
               <div className="flex justify-between">
                 <span className="text-foreground-secondary">Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
+                <span>
+                  {appConfig.appCurrencySymbol}
+                  {order.subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-secondary">Tax</span>
-                <span>${order.tax.toFixed(2)}</span>
+                <span>
+                  {appConfig.appCurrencySymbol}
+                  {order.tax.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>Total</span>
-                <span>${order.total.toFixed(2)}</span>
+                <span>
+                  {appConfig.appCurrencySymbol}
+                  {order.total.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>

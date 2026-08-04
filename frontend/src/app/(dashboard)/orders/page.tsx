@@ -8,6 +8,7 @@ import {
   Pagination,
   Typography,
 } from "@/components/ui";
+import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
@@ -21,11 +22,14 @@ const Page = () => {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const limit = appConfig.defaultPageLimit;
   const queryClient = useQueryClient();
   const { mutate: createOrder, isPending: isCreatingOrderLoading } =
     useCreateOrderMutation();
-  const { data: categoriesResponse } = useGetCategoriesQuery(1, 10);
+  const { data: categoriesResponse } = useGetCategoriesQuery(
+    1,
+    appConfig.defaultPageLimit,
+  );
   const categoriesData = categoriesResponse?.data.categories;
   const { data: productsResponse } = useGetProductsQuery(page, limit);
   const { products: productsData, pagination } = productsResponse?.data || {};
@@ -130,15 +134,26 @@ const Page = () => {
     return isActive && matchesSearch && matchesCategory;
   });
 
+  if (!appConfig.features.enablePos) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Typography variant="h5" weight="bold">
+          POS is currently disabled
+        </Typography>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="h-full flex gap-6">
+      <div className="h-full flex flex-col lg:flex-row gap-6">
         <div className="flex-1 flex flex-col gap-6">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search products..."
             fullWidth
+            leftIcon="Search"
           />
 
           <CategoryFilter
@@ -189,9 +204,12 @@ const Page = () => {
           </div>
         </div>
 
-        <div className="min-w-100 w-100 h-full border border-border rounded-lg p-6 flex flex-col ">
+        <div className="lg:w-100 w-full h-full border border-border rounded-lg p-6 flex flex-col ">
           <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center mb-4">
-            <Typography variant="h3">${total.toFixed(2)}</Typography>
+            <Typography variant="h3">
+              {appConfig.appCurrencySymbol}
+              {total.toFixed(2)}
+            </Typography>
             <Typography variant="caption" color="secondary">
               {cartItems.length} items
             </Typography>
@@ -225,7 +243,8 @@ const Page = () => {
                   <div className="flex-1">
                     <Typography variant="body2">{item.name}</Typography>
                     <Typography variant="caption" color="secondary">
-                      ${item.price.toFixed(2)} × {item.quantity}
+                      {appConfig.appCurrencySymbol}
+                      {item.price.toFixed(2)} × {item.quantity}
                     </Typography>
                   </div>
                   <div className="flex items-center gap-2">
@@ -255,20 +274,27 @@ const Page = () => {
               <Typography variant="body2" color="secondary">
                 Subtotal
               </Typography>
-              <Typography variant="body2">${subtotal.toFixed(2)}</Typography>
+              <Typography variant="body2">
+                {appConfig.appCurrencySymbol}
+                {subtotal.toFixed(2)}
+              </Typography>
             </div>
             <div className="flex justify-between">
               <Typography variant="body2" color="secondary">
                 Tax
               </Typography>
-              <Typography variant="body2">${tax.toFixed(2)}</Typography>
+              <Typography variant="body2">
+                {appConfig.appCurrencySymbol}
+                {tax.toFixed(2)}
+              </Typography>
             </div>
             <div className="flex justify-between">
               <Typography variant="body1" weight="bold">
                 Total
               </Typography>
               <Typography variant="body1" weight="bold">
-                ${total.toFixed(2)}
+                {appConfig.appCurrencySymbol}
+                {total.toFixed(2)}
               </Typography>
             </div>
             <Button
@@ -279,7 +305,7 @@ const Page = () => {
             >
               {isCreatingOrderLoading
                 ? "Placing order..."
-                : `Pay $${total.toFixed(2)}`}
+                : `Pay ${appConfig.appCurrencySymbol}${total.toFixed(2)}`}
             </Button>
           </div>
         </div>
@@ -327,7 +353,8 @@ const Page = () => {
                 {item.name} × {item.quantity}
               </Typography>
               <Typography variant="body2">
-                ${(item.price * item.quantity).toFixed(2)}
+                {appConfig.appCurrencySymbol}
+                {(item.price * item.quantity).toFixed(2)}
               </Typography>
             </div>
           ))}
@@ -336,20 +363,27 @@ const Page = () => {
             <Typography variant="body2" color="secondary">
               Subtotal
             </Typography>
-            <Typography variant="body2">${subtotal.toFixed(2)}</Typography>
+            <Typography variant="body2">
+              {appConfig.appCurrencySymbol}
+              {subtotal.toFixed(2)}
+            </Typography>
           </div>
           <div className="flex items-center justify-between">
             <Typography variant="body2" color="secondary">
               Tax
             </Typography>
-            <Typography variant="body2">${tax.toFixed(2)}</Typography>
+            <Typography variant="body2">
+              {appConfig.appCurrencySymbol}
+              {tax.toFixed(2)}
+            </Typography>
           </div>
           <div className="flex items-center justify-between">
             <Typography variant="body1" weight="bold">
               Total
             </Typography>
             <Typography variant="body1" weight="bold">
-              ${total.toFixed(2)}
+              {appConfig.appCurrencySymbol}
+              {total.toFixed(2)}
             </Typography>
           </div>
         </div>

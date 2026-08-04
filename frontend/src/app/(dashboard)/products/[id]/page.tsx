@@ -2,6 +2,7 @@
 import { Button, Spinner, StatusBadge, Typography } from "@/components/ui";
 import { useGetProductByIdQuery } from "@/lib/api/productApi";
 import { useParams, useRouter } from "next/navigation";
+import appConfig from "@/config/app.config";
 
 const ProductDetailPage = () => {
   const router = useRouter();
@@ -58,7 +59,8 @@ const ProductDetailPage = () => {
                 Price
               </Typography>
               <Typography variant="body1" weight="medium">
-                ${Number(product.price).toFixed(2)}
+                {appConfig.appCurrencySymbol}
+                {Number(product.price).toFixed(2)}
               </Typography>
             </div>
             <div>
@@ -66,7 +68,8 @@ const ProductDetailPage = () => {
                 Cost Price
               </Typography>
               <Typography variant="body1" weight="medium">
-                ${Number(product.costPrice).toFixed(2)}
+                {appConfig.appCurrencySymbol}
+                {Number(product.costPrice).toFixed(2)}
               </Typography>
             </div>
             <div>
