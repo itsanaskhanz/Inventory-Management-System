@@ -1,10 +1,21 @@
 "use client";
 import { Spinner } from "@/components/ui";
+import appConfig, { AppConfig } from "@/config/app.config";
 import { useAppContext } from "@/contexts/AppContext";
 import clsx from "clsx";
 import React from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+
+const WIDTH_CLASSES: Record<AppConfig["appWidth"], string> = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl",
+  full: "max-w-full",
+};
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading, topBarOpen, sidebarOpen } = useAppContext();
   if (isLoading) {
@@ -23,7 +34,14 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <Topbar />
           </>
         )}
-        <main className={clsx("flex-1 overflow-auto p-6")}>{children}</main>
+        <main
+          className={clsx(
+            "flex-1 overflow-auto p-6 mx-auto w-full",
+            WIDTH_CLASSES[appConfig.appWidth],
+          )}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -1,19 +1,32 @@
 import { jwtVerify, JWTVerifyResult } from "jose";
 import { NextRequest, NextResponse } from "next/server";
+import appConfig from "./config/app.config";
 import { hasAccessToRoute } from "./config/routes";
 import { JwtPayload } from "./types/auth.types";
 
 const SKIP_MIDDLEWARE = ["/_next/", "/favicon.ico", "/images/", "/fonts/"];
-const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/home", "/color-guid"];
+const AUTH_PATHS = appConfig.security.authPaths;
+const PUBLIC_PATHS = appConfig.security.publicPaths;
+const COOKIE_NAME = appConfig.security.cookieName;
 
 export const proxy = async (request: NextRequest) => {
   const pathname = request.nextUrl.pathname;
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get(COOKIE_NAME)?.value;
 
-  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+  if (AUTH_PATHS.some((path) => pathname.startsWith(path))) {
+    if (
+      pathname.startsWith("/auth/register") &&
+      !appConfig.features.enableRegistration
+    ) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
     return token
       ? NextResponse.redirect(new URL("/", request.url))
       : NextResponse.next();
+  }
+
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+    return NextResponse.next();
   }
 
   if (
