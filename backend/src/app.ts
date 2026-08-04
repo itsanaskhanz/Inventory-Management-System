@@ -5,7 +5,8 @@ import express from "express";
 import env from "./config/env.js";
 import authRouter from "./modules/auth/auth.routes.js";
 import categoryRouter from "./modules/category/category.routes.js";
-import posRouter from "./modules/order/order.routes.js";
+import customerRouter from "./modules/customer/customer.routes.js";
+import orderRouter from "./modules/order/order.routes.js";
 import productRouter from "./modules/product/product.routes.js";
 import AppError from "./utils/error.js";
 import { errorRes } from "./utils/response.js";
@@ -22,7 +23,8 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/categories", categoryRouter);
-app.use("/api/orders", posRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/customers", customerRouter);
 
 app.get("/health", (_req: Request, res: Response) => {
   res.sendStatus(200);

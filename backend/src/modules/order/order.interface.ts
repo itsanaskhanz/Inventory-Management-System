@@ -24,8 +24,8 @@ export interface IOrder {
   tax: number;
   total: number;
   status: string;
-  customerName: string | null;
-  customerPhone: string | null;
+  customerId: string;
+  customer: object;
   createdAt: Date;
   userId: string;
   user: IUser;
@@ -38,11 +38,8 @@ export interface ICreateOrder {
   total: number;
   status?: string;
   userId?: string;
-  customerName?: string;
-  customerPhone?: string;
+  customerId: string;
   products: ICreateOrderProduct[];
 }
 
-export type IUpdateOrder = Partial<
-  Pick<ICreateOrder, "status" | "customerName" | "customerPhone">
->;
+export type IUpdateOrder = Partial<Pick<ICreateOrder, "status" | "customerId">>;

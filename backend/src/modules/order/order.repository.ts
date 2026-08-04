@@ -1,7 +1,7 @@
 import prisma from "../../config/database.js";
-import AppError from "../../utils/error.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { Status } from "../../generated/prisma/enums.js";
+import AppError from "../../utils/error.js";
 import {
   ICreateOrder,
   ICreateOrderProduct,
@@ -86,12 +86,7 @@ const create = async (orderData: ICreateOrder) => {
         }),
         ...(orderData.status !== undefined && { status: orderData.status }),
         ...(orderData.userId !== undefined && { userId: orderData.userId }),
-        ...(orderData.customerName !== undefined && {
-          customerName: orderData.customerName,
-        }),
-        ...(orderData.customerPhone !== undefined && {
-          customerPhone: orderData.customerPhone,
-        }),
+        customerId: orderData.customerId,
         products: {
           create: products.map((product: ICreateOrderProduct) => ({
             quantity: product.quantity,
@@ -169,7 +164,10 @@ const searchAll = async (
 const findById = async (id: string) => {
   return prisma.order.findUnique({
     where: { id },
-    include: { products: { include: { product: true } } },
+    include: {
+      products: { include: { product: true } },
+      customer: true,
+    },
   });
 };
 
