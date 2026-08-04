@@ -1,19 +1,19 @@
 "use client";
-import { Button, Icon, Spinner, Table } from "@/components/ui";
+import { AsyncState, Button, Table, TableActions } from "@/components/ui";
 import CreateContractorModal from "@/components/domain/contractors/CreateContractorModal";
 import DeleteContractorModal from "@/components/domain/contractors/DeleteContractorModal";
 import { UserRole } from "@/config/roles";
 import { useGetUsersByRole } from "@/lib/api/authApi";
+import { formatDate } from "@/lib/format";
 import { User } from "@/types/auth.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import appConfig from "@/config/app.config";
 
 const Page = () => {
-  // States
   const limit = appConfig.defaultPageLimit;
   const [page, setPage] = useState(1);
-  // Modals
+
   const [isCreateContractorModalOpen, setIsCreateContractorModalOpen] =
     useState(false);
   const [isDeleteContractorModelOpen, setIsDeleteContractorModelOpen] =
@@ -21,16 +21,21 @@ const Page = () => {
   const [selectedContractorToDelete, setSelectedContractorToDelete] = useState<
     string | null
   >(null);
-  // API Hooks
+
   const {
     data: response,
     isLoading,
     isError,
   } = useGetUsersByRole(UserRole.ADMIN, page, limit);
-  // Variables
+
   const users = response?.data?.users || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
-  // Columns
+
+  const openDeleteModal = (id: string) => {
+    setSelectedContractorToDelete(id);
+    setIsDeleteContractorModelOpen(true);
+  };
+
   const columns: ColumnDef<User>[] = [
     {
       header: "#",
@@ -58,40 +63,21 @@ const Page = () => {
     {
       header: "Created At",
       accessorKey: "createdAt",
-      cell: ({ getValue }) => {
-        const date = getValue() as string;
-        return new Date(date).toLocaleDateString();
-      },
+      cell: ({ getValue }) => formatDate(getValue() as string),
     },
     {
       header: "Updated At",
       accessorKey: "updatedAt",
-      cell: ({ getValue }) => {
-        const date = getValue() as string;
-        return new Date(date).toLocaleDateString();
-      },
+      cell: ({ getValue }) => formatDate(getValue() as string),
     },
     {
       header: "Actions",
       accessorKey: "actions",
       enableSorting: false,
       enableHiding: false,
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <div className="flex items-center gap-2">
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setIsDeleteContractorModelOpen(true),
-                setSelectedContractorToDelete(id)
-              )}
-            >
-              <Icon name="Trash" size="sm" color="red" />
-            </button>
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <TableActions onDelete={() => openDeleteModal(row.original.id)} />
+      ),
     },
   ];
 
@@ -104,13 +90,11 @@ const Page = () => {
           </Button>
         </div>
 
-        {isLoading ? (
-          <Spinner />
-        ) : isError ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center text-foreground-secondary">
-            Failed to load contractors. Please try again.
-          </div>
-        ) : (
+        <AsyncState
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage="Failed to load contractors. Please try again."
+        >
           <Table
             data={users}
             columns={columns}
@@ -118,7 +102,7 @@ const Page = () => {
             setPage={setPage}
             totalPages={totalPages}
           />
-        )}
+        </AsyncState>
       </div>
       <DeleteContractorModal
         isOpen={isDeleteContractorModelOpen}

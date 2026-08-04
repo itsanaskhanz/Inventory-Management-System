@@ -1,8 +1,8 @@
 "use client";
-import { Modal } from "@/components/ui";
+import { ConfirmDialog } from "@/components/ui";
 import { useDeleteCustomerMutation } from "@/lib/api/customerApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 interface DeleteCustomerModalProps {
@@ -27,29 +27,21 @@ const DeleteCustomerModal = ({
         onClose();
         queryClient.invalidateQueries({ queryKey: ["customers"] });
       },
-      onError: (error) => {
-        if (axios.isAxiosError(error)) {
-          toast.error(
-            error.response?.data?.message || "Failed to delete customer",
-          );
-        } else {
-          toast.error("Failed to delete customer");
-        }
-      },
+      onError: (error) =>
+        toast.error(getApiErrorMessage(error, "Failed to delete customer")),
     });
   };
 
   return (
-    <Modal
+    <ConfirmDialog
       isOpen={isOpen}
       onClose={onClose}
-      onCancel={onClose}
       onConfirm={handleDeleteCustomer}
       title="Delete?"
       description="Are you sure you want to delete this customer"
-      confirmText={isPending ? "Deleting..." : "Delete"}
-      cancelText="Cancel"
-    ></Modal>
+      confirmText="Delete"
+      isPending={isPending}
+    />
   );
 };
 

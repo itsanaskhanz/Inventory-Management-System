@@ -2,7 +2,7 @@
 import { AuthBrandPanel } from "@/components/domain/auth";
 import { Button, Input, Typography } from "@/components/ui";
 import { useRegisterMutation } from "@/lib/api/authApi";
-import axios from "axios";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { ArrowRight, Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,13 +29,8 @@ const Page = () => {
           toast.success(data.message || "Account created successfully");
           router.push("/auth/login");
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message || "Registration failed");
-          } else {
-            toast.error("Registration failed");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Registration failed")),
       },
     );
   };

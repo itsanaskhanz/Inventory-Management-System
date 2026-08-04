@@ -2,7 +2,13 @@
 import CreateCategoryModal from "@/components/domain/categories/CreateCategoryModal";
 import DeleteCategoryModal from "@/components/domain/categories/DeleteCategoryModal";
 import UpdateCategoryModal from "@/components/domain/categories/UpdateCategoryModal";
-import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
+import {
+  AsyncState,
+  Button,
+  Input,
+  Table,
+  TableActions,
+} from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchCategoriesQuery } from "@/lib/api/categoryApi";
 import { useDebouncedValue } from "@/lib/useDebounce";
@@ -12,12 +18,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 const Page = () => {
-  // States
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const limit = appConfig.defaultPageLimit;
   const debouncedSearch = useDebouncedValue(search);
-  // API Hooks
+
   const {
     data: response,
     isLoading,
@@ -25,7 +30,6 @@ const Page = () => {
   } = useSearchCategoriesQuery(debouncedSearch, page, limit);
   const totalPages = response?.data?.pagination.totalPages || 1;
 
-  // Modals
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] =
     useState(false);
   const [isUpdateCategoryModalOpen, setIsUpdateCategoryModalOpen] =
@@ -38,13 +42,22 @@ const Page = () => {
   const [selectedCategoryToUpdate, setSelectedCategoryToUpdate] =
     useState<Category | null>(null);
 
-  // Data to load
   const categories: Category[] = response?.data?.categories || [];
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setPage(1);
   };
-  // Columns
+
+  const openUpdateModal = (category: Category) => {
+    setSelectedCategoryToUpdate(category);
+    setIsUpdateCategoryModalOpen(true);
+  };
+
+  const openDeleteModal = (id: string) => {
+    setSelectedCategoryToDelete(id);
+    setIsDeleteCategoryModalOpen(true);
+  };
+
   const columns: ColumnDef<Category>[] = [
     {
       header: "ID",
@@ -72,31 +85,12 @@ const Page = () => {
       accessorKey: "actions",
       enableSorting: false,
       enableHiding: false,
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <div className="flex items-center gap-6">
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setSelectedCategoryToUpdate(row.original),
-                setIsUpdateCategoryModalOpen(true)
-              )}
-            >
-              <Icon name="Pencil" size="sm" />
-            </button>
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setIsDeleteCategoryModalOpen(true),
-                setSelectedCategoryToDelete(id)
-              )}
-            >
-              <Icon name="Trash" size="sm" color="red" />
-            </button>
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <TableActions
+          onEdit={() => openUpdateModal(row.original)}
+          onDelete={() => openDeleteModal(row.original.id)}
+        />
+      ),
     },
   ];
 
@@ -117,13 +111,11 @@ const Page = () => {
           leftIcon="Search"
         />
 
-        {isLoading ? (
-          <Spinner />
-        ) : isError ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center text-foreground-secondary">
-            Failed to load categories. Please try again.
-          </div>
-        ) : (
+        <AsyncState
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage="Failed to load categories. Please try again."
+        >
           <Table
             data={categories}
             columns={columns}
@@ -131,7 +123,7 @@ const Page = () => {
             setPage={setPage}
             totalPages={totalPages}
           />
-        )}
+        </AsyncState>
       </div>
       <DeleteCategoryModal
         isOpen={isDeleteCategoryModalOpen}

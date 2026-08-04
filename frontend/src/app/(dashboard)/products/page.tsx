@@ -3,18 +3,19 @@ import CreateProductModal from "@/components/domain/products/CreateProductModal"
 import DeleteProductModal from "@/components/domain/products/DeleteProductModal";
 import UpdateProductModal from "@/components/domain/products/UpdateProductModal";
 import {
+  AsyncState,
   Button,
   CategoryFilter,
-  Icon,
   Input,
-  Spinner,
   StatusBadge,
   Table,
+  TableActions,
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useSearchProductsQuery } from "@/lib/api/productApi";
 import { useDebouncedValue } from "@/lib/useDebounce";
+import { formatCurrency } from "@/lib/format";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -66,6 +67,16 @@ const Page = () => {
     setPage(1);
   };
 
+  const openUpdateModal = (product: Product) => {
+    setSelectedProductToUpdate(product);
+    setIsUpdateProductModalOpen(true);
+  };
+
+  const openDeleteModal = (id: string) => {
+    setSelectedProductToDelete(id);
+    setIsDeleteProductModalOpen(true);
+  };
+
   const columns: ColumnDef<Product>[] = [
     {
       header: "ID",
@@ -86,8 +97,7 @@ const Page = () => {
     {
       header: "Price",
       accessorKey: "price",
-      cell: ({ getValue }) =>
-        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
       header: "Stock",
@@ -108,31 +118,12 @@ const Page = () => {
       accessorKey: "actions",
       enableSorting: false,
       enableHiding: false,
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <div className="flex items-center gap-6">
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setSelectedProductToUpdate(row.original),
-                setIsUpdateProductModalOpen(true)
-              )}
-            >
-              <Icon name="Pencil" size="sm" />
-            </button>
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setIsDeleteProductModalOpen(true),
-                setSelectedProductToDelete(id)
-              )}
-            >
-              <Icon name="Trash" size="sm" color="red" />
-            </button>
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <TableActions
+          onEdit={() => openUpdateModal(row.original)}
+          onDelete={() => openDeleteModal(row.original.id)}
+        />
+      ),
     },
   ];
 
@@ -158,13 +149,11 @@ const Page = () => {
           onSelect={handleCategoryChange}
         />
 
-        {isLoading ? (
-          <Spinner />
-        ) : isError ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center text-foreground-secondary">
-            Failed to load products. Please try again.
-          </div>
-        ) : (
+        <AsyncState
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage="Failed to load products. Please try again."
+        >
           <Table
             data={products}
             columns={columns}
@@ -172,7 +161,7 @@ const Page = () => {
             setPage={setPage}
             totalPages={totalPages}
           />
-        )}
+        </AsyncState>
       </div>
       <DeleteProductModal
         isOpen={isDeleteProductModalOpen}

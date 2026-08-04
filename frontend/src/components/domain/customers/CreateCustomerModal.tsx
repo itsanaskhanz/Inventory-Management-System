@@ -1,8 +1,8 @@
 "use client";
 import { Input, Modal } from "@/components/ui";
 import { useCreateCustomerMutation } from "@/lib/api/customerApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -42,15 +42,8 @@ const CreateCustomerModal = ({
           resetForm();
           queryClient.invalidateQueries({ queryKey: ["customers"] });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to create customer",
-            );
-          } else {
-            toast.error("Failed to create customer");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to create customer")),
       },
     );
   };

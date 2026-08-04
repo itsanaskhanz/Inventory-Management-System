@@ -1,12 +1,16 @@
 "use client";
-import { Input, Modal } from "@/components/ui";
+import { Modal } from "@/components/ui";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useCreateProductMutation } from "@/lib/api/productApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import appConfig from "@/config/app.config";
+import ProductFormFields, {
+  EMPTY_PRODUCT_FORM,
+  ProductFormValues,
+} from "./ProductFormFields";
 
 interface CreateProductModalProps {
   isOpen: boolean;
@@ -21,40 +25,32 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
     appConfig.maxFetchLimit,
   );
   const categories = categoriesData?.data?.categories || [];
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [costPrice, setCostPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [minStock, setMinStock] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [isActive, setIsActive] = useState(true);
+  const [values, setValues] =
+    useState<ProductFormValues>(EMPTY_PRODUCT_FORM);
 
-  const resetForm = () => {
-    setName("");
-    setDescription("");
-    setPrice("");
-    setCostPrice("");
-    setStock("");
-    setMinStock("");
-    setCategoryId("");
-  };
+  const resetForm = () => setValues(EMPTY_PRODUCT_FORM);
 
   const handleCreateProduct = () => {
-    if (!name || !price || !costPrice || !stock || !minStock) {
+    if (
+      !values.name ||
+      !values.price ||
+      !values.costPrice ||
+      !values.stock ||
+      !values.minStock
+    ) {
       toast.warn("Please fill in all fields");
       return;
     }
     createProduct(
       {
-        name,
-        description: description || undefined,
-        price: Number(price),
-        costPrice: Number(costPrice),
-        stock: Number(stock),
-        minStock: Number(minStock),
-        isActive,
-        categoryId: categoryId || undefined,
+        name: values.name,
+        description: values.description || undefined,
+        price: Number(values.price),
+        costPrice: Number(values.costPrice),
+        stock: Number(values.stock),
+        minStock: Number(values.minStock),
+        isActive: values.isActive,
+        categoryId: values.categoryId || undefined,
       },
       {
         onSuccess: () => {
@@ -63,15 +59,8 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
           resetForm();
           queryClient.invalidateQueries({ queryKey: ["products"] });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to create product",
-            );
-          } else {
-            toast.error("Failed to create product");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to create product")),
       },
     );
   };
@@ -87,70 +76,11 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
       confirmText="Create"
       cancelText="Cancel"
     >
-      <div className="flex flex-col gap-4">
-        <Input
-          placeholder="Name"
-          fullWidth
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
-        >
-          <option value="">Select Category (optional)</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <textarea
-          placeholder="Description"
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary resize-none"
-        />
-        <Input
-          placeholder="Price"
-          fullWidth
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <Input
-          placeholder="Cost Price"
-          fullWidth
-          type="number"
-          value={costPrice}
-          onChange={(e) => setCostPrice(e.target.value)}
-        />
-        <Input
-          placeholder="Stock"
-          fullWidth
-          type="number"
-          value={stock}
-          onChange={(e) => setStock(e.target.value)}
-        />
-        <Input
-          placeholder="Min Stock"
-          fullWidth
-          type="number"
-          value={minStock}
-          onChange={(e) => setMinStock(e.target.value)}
-        />
-        <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="h-4 w-4 accent-primary"
-          />
-          Active
-        </label>
-      </div>
+      <ProductFormFields
+        values={values}
+        onChange={setValues}
+        categories={categories}
+      />
     </Modal>
   );
 };

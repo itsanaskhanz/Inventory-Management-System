@@ -1,8 +1,8 @@
 "use client";
-import { Modal } from "@/components/ui";
+import { ConfirmDialog } from "@/components/ui";
 import { useDeleteCategoryMutation } from "@/lib/api/categoryApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 interface DeleteCategoryModalProps {
@@ -27,29 +27,21 @@ const DeleteCategoryModal = ({
         onClose();
         queryClient.invalidateQueries({ queryKey: ["categories"] });
       },
-      onError: (error) => {
-        if (axios.isAxiosError(error)) {
-          toast.error(
-            error.response?.data?.message || "Failed to delete category",
-          );
-        } else {
-          toast.error("Failed to delete category");
-        }
-      },
+      onError: (error) =>
+        toast.error(getApiErrorMessage(error, "Failed to delete category")),
     });
   };
 
   return (
-    <Modal
+    <ConfirmDialog
       isOpen={isOpen}
       onClose={onClose}
-      onCancel={onClose}
       onConfirm={handleDeleteCategory}
       title="Delete?"
       description="Are you sure want to delete category"
-      confirmText={isPending ? "Deleting..." : "Delete"}
-      cancelText="Cancel"
-    ></Modal>
+      confirmText="Delete"
+      isPending={isPending}
+    />
   );
 };
 

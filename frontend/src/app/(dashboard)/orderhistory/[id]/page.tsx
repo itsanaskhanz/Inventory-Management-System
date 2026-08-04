@@ -1,5 +1,13 @@
 "use client";
-import { Button, Spinner, StatusBadge, Table, Typography } from "@/components/ui";
+import {
+  AsyncState,
+  Button,
+  DetailField,
+  PageHeader,
+  StatusBadge,
+  Table,
+  Typography,
+} from "@/components/ui";
 import { useGetOrderByIdQuery } from "@/lib/api/orderApi";
 import {
   ReceiptData,
@@ -7,10 +15,10 @@ import {
   downloadReceipt,
   printReceipt,
 } from "@/lib/receipt";
+import { formatCurrency } from "@/lib/format";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
-import appConfig from "@/config/app.config";
 
 const getReceiptData = (order: Order): ReceiptData => ({
   orderNumber: order.orderNumber,
@@ -47,24 +55,21 @@ const OrderDetailPage = () => {
     {
       header: "Price",
       accessorKey: "price",
-      cell: ({ getValue }) =>
-        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
       header: "Subtotal",
       accessorKey: "subtotal",
-      cell: ({ getValue }) =>
-        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
   ];
 
   return (
     <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <Typography variant="h5" weight="bold">
-            Order Details
-          </Typography>
-          <div className="flex items-center gap-2">
+      <PageHeader
+        title="Order Details"
+        actions={
+          <>
             <Button
               variant="secondary"
               size="sm"
@@ -91,69 +96,37 @@ const OrderDetailPage = () => {
             <Button variant="secondary" size="sm" onClick={() => router.back()}>
               Back
             </Button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        {isLoading ? (
-          <Spinner />
-        ) : isError || !order ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center text-foreground-secondary">
-            Failed to load order. Please try again.
-          </div>
-        ) : (
+      <AsyncState
+        isLoading={isLoading}
+        isError={isError || !order}
+        errorMessage="Failed to load order. Please try again."
+      >
+        {order && (
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
-              <div>
-                <Typography variant="body2" color="secondary">
-                  Order Number
-                </Typography>
-                <Typography variant="body1" weight="medium">
-                  {order.orderNumber}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" color="secondary">
-                  Status
-                </Typography>
+              <DetailField label="Order Number" value={order.orderNumber} />
+              <DetailField label="Status">
                 <div className="pt-1">
                   <StatusBadge status={order.status} />
                 </div>
-              </div>
-              <div>
-                <Typography variant="body2" color="secondary">
-                  Date
-                </Typography>
-                <Typography variant="body1" weight="medium">
-                  {new Date(order.createdAt).toLocaleString()}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" color="secondary">
-                  Order ID
-                </Typography>
-                <Typography variant="body1" weight="medium">
-                  {order.id}
-                </Typography>
-              </div>
+              </DetailField>
+              <DetailField
+                label="Date"
+                value={new Date(order.createdAt).toLocaleString()}
+              />
+              <DetailField label="Order ID" value={order.id} />
               {order.customer?.name && (
-                <div>
-                  <Typography variant="body2" color="secondary">
-                    Customer Name
-                  </Typography>
-                  <Typography variant="body1" weight="medium">
-                    {order.customer.name}
-                  </Typography>
-                </div>
+                <DetailField label="Customer Name" value={order.customer.name} />
               )}
               {order.customer?.phone && (
-                <div>
-                  <Typography variant="body2" color="secondary">
-                    Customer Phone
-                  </Typography>
-                  <Typography variant="body1" weight="medium">
-                    {order.customer.phone}
-                  </Typography>
-                </div>
+                <DetailField
+                  label="Customer Phone"
+                  value={order.customer.phone}
+                />
               )}
             </div>
 
@@ -173,29 +146,21 @@ const OrderDetailPage = () => {
             <div className="flex flex-col gap-1 text-sm rounded-lg border border-border p-4">
               <div className="flex justify-between">
                 <span className="text-foreground-secondary">Subtotal</span>
-                <span>
-                  {appConfig.appCurrencySymbol}
-                  {order.subtotal.toFixed(2)}
-                </span>
+                <span>{formatCurrency(order.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-secondary">Tax</span>
-                <span>
-                  {appConfig.appCurrencySymbol}
-                  {order.tax.toFixed(2)}
-                </span>
+                <span>{formatCurrency(order.tax)}</span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>Total</span>
-                <span>
-                  {appConfig.appCurrencySymbol}
-                  {order.total.toFixed(2)}
-                </span>
+                <span>{formatCurrency(order.total)}</span>
               </div>
             </div>
           </div>
         )}
-      </div>
+      </AsyncState>
+    </div>
   );
 };
 

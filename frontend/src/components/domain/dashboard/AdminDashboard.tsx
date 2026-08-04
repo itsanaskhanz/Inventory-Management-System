@@ -8,6 +8,7 @@ import {
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetAllOrdersQuery } from "@/lib/api/orderApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
+import { formatCurrency } from "@/lib/format";
 import { useMemo, useState } from "react";
 import {
   CartesianGrid,
@@ -102,7 +103,7 @@ const AdminDashboard = () => {
         />
         <StatCard
           title="Total Revenue"
-          value={`${appConfig.appCurrencySymbol}${totalRevenue.toFixed(2)}`}
+          value={formatCurrency(totalRevenue)}
           icon={<Icon name="TrendingUp" />}
           variant="secondary"
         />
@@ -144,8 +145,7 @@ const AdminDashboard = () => {
             {filteredOrders.length} order(s) in selected range
           </Typography>
           <Typography variant="body1" weight="bold">
-            {appConfig.appCurrencySymbol}
-            {filteredRevenue.toFixed(2)}
+            {formatCurrency(filteredRevenue)}
           </Typography>
         </div>
 
@@ -167,7 +167,7 @@ const AdminDashboard = () => {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
                   formatter={(value) => [
-                    `${appConfig.appCurrencySymbol}${Number(value).toFixed(2)}`,
+                    formatCurrency(Number(value)),
                     "Revenue",
                   ]}
                 />

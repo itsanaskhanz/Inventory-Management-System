@@ -1,12 +1,12 @@
 "use client";
-import { Modal, Typography } from "@/components/ui";
+import { Modal, Select, Typography } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { ORDER_STATUSES } from "@/config/orderStatus";
 import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
 import { useUpdateOrderMutation } from "@/lib/api/orderApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Order } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -47,15 +47,8 @@ const EditOrderForm = ({
           onClose();
           queryClient.invalidateQueries({ queryKey: ["orders"] });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to update order",
-            );
-          } else {
-            toast.error("Failed to update order");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to update order")),
       },
     );
   };
@@ -76,26 +69,26 @@ const EditOrderForm = ({
           <Typography variant="body2" weight="medium">
             Status
           </Typography>
-          <select
+          <Select
+            fullWidth
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="bg-background-secondary border-1 border-border text-foreground rounded-md px-4 py-1.5 w-full focus:outline-none focus:border-primary cursor-pointer"
           >
             {statusOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-2">
           <Typography variant="body2" weight="medium">
             Customer
           </Typography>
-          <select
+          <Select
+            fullWidth
             value={customerId}
             onChange={(e) => setCustomerId(e.target.value)}
-            className="bg-background-secondary border-1 border-border text-foreground rounded-md px-4 py-1.5 w-full focus:outline-none focus:border-primary cursor-pointer"
           >
             <option value="">No customer</option>
             {customers?.map((customer) => (
@@ -104,7 +97,7 @@ const EditOrderForm = ({
                 {customer.phone ? ` (${customer.phone})` : ""}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
     </Modal>

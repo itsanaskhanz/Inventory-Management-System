@@ -1,9 +1,9 @@
 "use client";
 import { Input, Modal } from "@/components/ui";
 import { useUpdateCustomerMutation } from "@/lib/api/customerApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Customer } from "@/types/customer.types";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -36,15 +36,8 @@ const UpdateCustomerForm = ({
           onClose();
           queryClient.invalidateQueries({ queryKey: ["customers"] });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to update customer",
-            );
-          } else {
-            toast.error("Failed to update customer");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to update customer")),
       },
     );
   };

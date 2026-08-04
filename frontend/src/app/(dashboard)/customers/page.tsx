@@ -2,10 +2,17 @@
 import CreateCustomerModal from "@/components/domain/customers/CreateCustomerModal";
 import DeleteCustomerModal from "@/components/domain/customers/DeleteCustomerModal";
 import UpdateCustomerModal from "@/components/domain/customers/UpdateCustomerModal";
-import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
+import {
+  AsyncState,
+  Button,
+  Input,
+  Table,
+  TableActions,
+} from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useGetCustomersQuery } from "@/lib/api/customerApi";
 import { useDebouncedValue } from "@/lib/useDebounce";
+import { formatDate } from "@/lib/format";
 import { Customer } from "@/types/customer.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -44,6 +51,16 @@ const Page = () => {
       )
     : customers;
 
+  const openUpdateModal = (customer: Customer) => {
+    setSelectedCustomerToUpdate(customer);
+    setIsUpdateCustomerModalOpen(true);
+  };
+
+  const openDeleteModal = (id: string) => {
+    setSelectedCustomerToDelete(id);
+    setIsDeleteCustomerModalOpen(true);
+  };
+
   const columns: ColumnDef<Customer>[] = [
     {
       header: "ID",
@@ -70,39 +87,19 @@ const Page = () => {
     {
       header: "Created At",
       accessorKey: "createdAt",
-      cell: ({ getValue }) =>
-        new Date(getValue() as Date).toLocaleDateString(),
+      cell: ({ getValue }) => formatDate(getValue() as Date),
     },
     {
       header: "Actions",
       accessorKey: "actions",
       enableSorting: false,
       enableHiding: false,
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <div className="flex items-center gap-6">
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setSelectedCustomerToUpdate(row.original),
-                setIsUpdateCustomerModalOpen(true)
-              )}
-            >
-              <Icon name="Pencil" size="sm" />
-            </button>
-            <button
-              className="cursor-pointer"
-              onClick={() => (
-                setIsDeleteCustomerModalOpen(true),
-                setSelectedCustomerToDelete(id)
-              )}
-            >
-              <Icon name="Trash" size="sm" color="red" />
-            </button>
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <TableActions
+          onEdit={() => openUpdateModal(row.original)}
+          onDelete={() => openDeleteModal(row.original.id)}
+        />
+      ),
     },
   ];
 
@@ -123,13 +120,11 @@ const Page = () => {
           leftIcon="Search"
         />
 
-        {isLoading ? (
-          <Spinner />
-        ) : isError ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center text-foreground-secondary">
-            Failed to load customers. Please try again.
-          </div>
-        ) : (
+        <AsyncState
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage="Failed to load customers. Please try again."
+        >
           <Table
             data={filteredCustomers}
             columns={columns}
@@ -137,7 +132,7 @@ const Page = () => {
             setPage={setPage}
             totalPages={totalPages}
           />
-        )}
+        </AsyncState>
       </div>
       <DeleteCustomerModal
         isOpen={isDeleteCustomerModalOpen}

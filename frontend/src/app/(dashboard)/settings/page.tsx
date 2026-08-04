@@ -1,11 +1,11 @@
 "use client";
-import { Button, Input, Modal, Typography } from "@/components/ui";
+import { Button, ConfirmDialog, Input, Typography } from "@/components/ui";
 import {
   useDeleteAccountMutation,
   useUpdateProfileMutation,
 } from "@/lib/api/authApi";
 import { useAppContext } from "@/contexts/AppContext";
-import axios from "axios";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -35,13 +35,8 @@ const SettingsPage = () => {
           setUser({ ...user!, name, email });
           toast.success("Profile updated successfully");
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message || "Failed to update");
-          } else {
-            toast.error("Failed to update profile");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to update profile")),
       },
     );
   };
@@ -53,13 +48,8 @@ const SettingsPage = () => {
         toast.success("Account deleted successfully");
         logout();
       },
-      onError: (error) => {
-        if (axios.isAxiosError(error)) {
-          toast.error(error.response?.data?.message || "Failed to delete");
-        } else {
-          toast.error("Failed to delete account");
-        }
-      },
+      onError: (error) =>
+        toast.error(getApiErrorMessage(error, "Failed to delete account")),
     });
   };
 
@@ -150,25 +140,24 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      <Modal
+      <ConfirmDialog
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        onCancel={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
         title="Delete Account"
         description="Are you sure you want to delete your account?"
-        confirmText={isDeleting ? "Deleting..." : "Delete"}
+        confirmText="Delete"
+        isPending={isDeleting}
       >
         <Typography variant="body1">
           All of your data will be permanently deleted. This action cannot be
           undone.
         </Typography>
-      </Modal>
+      </ConfirmDialog>
 
-      <Modal
+      <ConfirmDialog
         isOpen={isLogoutOpen}
         onClose={() => setIsLogoutOpen(false)}
-        onCancel={() => setIsLogoutOpen(false)}
         onConfirm={() => logout()}
         title="Logout"
         description="Are you sure you want to logout?"
@@ -176,7 +165,7 @@ const SettingsPage = () => {
         <Typography variant="body1">
           You will be logged out of the application.
         </Typography>
-      </Modal>
+      </ConfirmDialog>
     </>
   );
 };

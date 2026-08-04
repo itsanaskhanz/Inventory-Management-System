@@ -1,13 +1,16 @@
 "use client";
-import { Input, Modal } from "@/components/ui";
+import { Modal } from "@/components/ui";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useUpdateProductMutation } from "@/lib/api/productApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Product } from "@/types/product.types";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import appConfig from "@/config/app.config";
+import ProductFormFields, {
+  ProductFormValues,
+} from "./ProductFormFields";
 
 const UpdateProductForm = ({
   product,
@@ -21,24 +24,25 @@ const UpdateProductForm = ({
     appConfig.maxFetchLimit,
   );
   const categories = categoriesData?.data?.categories || [];
-  const [name, setName] = useState(product ? product.name : "");
-  const [description, setDescription] = useState(
-    product?.description ?? "",
-  );
-  const [price, setPrice] = useState(product ? String(product.price) : "");
-  const [costPrice, setCostPrice] = useState(
-    product ? String(product.costPrice) : "",
-  );
-  const [stock, setStock] = useState(product ? String(product.stock) : "");
-  const [minStock, setMinStock] = useState(
-    product ? String(product.minStock) : "",
-  );
-  const [categoryId, setCategoryId] = useState(product?.categoryId || "");
-  const [isActive, setIsActive] = useState(product?.isActive ?? true);
+  const [values, setValues] = useState<ProductFormValues>(() => ({
+    name: product.name,
+    description: product.description ?? "",
+    price: String(product.price),
+    costPrice: String(product.costPrice),
+    stock: String(product.stock),
+    minStock: String(product.minStock),
+    categoryId: product.categoryId || "",
+    isActive: product.isActive,
+  }));
 
   const handleUpdateProduct = () => {
-    if (!product) return;
-    if (!name || !price || !costPrice || !stock || !minStock) {
+    if (
+      !values.name ||
+      !values.price ||
+      !values.costPrice ||
+      !values.stock ||
+      !values.minStock
+    ) {
       toast.warn("Please fill in all fields");
       return;
     }
@@ -46,14 +50,14 @@ const UpdateProductForm = ({
       {
         id: product.id,
         data: {
-          name,
-          description: description || undefined,
-          price: Number(price),
-          costPrice: Number(costPrice),
-          stock: Number(stock),
-          minStock: Number(minStock),
-          isActive,
-          categoryId: categoryId || undefined,
+          name: values.name,
+          description: values.description || undefined,
+          price: Number(values.price),
+          costPrice: Number(values.costPrice),
+          stock: Number(values.stock),
+          minStock: Number(values.minStock),
+          isActive: values.isActive,
+          categoryId: values.categoryId || undefined,
         },
       },
       {
@@ -62,15 +66,8 @@ const UpdateProductForm = ({
           onClose();
           queryClient.invalidateQueries({ queryKey: ["products"] });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to update product",
-            );
-          } else {
-            toast.error("Failed to update product");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to update product")),
       },
     );
   };
@@ -86,70 +83,11 @@ const UpdateProductForm = ({
       confirmText="Update"
       cancelText="Cancel"
     >
-      <div className="flex flex-col gap-4">
-        <Input
-          placeholder="Name"
-          fullWidth
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
-        >
-          <option value="">Select Category (optional)</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <textarea
-          placeholder="Description"
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary resize-none"
-        />
-        <Input
-          placeholder="Price"
-          fullWidth
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <Input
-          placeholder="Cost Price"
-          fullWidth
-          type="number"
-          value={costPrice}
-          onChange={(e) => setCostPrice(e.target.value)}
-        />
-        <Input
-          placeholder="Stock"
-          fullWidth
-          type="number"
-          value={stock}
-          onChange={(e) => setStock(e.target.value)}
-        />
-        <Input
-          placeholder="Min Stock"
-          fullWidth
-          type="number"
-          value={minStock}
-          onChange={(e) => setMinStock(e.target.value)}
-        />
-        <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="h-4 w-4 accent-primary"
-          />
-          Active
-        </label>
-      </div>
+      <ProductFormFields
+        values={values}
+        onChange={setValues}
+        categories={categories}
+      />
     </Modal>
   );
 };

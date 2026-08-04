@@ -1,8 +1,8 @@
 "use client";
 import { Input, Modal } from "@/components/ui";
 import { useCreateCategoryMutation } from "@/lib/api/categoryApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -35,15 +35,8 @@ const CreateCategoryModal = ({
         resetForm();
         queryClient.invalidateQueries({ queryKey: ["categories"] });
       },
-      onError: (error) => {
-        if (axios.isAxiosError(error)) {
-          toast.error(
-            error.response?.data?.message || "Failed to create category",
-          );
-        } else {
-          toast.error("Failed to create category");
-        }
-      },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to create category")),
     });
   };
 

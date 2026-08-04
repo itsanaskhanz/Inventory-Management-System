@@ -2,8 +2,8 @@
 import { Input, Modal } from "@/components/ui";
 import { UserRole } from "@/config/roles";
 import { useRegisterMutation } from "@/lib/api/authApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -44,15 +44,8 @@ const CreateContractorModal = ({
             queryKey: [`users-${UserRole.ADMIN}`],
           });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to create contractor",
-            );
-          } else {
-            toast.error("Failed to create contractor");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to create contractor")),
       },
     );
   };

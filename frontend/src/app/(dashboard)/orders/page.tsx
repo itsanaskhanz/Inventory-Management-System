@@ -6,6 +6,7 @@ import {
   Input,
   Modal,
   Pagination,
+  Select,
   Typography,
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
@@ -14,11 +15,12 @@ import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
 import { useSearchProductsQuery } from "@/lib/api/productApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
+import { formatCurrency } from "@/lib/format";
 import { ReceiptData, ReceiptItem } from "@/lib/receipt";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { CreateOrder } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -116,13 +118,8 @@ const Page = () => {
         setSelectedCustomerId("");
         queryClient.invalidateQueries({ queryKey: ["orders"] });
       },
-      onError: (error) => {
-        if (axios.isAxiosError(error)) {
-          toast.error(error.response?.data?.message || "Failed to place order");
-        } else {
-          toast.error("Failed to place order");
-        }
-      },
+      onError: (error) =>
+        toast.error(getApiErrorMessage(error, "Failed to place order")),
     });
   };
 
@@ -240,8 +237,7 @@ const Page = () => {
         <div className="lg:w-100 w-full h-full border border-border rounded-lg p-6 flex flex-col ">
           <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center mb-4">
             <Typography variant="h3">
-              {appConfig.appCurrencySymbol}
-              {total.toFixed(2)}
+              {formatCurrency(total)}
             </Typography>
             <Typography variant="caption" color="secondary">
               {cartItems.length} items
@@ -276,8 +272,7 @@ const Page = () => {
                   <div className="flex-1">
                     <Typography variant="body2">{item.name}</Typography>
                     <Typography variant="caption" color="secondary">
-                      {appConfig.appCurrencySymbol}
-                      {item.price.toFixed(2)} × {item.quantity}
+                      {formatCurrency(item.price)} × {item.quantity}
                     </Typography>
                   </div>
                   <div className="flex items-center gap-2">
@@ -308,8 +303,7 @@ const Page = () => {
                 Subtotal
               </Typography>
               <Typography variant="body2">
-                {appConfig.appCurrencySymbol}
-                {subtotal.toFixed(2)}
+                {formatCurrency(subtotal)}
               </Typography>
             </div>
             <div className="flex justify-between">
@@ -317,8 +311,7 @@ const Page = () => {
                 Tax
               </Typography>
               <Typography variant="body2">
-                {appConfig.appCurrencySymbol}
-                {tax.toFixed(2)}
+                {formatCurrency(tax)}
               </Typography>
             </div>
             <div className="flex justify-between">
@@ -326,8 +319,7 @@ const Page = () => {
                 Total
               </Typography>
               <Typography variant="body1" weight="bold">
-                {appConfig.appCurrencySymbol}
-                {total.toFixed(2)}
+                {formatCurrency(total)}
               </Typography>
             </div>
             <Button
@@ -338,7 +330,7 @@ const Page = () => {
             >
               {isCreatingOrderLoading
                 ? "Placing order..."
-                : `Pay ${appConfig.appCurrencySymbol}${total.toFixed(2)}`}
+                : `Pay ${formatCurrency(total)}`}
             </Button>
           </div>
         </div>
@@ -358,10 +350,10 @@ const Page = () => {
             <Typography variant="body2" weight="medium">
               Customer
             </Typography>
-            <select
+            <Select
+              fullWidth
               value={selectedCustomerId}
               onChange={(e) => setSelectedCustomerId(e.target.value)}
-              className="rounded-md border border-border bg-background-secondary px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
             >
               <option value="">Select a customer</option>
               {customers.map((customer) => (
@@ -370,7 +362,7 @@ const Page = () => {
                   {customer.phone ? ` (${customer.phone})` : ""}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <hr className="my-2" />
           {cartItems.map((item) => (
@@ -382,8 +374,7 @@ const Page = () => {
                 {item.name} × {item.quantity}
               </Typography>
               <Typography variant="body2">
-                {appConfig.appCurrencySymbol}
-                {(item.price * item.quantity).toFixed(2)}
+                {formatCurrency(item.price * item.quantity)}
               </Typography>
             </div>
           ))}
@@ -393,8 +384,7 @@ const Page = () => {
               Subtotal
             </Typography>
             <Typography variant="body2">
-              {appConfig.appCurrencySymbol}
-              {subtotal.toFixed(2)}
+              {formatCurrency(subtotal)}
             </Typography>
           </div>
           <div className="flex items-center justify-between">
@@ -402,8 +392,7 @@ const Page = () => {
               Tax
             </Typography>
             <Typography variant="body2">
-              {appConfig.appCurrencySymbol}
-              {tax.toFixed(2)}
+              {formatCurrency(tax)}
             </Typography>
           </div>
           <div className="flex items-center justify-between">
@@ -411,8 +400,7 @@ const Page = () => {
               Total
             </Typography>
             <Typography variant="body1" weight="bold">
-              {appConfig.appCurrencySymbol}
-              {total.toFixed(2)}
+              {formatCurrency(total)}
             </Typography>
           </div>
         </div>

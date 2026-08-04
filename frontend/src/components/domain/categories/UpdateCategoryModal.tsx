@@ -1,9 +1,9 @@
 "use client";
 import { Input, Modal } from "@/components/ui";
 import { useUpdateCategoryMutation } from "@/lib/api/categoryApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Category } from "@/types/category.types";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -29,15 +29,8 @@ const UpdateCategoryForm = ({
           onClose();
           queryClient.invalidateQueries({ queryKey: ["categories"] });
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(
-              error.response?.data?.message || "Failed to update category",
-            );
-          } else {
-            toast.error("Failed to update category");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to update category")),
       },
     );
   };

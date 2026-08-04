@@ -1,9 +1,16 @@
 "use client";
 import EditOrderModal from "@/components/domain/orders/EditOrderModal";
-import { Icon, Input, Spinner, StatusBadge, Table } from "@/components/ui";
+import {
+  AsyncState,
+  Input,
+  StatusBadge,
+  Table,
+  TableActions,
+} from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchOrdersQuery } from "@/lib/api/orderApi";
 import { useDebouncedValue } from "@/lib/useDebounce";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -57,20 +64,17 @@ const Page = () => {
     {
       header: "Subtotal",
       accessorKey: "subtotal",
-      cell: ({ getValue }) =>
-        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
       header: "Tax",
       accessorKey: "tax",
-      cell: ({ getValue }) =>
-        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
       header: "Total",
       accessorKey: "total",
-      cell: ({ getValue }) =>
-        `${appConfig.appCurrencySymbol}${Number(getValue()).toFixed(2)}`,
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
       header: "Status",
@@ -80,7 +84,7 @@ const Page = () => {
     {
       header: "Date",
       accessorKey: "createdAt",
-      cell: ({ getValue }) => new Date(getValue() as Date).toLocaleDateString(),
+      cell: ({ getValue }) => formatDate(getValue() as Date),
     },
     {
       header: "Actions",
@@ -88,14 +92,7 @@ const Page = () => {
       enableSorting: false,
       enableHiding: false,
       cell: ({ row }) => (
-        <div className="flex items-center gap-6">
-          <button
-            className="cursor-pointer"
-            onClick={() => handleOpenEditModal(row.original)}
-          >
-            <Icon name="Pencil" size="sm" />
-          </button>
-        </div>
+        <TableActions onEdit={() => handleOpenEditModal(row.original)} />
       ),
     },
   ];
@@ -111,13 +108,11 @@ const Page = () => {
           leftIcon="Search"
         />
 
-        {isLoading ? (
-          <Spinner />
-        ) : isError ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center text-foreground-secondary">
-            Failed to load orders. Please try again.
-          </div>
-        ) : (
+        <AsyncState
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage="Failed to load orders. Please try again."
+        >
           <Table
             data={orders}
             columns={columns}
@@ -125,7 +120,7 @@ const Page = () => {
             setPage={setPage}
             totalPages={totalPages}
           />
-        )}
+        </AsyncState>
       </div>
       <EditOrderModal
         isOpen={isEditOrderModalOpen}

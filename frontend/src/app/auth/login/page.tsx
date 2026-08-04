@@ -3,8 +3,8 @@ import { AuthBrandPanel } from "@/components/domain/auth";
 import { Button, Input, Typography } from "@/components/ui";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLoginMutation } from "@/lib/api/authApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { User } from "@/types/auth.types";
-import axios from "axios";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,13 +32,8 @@ const Page = () => {
           toast.success(data.message || "Login successful");
           router.push("/");
         },
-        onError: (error) => {
-          if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message || "Login failed");
-          } else {
-            toast.error("Login failed");
-          }
-        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Login failed")),
       },
     );
   };
