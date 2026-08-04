@@ -45,6 +45,13 @@ const APP_ROUTES: IRoute[] = [
     icon: "Store",
   },
   {
+    id: "Customers",
+    label: "Customers",
+    href: "/customers",
+    roles: [UserRole.ADMIN],
+    icon: "Users",
+  },
+  {
     id: "Order History",
     label: "Order History",
     href: "/orderhistory",
