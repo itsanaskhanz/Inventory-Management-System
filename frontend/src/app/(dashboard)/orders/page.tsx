@@ -9,9 +9,12 @@ import {
   Typography,
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
+import ReceiptModal from "@/components/domain/receipt/ReceiptModal";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
-import { useGetProductsQuery } from "@/lib/api/productApi";
+import { useSearchProductsQuery } from "@/lib/api/productApi";
+import { ReceiptData, ReceiptItem } from "@/lib/receipt";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { CreateOrder } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -23,15 +26,22 @@ const Page = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [page, setPage] = useState(1);
   const limit = appConfig.defaultPageLimit;
+  const debouncedSearch = useDebouncedValue(search);
   const queryClient = useQueryClient();
   const { mutate: createOrder, isPending: isCreatingOrderLoading } =
     useCreateOrderMutation();
   const { data: categoriesResponse } = useGetCategoriesQuery(
     1,
-    appConfig.defaultPageLimit,
+    appConfig.maxFetchLimit,
   );
   const categoriesData = categoriesResponse?.data.categories;
-  const { data: productsResponse } = useGetProductsQuery(page, limit);
+  const { data: productsResponse } = useSearchProductsQuery(
+    debouncedSearch,
+    selectedCategory === "All" ? null : selectedCategory,
+    page,
+    limit,
+    true,
+  );
   const { products: productsData, pagination } = productsResponse?.data || {};
   const totalPages = pagination?.totalPages || 1;
 
@@ -41,6 +51,7 @@ const Page = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -75,9 +86,28 @@ const Page = () => {
       })),
     };
 
+    const receiptItems: ReceiptItem[] = cartItems.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      subtotal: item.price * item.quantity,
+    }));
+
     createOrder(payload, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast.success("Order placed successfully");
+        const createdOrder = data.data.order;
+        setReceiptData({
+          orderNumber: createdOrder.orderNumber,
+          orderId: createdOrder.id,
+          createdAt: createdOrder.createdAt,
+          customerName: createdOrder.customerName,
+          customerPhone: createdOrder.customerPhone,
+          items: receiptItems,
+          subtotal: createdOrder.subtotal,
+          tax: createdOrder.tax,
+          total: createdOrder.total,
+        });
         setCartItems([]);
         setCustomerName("");
         setCustomerPhone("");
@@ -124,15 +154,15 @@ const Page = () => {
       ]);
     }
   };
-  const filteredProducts = productsData?.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase().trim());
-    const matchesCategory =
-      selectedCategory === "All" || product.categoryId === selectedCategory;
-    const isActive = product.isActive !== false;
-    return isActive && matchesSearch && matchesCategory;
-  });
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setPage(1);
+  };
 
   if (!appConfig.features.enablePos) {
     return (
@@ -150,7 +180,7 @@ const Page = () => {
         <div className="flex-1 flex flex-col gap-6">
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search products..."
             fullWidth
             leftIcon="Search"
@@ -159,13 +189,13 @@ const Page = () => {
           <CategoryFilter
             categories={categoriesData}
             selected={selectedCategory}
-            onSelect={setSelectedCategory}
+            onSelect={handleCategoryChange}
           />
 
           <div className="flex-1">
             <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {filteredProducts && filteredProducts.length > 0 ? (
-                filteredProducts.map((product, key) => (
+              {productsData && productsData.length > 0 ? (
+                productsData.map((product, key) => (
                   <button
                     key={key}
                     onClick={() => addToCart(product.id)}
@@ -388,6 +418,12 @@ const Page = () => {
           </div>
         </div>
       </Modal>
+
+      <ReceiptModal
+        isOpen={!!receiptData}
+        receiptData={receiptData}
+        onClose={() => setReceiptData(null)}
+      />
     </>
   );
 };

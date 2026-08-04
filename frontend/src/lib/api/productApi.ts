@@ -33,6 +33,29 @@ export const useGetProductsQuery = (page: number, limit: number) => {
   });
 };
 
+export const useSearchProductsQuery = (
+  search: string,
+  categoryId: string | null,
+  page: number,
+  limit: number,
+  isActive?: boolean,
+) => {
+  return useQuery({
+    queryKey: ["products", "search", search, categoryId, page, limit, isActive],
+    queryFn: async (): Promise<ProductsResponse> => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search.trim()) params.set("search", search.trim());
+      if (categoryId) params.set("categoryId", categoryId);
+      if (isActive !== undefined) params.set("isActive", String(isActive));
+      const response = await apiClient.get(`/products/search?${params}`);
+      return response.data;
+    },
+  });
+};
+
 export const useGetProductByIdQuery = (id: string) => {
   return useQuery({
     queryKey: ["product", id],

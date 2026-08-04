@@ -6,6 +6,7 @@ import {
   findAll,
   findById,
   remove,
+  searchAll,
   update,
 } from "./category.repository.js";
 
@@ -99,10 +100,33 @@ const getCategoriesService = async (
   };
 };
 
+const searchCategoriesService = async (
+  userId: string,
+  search: string | undefined,
+  page: number,
+  limit: number,
+) => {
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const { categories, pagination } = await searchAll(
+    userId,
+    search,
+    start,
+    end,
+    limit,
+  );
+  return {
+    statusCode: 200,
+    message: "Categories found successfully",
+    data: { categories, pagination },
+  };
+};
+
 export {
   createCategoryService,
   deleteCategoryService,
   getCategoriesService,
   getCategoryByIdService,
+  searchCategoriesService,
   updateCategoryService,
 };

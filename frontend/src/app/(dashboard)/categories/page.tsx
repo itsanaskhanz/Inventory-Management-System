@@ -4,7 +4,8 @@ import DeleteCategoryModal from "@/components/domain/categories/DeleteCategoryMo
 import UpdateCategoryModal from "@/components/domain/categories/UpdateCategoryModal";
 import { Button, Icon, Input, Spinner, Table } from "@/components/ui";
 import appConfig from "@/config/app.config";
-import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
+import { useSearchCategoriesQuery } from "@/lib/api/categoryApi";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Category } from "@/types/category.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -15,12 +16,13 @@ const Page = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const limit = appConfig.defaultPageLimit;
+  const debouncedSearch = useDebouncedValue(search);
   // API Hooks
   const {
     data: response,
     isLoading,
     isError,
-  } = useGetCategoriesQuery(page, limit);
+  } = useSearchCategoriesQuery(debouncedSearch, page, limit);
   const totalPages = response?.data?.pagination.totalPages || 1;
 
   // Modals
@@ -38,9 +40,10 @@ const Page = () => {
 
   // Data to load
   const categories: Category[] = response?.data?.categories || [];
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(search.toLowerCase().trim()),
-  );
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
   // Columns
   const columns: ColumnDef<Category>[] = [
     {
@@ -108,7 +111,7 @@ const Page = () => {
 
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search categories..."
           fullWidth
           leftIcon="Search"
@@ -122,7 +125,7 @@ const Page = () => {
           </div>
         ) : (
           <Table
-            data={filteredCategories}
+            data={categories}
             columns={columns}
             page={page}
             setPage={setPage}

@@ -9,6 +9,7 @@ import {
   findAll,
   findById,
   remove,
+  searchAll,
   update,
 } from "./product.repository.js";
 import { findById as findCategoryById } from "../category/category.repository.js";
@@ -74,6 +75,28 @@ const getProductStatus = (
   return Status.IN_STOCK;
 };
 
+const searchProductsService = async (
+  userId: string,
+  filters: { search?: string; categoryId?: string; isActive?: boolean },
+  page: number,
+  limit: number,
+) => {
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const { products, pagination } = await searchAll(
+    userId,
+    filters,
+    start,
+    end,
+    limit,
+  );
+  return {
+    statusCode: 200,
+    message: "Products fetched successfully",
+    data: { products, pagination },
+  };
+};
+
 const createProductService = async (data: ICreateProduct, userId: string) => {
   await ensureCategoryBelongsToUser(data.categoryId, userId);
   const product = await create({
@@ -131,5 +154,6 @@ export {
   deleteProductService,
   getProductByIdService,
   getProductsService,
+  searchProductsService,
   updateProductService,
 };

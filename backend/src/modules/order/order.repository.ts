@@ -83,15 +83,49 @@ const findAll = async (
   end: number,
   limit: number,
 ) => {
+  const where: Prisma.OrderWhereInput = { userId };
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
-      where: { userId },
+      where,
       skip: start,
       take: limit,
       include: { products: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.order.count({ where: { userId } }),
+    prisma.order.count({ where }),
+  ]);
+  return {
+    orders,
+    pagination: {
+      total,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: end < total,
+      hasPreviousPage: start > 0,
+    },
+  };
+};
+
+const searchAll = async (
+  userId: string,
+  search: string | undefined,
+  start: number,
+  end: number,
+  limit: number,
+) => {
+  const where: Prisma.OrderWhereInput = { userId };
+  if (search) {
+    where.orderNumber = { contains: search, mode: "insensitive" };
+  }
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      skip: start,
+      take: limit,
+      include: { products: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.order.count({ where }),
   ]);
   return {
     orders,
@@ -112,4 +146,4 @@ const findById = async (id: string) => {
   });
 };
 
-export { create, findAll, findById };
+export { create, findAll, findById, searchAll };

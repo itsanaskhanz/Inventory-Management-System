@@ -5,7 +5,7 @@ import { apiClient } from "../apiClient";
 
 export const useCreateOrderMutation = () => {
   return useMutation({
-    mutationFn: async (data: CreateOrder) => {
+    mutationFn: async (data: CreateOrder): Promise<CreateOrderResponse> => {
       const response = await apiClient.post("/orders", data);
       return response.data;
     },
@@ -17,6 +17,25 @@ export const useGetOrdersQuery = (page: number, limit: number) => {
     queryKey: ["orders", page, limit],
     queryFn: async (): Promise<OrdersResponse> => {
       const response = await apiClient.get(`/orders?page=${page}&limit=${limit}`);
+      return response.data;
+    },
+  });
+};
+
+export const useSearchOrdersQuery = (
+  search: string,
+  page: number,
+  limit: number,
+) => {
+  return useQuery({
+    queryKey: ["orders", "search", search, page, limit],
+    queryFn: async (): Promise<OrdersResponse> => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search.trim()) params.set("search", search.trim());
+      const response = await apiClient.get(`/orders/search?${params}`);
       return response.data;
     },
   });
@@ -64,5 +83,13 @@ export interface OrdersResponse {
   data: {
     orders: Order[];
     pagination: Pagination;
+  };
+}
+
+export interface CreateOrderResponse {
+  message: string;
+  success: boolean;
+  data: {
+    order: Order;
   };
 }

@@ -14,6 +14,25 @@ export const useGetCategoriesQuery = (page: number, limit: number) => {
   });
 };
 
+export const useSearchCategoriesQuery = (
+  search: string,
+  page: number,
+  limit: number,
+) => {
+  return useQuery({
+    queryKey: ["categories", "search", search, page, limit],
+    queryFn: async (): Promise<CategoriesResponse> => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search.trim()) params.set("search", search.trim());
+      const response = await apiClient.get(`/categories/search?${params}`);
+      return response.data;
+    },
+  });
+};
+
 export const useGetCategoryByIdQuery = (id: string) => {
   return useQuery({
     queryKey: ["category", id],

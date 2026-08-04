@@ -1,10 +1,33 @@
 "use client";
 import { Button, Spinner, StatusBadge, Table, Typography } from "@/components/ui";
 import { useGetOrderByIdQuery } from "@/lib/api/orderApi";
-import { IOrderProduct } from "@/types/order.types";
+import {
+  ReceiptData,
+  buildReceiptHtml,
+  downloadReceipt,
+  printReceipt,
+} from "@/lib/receipt";
+import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
 import appConfig from "@/config/app.config";
+
+const getReceiptData = (order: Order): ReceiptData => ({
+  orderNumber: order.orderNumber,
+  orderId: order.id,
+  createdAt: order.createdAt,
+  customerName: order.customerName,
+  customerPhone: order.customerPhone,
+  items: order.products.map((p) => ({
+    name: p.product?.name || p.productId,
+    quantity: p.quantity,
+    price: p.price,
+    subtotal: p.subtotal,
+  })),
+  subtotal: order.subtotal,
+  tax: order.tax,
+  total: order.total,
+});
 
 const OrderDetailPage = () => {
   const router = useRouter();
@@ -41,9 +64,34 @@ const OrderDetailPage = () => {
           <Typography variant="h5" weight="bold">
             Order Details
           </Typography>
-          <Button variant="secondary" size="sm" onClick={() => router.back()}>
-            Back
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!order}
+              onClick={() => {
+                if (!order) return;
+                const receipt = getReceiptData(order);
+                printReceipt(buildReceiptHtml(receipt));
+              }}
+            >
+              Print Receipt
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!order}
+              onClick={() => {
+                if (!order) return;
+                downloadReceipt(getReceiptData(order));
+              }}
+            >
+              Download Receipt
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => router.back()}>
+              Back
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (

@@ -8,6 +8,7 @@ import {
   createOrderService,
   getOrderByIdService,
   getOrdersService,
+  searchOrdersService,
 } from "./order.service.js";
 
 const getCurrentUserId = (req: AuthenticatedRequest): string => {
@@ -41,4 +42,16 @@ const getOrderById = asyncHandler(
   },
 );
 
-export { createOrder, getOrderById, getOrders };
+const searchOrders = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const search =
+      typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+    const data = await searchOrdersService(userId, search, page, limit);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+export { createOrder, getOrderById, searchOrders, getOrders };

@@ -5,12 +5,14 @@ import {
   deleteCategory,
   getCategories,
   getCategoryById,
+  searchCategories,
   updateCategory,
 } from "./category.controller.js";
 const router = Router();
 
 router.get("/", authenticate, getCategories);
 router.post("/", authenticate, createCategory);
+router.get("/search", authenticate, searchCategories);
 router.get("/:id", authenticate, getCategoryById);
 router.put("/:id", authenticate, updateCategory);
 router.delete("/:id", authenticate, deleteCategory);

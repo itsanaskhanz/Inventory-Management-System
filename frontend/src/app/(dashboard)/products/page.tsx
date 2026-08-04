@@ -13,7 +13,8 @@ import {
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
-import { useGetProductsQuery } from "@/lib/api/productApi";
+import { useSearchProductsQuery } from "@/lib/api/productApi";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -35,6 +36,7 @@ const Page = () => {
     useState<Product | null>(null);
   const limit = appConfig.defaultPageLimit;
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(search);
   const { data: categoriesResponse } = useGetCategoriesQuery(
     1,
     appConfig.maxFetchLimit,
@@ -44,21 +46,25 @@ const Page = () => {
     data: response,
     isLoading,
     isError,
-  } = useGetProductsQuery(page, limit);
+  } = useSearchProductsQuery(
+    debouncedSearch,
+    selectedCategory === "All" ? null : selectedCategory,
+    page,
+    limit,
+  );
 
   const products: Product[] = response?.data?.products || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase().trim());
-    const matchesCategory =
-      selectedCategory === "All" ||
-      product.categoryId === selectedCategory ||
-      product.category?.id === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setPage(1);
+  };
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -140,7 +146,7 @@ const Page = () => {
         </div>
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search products..."
           fullWidth
           leftIcon="Search"
@@ -149,7 +155,7 @@ const Page = () => {
         <CategoryFilter
           categories={categoriesData}
           selected={selectedCategory}
-          onSelect={setSelectedCategory}
+          onSelect={handleCategoryChange}
         />
 
         {isLoading ? (
@@ -160,7 +166,7 @@ const Page = () => {
           </div>
         ) : (
           <Table
-            data={filteredProducts}
+            data={products}
             columns={columns}
             page={page}
             setPage={setPage}

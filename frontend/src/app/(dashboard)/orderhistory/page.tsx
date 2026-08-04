@@ -1,7 +1,8 @@
 "use client";
 import { Input, Spinner, StatusBadge, Table } from "@/components/ui";
 import appConfig from "@/config/app.config";
-import { useGetOrdersQuery } from "@/lib/api/orderApi";
+import { useSearchOrdersQuery } from "@/lib/api/orderApi";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -11,16 +12,20 @@ const Page = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const limit = appConfig.defaultPageLimit;
-  const { data: response, isLoading, isError } = useGetOrdersQuery(page, limit);
+  const debouncedSearch = useDebouncedValue(search);
+  const { data: response, isLoading, isError } = useSearchOrdersQuery(
+    debouncedSearch,
+    page,
+    limit,
+  );
 
   const orders: Order[] = response?.data?.orders || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
-  const filteredOrders = orders.filter((order) =>
-    String(order.orderNumber)
-      .toLowerCase()
-      .includes(search.toLowerCase().trim()),
-  );
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -74,7 +79,7 @@ const Page = () => {
     <div className="flex flex-col gap-6">
       <Input
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => handleSearchChange(e.target.value)}
         placeholder="Search by order id..."
         fullWidth
         leftIcon="Search"
@@ -88,7 +93,7 @@ const Page = () => {
         </div>
       ) : (
         <Table
-          data={filteredOrders}
+          data={orders}
           columns={columns}
           page={page}
           setPage={setPage}

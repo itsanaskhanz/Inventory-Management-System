@@ -1,7 +1,7 @@
 import AppError from "../../utils/error.js";
 import { generateOrderNumber } from "../../utils/helpers.js";
 import type { ICreateOrder } from "./order.interface.js";
-import { create, findAll, findById } from "./order.repository.js";
+import { create, findAll, findById, searchAll } from "./order.repository.js";
 
 const ensureOwnership = (order: { userId: string | null }, userId: string) => {
   if (!order.userId || order.userId !== userId) {
@@ -56,4 +56,31 @@ const getOrderByIdService = async (id: string, userId: string) => {
   };
 };
 
-export { createOrderService, getOrderByIdService, getOrdersService };
+const searchOrdersService = async (
+  userId: string,
+  search: string | undefined,
+  page: number,
+  limit: number,
+) => {
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const { orders, pagination } = await searchAll(
+    userId,
+    search,
+    start,
+    end,
+    limit,
+  );
+  return {
+    statusCode: 200,
+    message: "Orders fetched successfully",
+    data: { orders, pagination },
+  };
+};
+
+export {
+  createOrderService,
+  getOrderByIdService,
+  getOrdersService,
+  searchOrdersService,
+};

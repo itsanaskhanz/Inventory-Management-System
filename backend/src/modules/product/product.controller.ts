@@ -9,6 +9,7 @@ import {
   deleteProductService,
   getProductByIdService,
   getProductsService,
+  searchProductsService,
   updateProductService,
 } from "./product.service.js";
 
@@ -22,6 +23,33 @@ const getProducts = asyncHandler(
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
     const data = await getProductsService(userId, page, limit);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const searchProducts = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const search =
+      typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+    const categoryId =
+      typeof req.query.categoryId === "string"
+        ? req.query.categoryId.trim()
+        : undefined;
+    const isActive =
+      req.query.isActive === "true"
+        ? true
+        : req.query.isActive === "false"
+          ? false
+          : undefined;
+    const data = await searchProductsService(
+      userId,
+      { search, categoryId, isActive },
+      page,
+      limit,
+    );
     successRes(res, data.message, data.statusCode, data.data);
   },
 );
@@ -63,5 +91,6 @@ export {
   deleteProduct,
   getProductById,
   getProducts,
+  searchProducts,
   updateProduct,
 };
