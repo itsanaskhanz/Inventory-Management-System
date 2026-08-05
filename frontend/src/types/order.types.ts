@@ -26,7 +26,6 @@ export interface CreateOrderProduct {
 
 export interface Order {
   id: string;
-  orderNumber: string;
   subtotal: number;
   tax: number;
   total: number;
@@ -40,7 +39,6 @@ export interface Order {
 }
 
 export interface CreateOrder {
-  orderNumber?: string;
   subtotal: number;
   tax: number;
   total: number;

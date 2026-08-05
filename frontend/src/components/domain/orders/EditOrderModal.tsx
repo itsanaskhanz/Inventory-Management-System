@@ -60,7 +60,7 @@ const EditOrderForm = ({
       onCancel={onClose}
       onConfirm={handleUpdateOrder}
       title="Edit Order"
-      description={`Update order ${order.orderNumber}`}
+      description={`Update order ${order.id}`}
       confirmText={isPending ? "Updating..." : "Update"}
       cancelText="Cancel"
     >

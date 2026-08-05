@@ -19,7 +19,6 @@ export interface ICreateOrderProduct {
 
 export interface IOrder {
   id: string;
-  orderNumber: string;
   subtotal: number;
   tax: number;
   total: number;
@@ -32,7 +31,6 @@ export interface IOrder {
   products: IOrderProduct[];
 }
 export interface ICreateOrder {
-  orderNumber?: string;
   subtotal: number;
   tax: number;
   total: number;

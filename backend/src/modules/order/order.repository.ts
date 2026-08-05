@@ -81,9 +81,6 @@ const create = async (orderData: ICreateOrder) => {
         subtotal: orderData.subtotal,
         tax: orderData.tax,
         total: orderData.total,
-        ...(orderData.orderNumber !== undefined && {
-          orderNumber: orderData.orderNumber,
-        }),
         ...(orderData.status !== undefined && { status: orderData.status }),
         ...(orderData.userId !== undefined && { userId: orderData.userId }),
         customerId: orderData.customerId,
@@ -137,7 +134,7 @@ const searchAll = async (
 ) => {
   const where: Prisma.OrderWhereInput = { userId };
   if (search) {
-    where.orderNumber = { contains: search, mode: "insensitive" };
+    where.id = { contains: search, mode: "insensitive" };
   }
   const [orders, total] = await Promise.all([
     prisma.order.findMany({

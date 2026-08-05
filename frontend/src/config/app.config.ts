@@ -68,7 +68,7 @@ const appConfig: AppConfig = {
   defaultPageLimit: 10,
   maxFetchLimit: 100,
   features: {
-    enableRegistration: false,
+    enableRegistration: true,
     enablePos: true,
   },
   security: {

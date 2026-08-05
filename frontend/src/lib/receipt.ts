@@ -8,7 +8,6 @@ export interface ReceiptItem {
 }
 
 export interface ReceiptData {
-  orderNumber: string;
   orderId: string;
   createdAt: string | Date;
   customerName?: string | null;
@@ -60,7 +59,7 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Receipt ${escapeHtml(data.orderNumber)}</title>
+    <title>Receipt ${escapeHtml(data.orderId)}</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
@@ -116,9 +115,8 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
       <p class="store-sub">Receipt</p>
       <div class="divider"></div>
       <div class="meta">
-        <p><span>Order #:</span> ${escapeHtml(data.orderNumber)}</p>
+        <p><span>Order #:</span> ${escapeHtml(data.orderId)}</p>
         <p><span>Date:</span> ${formatDate(data.createdAt)}</p>
-        <p><span>Order ID:</span> ${escapeHtml(data.orderId)}</p>
         ${customerLines}
       </div>
       <div class="divider"></div>
@@ -179,7 +177,7 @@ export const downloadReceipt = (data: ReceiptData): void => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `receipt-${data.orderNumber}.html`;
+  link.download = `receipt-${data.orderId}.html`;
   document.body.appendChild(link);
   link.click();
   link.remove();

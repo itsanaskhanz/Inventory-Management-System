@@ -21,7 +21,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
 
 const getReceiptData = (order: Order): ReceiptData => ({
-  orderNumber: order.orderNumber,
   orderId: order.id,
   createdAt: order.createdAt,
   customerName: order.customer?.name ?? null,
@@ -108,7 +107,7 @@ const OrderDetailPage = () => {
         {order && (
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
-              <DetailField label="Order Number" value={order.orderNumber} />
+              <DetailField label="Order ID" value={order.id} />
               <DetailField label="Status">
                 <div className="pt-1">
                   <StatusBadge status={order.status} />
@@ -118,7 +117,6 @@ const OrderDetailPage = () => {
                 label="Date"
                 value={new Date(order.createdAt).toLocaleString()}
               />
-              <DetailField label="Order ID" value={order.id} />
               {order.customer?.name && (
                 <DetailField label="Customer Name" value={order.customer.name} />
               )}

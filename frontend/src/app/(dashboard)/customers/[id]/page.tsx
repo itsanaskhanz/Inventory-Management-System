@@ -31,13 +31,13 @@ const CustomerDetailPage = () => {
   const columns: ColumnDef<CustomerOrder>[] = [
     {
       header: "Order #",
-      accessorKey: "orderNumber",
+      accessorKey: "id",
       cell: ({ row }) => (
         <Link
           href={`/orderhistory/${row.original.id}`}
           className="text-primary hover:underline"
         >
-          {row.original.orderNumber}
+          {row.original.id}
         </Link>
       ),
     },

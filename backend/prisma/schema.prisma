@@ -72,7 +72,7 @@ model Category {
 model Customer {
   id            String      @id @default(cuid())
   name          String?
-  phone         String? 
+  phone         String?   @unique
   orders        Order[]
   userId        String?
   user          User?  @relation(fields: [userId], references: [id], onDelete: Cascade) 
@@ -82,7 +82,6 @@ model Customer {
 
 model Order {
   id            String      @id @default(cuid())
-  orderNumber   String      @unique
   subtotal      Float
   tax           Float
   total         Float

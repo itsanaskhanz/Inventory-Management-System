@@ -22,7 +22,7 @@ const ReceiptModal = ({ isOpen, receiptData, onClose }: ReceiptModalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       title="Receipt"
-      description={`Receipt for order ${receiptData.orderNumber}`}
+      description={`Receipt for order ${receiptData.orderId}`}
       cancelText="Download"
       onCancel={() => downloadReceipt(receiptData)}
       confirmText="Print"

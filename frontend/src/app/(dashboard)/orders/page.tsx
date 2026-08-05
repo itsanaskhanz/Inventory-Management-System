@@ -104,7 +104,6 @@ const Page = () => {
         toast.success("Order placed successfully");
         const createdOrder = data.data.order;
         setReceiptData({
-          orderNumber: createdOrder.orderNumber,
           orderId: createdOrder.id,
           createdAt: createdOrder.createdAt,
           customerName: selectedCustomer?.name ?? null,

@@ -46,13 +46,13 @@ const Page = () => {
   const columns: ColumnDef<Order>[] = [
     {
       header: "Order #",
-      accessorKey: "orderNumber",
+      accessorKey: "id",
       cell: ({ row }) => (
         <Link
           href={`/orderhistory/${row.original.id}`}
           className="text-primary hover:underline"
         >
-          {row.original.orderNumber}
+          {row.original.id}
         </Link>
       ),
     },

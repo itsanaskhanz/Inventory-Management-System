@@ -1,5 +1,4 @@
 import AppError from "../../utils/error.js";
-import { generateOrderNumber } from "../../utils/helpers.js";
 import type { ICreateOrder, ICreateOrderProduct, IUpdateOrder } from "./order.interface.js";
 import {
   create,
@@ -30,7 +29,6 @@ const ensureOwnership = (order: { userId: string | null }, userId: string) => {
 const createOrderService = async (data: ICreateOrder, userId: string) => {
   const order = await create({
     ...data,
-    orderNumber: data.orderNumber ?? generateOrderNumber(),
     userId,
   });
 
