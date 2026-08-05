@@ -1,4 +1,5 @@
 "use client";
+import ReceiptModal from "@/components/domain/receipt/ReceiptModal";
 import {
   Button,
   CategoryFilter,
@@ -10,7 +11,6 @@ import {
   Typography,
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
-import ReceiptModal from "@/components/domain/receipt/ReceiptModal";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
@@ -57,6 +57,8 @@ const Page = () => {
   >([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [cashReceived, setCashReceived] = useState("");
+  const [markAsCompleted, setMarkAsCompleted] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
   const subtotal = cartItems.reduce(
@@ -65,6 +67,11 @@ const Page = () => {
   );
   const tax = subtotal * 0.0;
   const total = subtotal + tax;
+
+  const effectiveCashReceived = markAsCompleted
+    ? total
+    : Math.max(0, Number(cashReceived) || 0);
+  const due = Math.max(0, total - effectiveCashReceived);
 
   const handleConfirmOrder = () => {
     if (!selectedCustomerId) {
@@ -83,6 +90,7 @@ const Page = () => {
       subtotal,
       tax,
       total,
+      cashReceived: effectiveCashReceived,
       customerId: selectedCustomerId || undefined,
       products: cartItems.map((item) => ({
         productId: item.id,
@@ -112,9 +120,13 @@ const Page = () => {
           subtotal: createdOrder.subtotal,
           tax: createdOrder.tax,
           total: createdOrder.total,
+          cashReceived: createdOrder.cashReceived,
+          due: createdOrder.due,
         });
         setCartItems([]);
         setSelectedCustomerId("");
+        setCashReceived("");
+        setMarkAsCompleted(false);
         queryClient.invalidateQueries({ queryKey: ["orders"] });
       },
       onError: (error) =>
@@ -233,11 +245,9 @@ const Page = () => {
           </div>
         </div>
 
-        <div className="lg:w-100 w-full h-full border border-border rounded-lg p-6 flex flex-col ">
+        <div className="lg:w-150 w-full h-full border border-border rounded-lg p-6 flex flex-col ">
           <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center mb-4">
-            <Typography variant="h3">
-              {formatCurrency(total)}
-            </Typography>
+            <Typography variant="h3">{formatCurrency(total)}</Typography>
             <Typography variant="caption" color="secondary">
               {cartItems.length} items
             </Typography>
@@ -309,9 +319,7 @@ const Page = () => {
               <Typography variant="body2" color="secondary">
                 Tax
               </Typography>
-              <Typography variant="body2">
-                {formatCurrency(tax)}
-              </Typography>
+              <Typography variant="body2">{formatCurrency(tax)}</Typography>
             </div>
             <div className="flex justify-between">
               <Typography variant="body1" weight="bold">
@@ -363,6 +371,34 @@ const Page = () => {
               ))}
             </Select>
           </div>
+          <div className="flex flex-col gap-2">
+            <Typography variant="body2" weight="medium">
+              Cash Received
+            </Typography>
+            <Input
+              type="number"
+              min={0}
+              value={cashReceived}
+              onChange={(e) => setCashReceived(e.target.value)}
+              placeholder={`0.00`}
+              disabled={markAsCompleted}
+              fullWidth
+            />
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={markAsCompleted}
+                onChange={(e) => {
+                  setMarkAsCompleted(e.target.checked);
+                  if (e.target.checked) setCashReceived(String(total));
+                }}
+                className="h-4 w-4 accent-primary"
+              />
+              <Typography variant="body2">
+                Mark as completed (full payment received)
+              </Typography>
+            </label>
+          </div>
           <hr className="my-2" />
           {cartItems.map((item) => (
             <div
@@ -382,17 +418,13 @@ const Page = () => {
             <Typography variant="body2" color="secondary">
               Subtotal
             </Typography>
-            <Typography variant="body2">
-              {formatCurrency(subtotal)}
-            </Typography>
+            <Typography variant="body2">{formatCurrency(subtotal)}</Typography>
           </div>
           <div className="flex items-center justify-between">
             <Typography variant="body2" color="secondary">
               Tax
             </Typography>
-            <Typography variant="body2">
-              {formatCurrency(tax)}
-            </Typography>
+            <Typography variant="body2">{formatCurrency(tax)}</Typography>
           </div>
           <div className="flex items-center justify-between">
             <Typography variant="body1" weight="bold">
@@ -400,6 +432,30 @@ const Page = () => {
             </Typography>
             <Typography variant="body1" weight="bold">
               {formatCurrency(total)}
+            </Typography>
+          </div>
+          <div className="flex items-center justify-between">
+            <Typography variant="body2" color="secondary">
+              Cash Received
+            </Typography>
+            <Typography variant="body2">
+              {formatCurrency(effectiveCashReceived)}
+            </Typography>
+          </div>
+          <div className="flex items-center justify-between">
+            <Typography
+              variant="body2"
+              color={due > 0 ? "secondary" : "success"}
+            >
+              {due > 0 ? "Due" : "Change"}
+            </Typography>
+            <Typography
+              variant="body2"
+              className={due > 0 ? "" : "text-success"}
+            >
+              {due > 0
+                ? formatCurrency(due)
+                : formatCurrency(total - effectiveCashReceived)}
             </Typography>
           </div>
         </div>

@@ -1,10 +1,11 @@
 "use client";
-import { Modal, Select, Typography } from "@/components/ui";
+import { Input, Modal, Select, Typography } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { ORDER_STATUSES } from "@/config/orderStatus";
 import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
 import { useUpdateOrderMutation } from "@/lib/api/orderApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
+import { formatCurrency } from "@/lib/format";
 import { Order } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -25,12 +26,27 @@ const EditOrderForm = ({
       : order.status,
   );
   const [customerId, setCustomerId] = useState(order.customerId ?? "");
+  const [cashReceived, setCashReceived] = useState<string>(
+    String(order.cashReceived ?? 0),
+  );
+
+  const parsedCashReceived = Math.max(0, Number(cashReceived) || 0);
+  const due = Math.max(0, order.total - parsedCashReceived);
+  const isCancelled = order.status.toUpperCase() === "CANCELLED";
 
   const statusOptions = ORDER_STATUSES.includes(
     status as (typeof ORDER_STATUSES)[number],
   )
     ? ORDER_STATUSES
     : [...ORDER_STATUSES, status];
+
+  const handleCashReceivedChange = (value: string) => {
+    setCashReceived(value);
+    if (!isCancelled) {
+      const parsed = Math.max(0, Number(value) || 0);
+      setStatus(Math.max(0, order.total - parsed) <= 0 ? "COMPLETED" : "PENDING");
+    }
+  };
 
   const handleUpdateOrder = () => {
     updateOrder(
@@ -39,6 +55,7 @@ const EditOrderForm = ({
         data: {
           status,
           customerId: customerId || undefined,
+          cashReceived: parsedCashReceived,
         },
       },
       {
@@ -80,6 +97,37 @@ const EditOrderForm = ({
               </option>
             ))}
           </Select>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Typography variant="body2" weight="medium">
+            Cash Received
+          </Typography>
+          <Input
+            type="number"
+            min={0}
+            fullWidth
+            value={cashReceived}
+            onChange={(e) => handleCashReceivedChange(e.target.value)}
+            disabled={isCancelled}
+          />
+          <div className="flex justify-between text-sm">
+            <Typography variant="caption" color="secondary">
+              Total
+            </Typography>
+            <Typography variant="caption">
+              {formatCurrency(order.total)}
+            </Typography>
+          </div>
+          <div className="flex justify-between text-sm">
+            <Typography variant="caption" color="secondary">
+              {due > 0 ? "Due" : "Change"}
+            </Typography>
+            <Typography variant="caption">
+              {formatCurrency(
+                due > 0 ? due : parsedCashReceived - order.total,
+              )}
+            </Typography>
+          </div>
         </div>
         <div className="flex flex-col gap-2">
           <Typography variant="body2" weight="medium">

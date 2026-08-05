@@ -9,8 +9,8 @@ import {
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchOrdersQuery } from "@/lib/api/orderApi";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -66,6 +66,13 @@ const Page = () => {
       accessorKey: "subtotal",
       cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
+    // custoemr name with phone number
+    {
+      header: "Customer",
+      accessorKey: "customer",
+      cell: ({ row }) =>
+        `${row.original.customer?.name} (${row.original.customer?.phone})`,
+    },
     {
       header: "Tax",
       accessorKey: "tax",
@@ -74,6 +81,16 @@ const Page = () => {
     {
       header: "Total",
       accessorKey: "total",
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
+      header: "Cash",
+      accessorKey: "cashReceived",
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
+      header: "Due",
+      accessorKey: "due",
       cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {

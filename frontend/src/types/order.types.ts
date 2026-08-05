@@ -29,6 +29,8 @@ export interface Order {
   subtotal: number;
   tax: number;
   total: number;
+  cashReceived: number;
+  due: number;
   status: string;
   customerId?: string | null;
   customer?: OrderCustomer | null;
@@ -42,6 +44,7 @@ export interface CreateOrder {
   subtotal: number;
   tax: number;
   total: number;
+  cashReceived?: number;
   status?: string;
   userId?: string;
   customerId?: string;

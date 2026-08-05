@@ -34,6 +34,8 @@ const getReceiptData = (order: Order): ReceiptData => ({
   subtotal: order.subtotal,
   tax: order.tax,
   total: order.total,
+  cashReceived: order.cashReceived,
+  due: order.due,
 });
 
 const OrderDetailPage = () => {
@@ -116,6 +118,18 @@ const OrderDetailPage = () => {
               <DetailField
                 label="Date"
                 value={new Date(order.createdAt).toLocaleString()}
+              />
+              <DetailField
+                label="Cash Received"
+                value={formatCurrency(order.cashReceived)}
+              />
+              <DetailField
+                label={order.due > 0 ? "Due" : "Change"}
+                value={formatCurrency(
+                  order.due > 0
+                    ? order.due
+                    : order.cashReceived - order.total,
+                )}
               />
               {order.customer?.name && (
                 <DetailField label="Customer Name" value={order.customer.name} />

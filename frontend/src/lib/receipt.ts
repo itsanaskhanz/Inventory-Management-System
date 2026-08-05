@@ -16,6 +16,8 @@ export interface ReceiptData {
   subtotal: number;
   tax: number;
   total: number;
+  cashReceived?: number;
+  due?: number;
 }
 
 const escapeHtml = (value: string): string =>
@@ -53,6 +55,18 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
     data.customerPhone
       ? `<p><span>Phone:</span> ${escapeHtml(data.customerPhone)}</p>`
       : "",
+  ].join("");
+
+  const cashReceived = data.cashReceived ?? data.total;
+  const due = data.due ?? 0;
+  const change = Math.max(0, cashReceived - data.total);
+  const paymentLines = [
+    `<p class="totals-row"><span>Cash Received</span><span>${money(cashReceived)}</span></p>`,
+    due > 0
+      ? `<p class="totals-row"><span>Due</span><span>${money(due)}</span></p>`
+      : change > 0
+        ? `<p class="totals-row"><span>Change</span><span>${money(change)}</span></p>`
+        : "",
   ].join("");
 
   return `<!DOCTYPE html>
@@ -136,6 +150,7 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
         <p><span>Subtotal</span><span>${money(data.subtotal)}</span></p>
         <p><span>Tax</span><span>${money(data.tax)}</span></p>
         <p class="grand"><span>Total</span><span>${money(data.total)}</span></p>
+        ${paymentLines}
       </div>
       <div class="divider"></div>
       <p class="thanks">Thank you for your purchase!</p>

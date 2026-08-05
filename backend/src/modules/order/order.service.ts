@@ -27,8 +27,15 @@ const ensureOwnership = (order: { userId: string | null }, userId: string) => {
 };
 
 const createOrderService = async (data: ICreateOrder, userId: string) => {
+  const cashReceived = Math.max(0, data.cashReceived ?? 0);
+  const due = Math.max(0, data.total - cashReceived);
+  const status = due <= 0 ? "COMPLETED" : "PENDING";
+
   const order = await create({
     ...data,
+    cashReceived,
+    due,
+    status,
     userId,
   });
 
@@ -102,13 +109,28 @@ const updateOrderService = async (
   ensureOwnership(exists, userId);
 
   const previousStatus = exists.status.toUpperCase();
-  const nextStatus = (data.status ?? previousStatus).toUpperCase();
-  if (!VALID_ORDER_STATUSES.includes(nextStatus)) {
+  const cashReceived =
+    data.cashReceived !== undefined
+      ? Math.max(0, data.cashReceived)
+      : exists.cashReceived;
+  const due = Math.max(0, exists.total - cashReceived);
+
+  const requestedStatus = (data.status ?? previousStatus).toUpperCase();
+  if (!VALID_ORDER_STATUSES.includes(requestedStatus)) {
     throw new AppError(
       `Invalid order status. Must be one of: ${VALID_ORDER_STATUSES.join(", ")}`,
       400,
       true,
     );
+  }
+
+  let nextStatus = requestedStatus;
+  if (
+    nextStatus !== "CANCELLED" &&
+    data.cashReceived !== undefined &&
+    previousStatus !== "CANCELLED"
+  ) {
+    nextStatus = due <= 0 ? "COMPLETED" : "PENDING";
   }
 
   let stockAction: StockAction = null;
@@ -135,7 +157,7 @@ const updateOrderService = async (
 
   const order = await update(
     id,
-    { ...data, status: nextStatus },
+    { ...data, status: nextStatus, cashReceived, due },
     stockAction,
     products,
   );

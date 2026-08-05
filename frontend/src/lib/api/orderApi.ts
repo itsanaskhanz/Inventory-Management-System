@@ -15,6 +15,7 @@ export const useCreateOrderMutation = () => {
 export interface UpdateOrderRequest {
   status?: string;
   customerId?: string;
+  cashReceived?: number;
 }
 
 export const useUpdateOrderMutation = () => {

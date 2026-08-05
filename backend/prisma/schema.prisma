@@ -85,6 +85,8 @@ model Order {
   subtotal      Float
   tax           Float
   total         Float
+  cashReceived  Float       @default(0)
+  due           Float       @default(0)
   status        String      @default("completed") 
   createdAt     DateTime    @default(now())  
   userId        String?
