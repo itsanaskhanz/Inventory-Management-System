@@ -170,6 +170,50 @@ const findById = async (id: string) => {
   });
 };
 
+interface DailyRevenueRow {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+const getStats = async (userId: string, from: Date, to: Date) => {
+  const where: Prisma.OrderWhereInput = {
+    userId,
+    status: { equals: "COMPLETED", mode: "insensitive" },
+  };
+  const [allTime, dailyRows] = await Promise.all([
+    prisma.order.aggregate({
+      where,
+      _sum: { total: true },
+      _count: { _all: true },
+    }),
+    prisma.$queryRaw<DailyRevenueRow[]>`
+      SELECT to_char("createdAt", 'YYYY-MM-DD') AS date,
+             COALESCE(SUM("total"), 0)::float8 AS revenue,
+             COUNT(*)::int AS orders
+      FROM "Order"
+      WHERE "userId" = ${userId}
+        AND UPPER("status") = 'COMPLETED'
+        AND "createdAt" >= ${from}
+        AND "createdAt" <= ${to}
+      GROUP BY to_char("createdAt", 'YYYY-MM-DD')
+      ORDER BY date ASC
+    `,
+  ]);
+
+  const daily = dailyRows.map((row) => ({
+    date: row.date,
+    revenue: Number(row.revenue),
+    orders: Number(row.orders),
+  }));
+
+  return {
+    totalRevenue: allTime._sum.total ?? 0,
+    totalOrders: allTime._count,
+    daily,
+  };
+};
+
 export type StockAction = "deduct" | "restore" | null;
 
 const update = async (
@@ -189,4 +233,4 @@ const update = async (
   });
 };
 
-export { create, findAll, findById, searchAll, update };
+export { create, findAll, findById, getStats, searchAll, update };

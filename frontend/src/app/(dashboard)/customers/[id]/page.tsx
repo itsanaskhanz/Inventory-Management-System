@@ -8,11 +8,16 @@ import {
   Table,
   Typography,
 } from "@/components/ui";
-import { useGetCustomerByIdQuery } from "@/lib/api/customerApi";
+import appConfig from "@/config/app.config";
+import {
+  useGetCustomerByIdQuery,
+  useGetCustomerOrdersQuery,
+} from "@/lib/api/customerApi";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 
 interface CustomerOrder extends Order {
@@ -22,11 +27,20 @@ interface CustomerOrder extends Order {
 const CustomerDetailPage = () => {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { data: response, isLoading, isError } = useGetCustomerByIdQuery(id);
+  const [page, setPage] = useState(1);
+  const limit = appConfig.defaultPageLimit;
+  const { data: response, isLoading: isCustomerLoading, isError } =
+    useGetCustomerByIdQuery(id);
+  const {
+    data: ordersResponse,
+    isLoading: isOrdersLoading,
+    isError: isOrdersError,
+  } = useGetCustomerOrdersQuery(id, page, limit);
 
   const customer = response?.data?.customer;
-  const orders: CustomerOrder[] =
-    (customer as unknown as { orders?: CustomerOrder[] })?.orders || [];
+  const orders: CustomerOrder[] = ordersResponse?.data?.orders || [];
+  const totalOrders = ordersResponse?.data?.pagination.total ?? 0;
+  const totalPages = ordersResponse?.data?.pagination.totalPages || 1;
 
   const columns: ColumnDef<CustomerOrder>[] = [
     {
@@ -85,8 +99,8 @@ const CustomerDetailPage = () => {
       />
 
       <AsyncState
-        isLoading={isLoading}
-        isError={isError || !customer}
+        isLoading={isCustomerLoading || isOrdersLoading}
+        isError={isError || isOrdersError || !customer}
         errorMessage="Failed to load customer. Please try again."
       >
         {customer && (
@@ -95,7 +109,7 @@ const CustomerDetailPage = () => {
               <DetailField label="Customer ID" value={customer.id} />
               <DetailField label="Name" value={customer.name || "—"} />
               <DetailField label="Phone" value={customer.phone || "—"} />
-              <DetailField label="Total Orders" value={orders.length} />
+              <DetailField label="Total Orders" value={totalOrders} />
             </div>
 
             <div className="rounded-lg border border-border p-4">
@@ -110,9 +124,9 @@ const CustomerDetailPage = () => {
                 <Table
                   data={orders}
                   columns={columns}
-                  page={1}
-                  setPage={() => undefined}
-                  totalPages={1}
+                  page={page}
+                  setPage={setPage}
+                  totalPages={totalPages}
                 />
               )}
             </div>

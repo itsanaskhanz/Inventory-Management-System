@@ -2,7 +2,7 @@ export interface Category {
   id: string;
   name: string;
   userId: string;
-  products?: Array<{ id: string }>;
+  productsCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }

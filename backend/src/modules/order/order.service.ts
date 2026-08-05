@@ -4,6 +4,7 @@ import {
   create,
   findAll,
   findById,
+  getStats,
   searchAll,
   update,
   type StockAction,
@@ -27,12 +28,30 @@ const ensureOwnership = (order: { userId: string | null }, userId: string) => {
 };
 
 const createOrderService = async (data: ICreateOrder, userId: string) => {
-  const cashReceived = Math.max(0, data.cashReceived ?? 0);
-  const due = Math.max(0, data.total - cashReceived);
+  const products = (data.products ?? [])
+    .map((p) => ({
+      productId: p.productId,
+      quantity: Math.max(0, Math.floor(Number(p.quantity) || 0)),
+      price: Math.max(0, Number(p.price) || 0),
+    }))
+    .filter((p) => p.quantity > 0);
+
+  const subtotal = products.reduce(
+    (sum, p) => sum + p.price * p.quantity,
+    0,
+  );
+  const tax = Math.max(0, Number(data.tax) || 0);
+  const total = subtotal + tax;
+  const cashReceived = Math.max(0, Number(data.cashReceived) || 0);
+  const due = Math.max(0, total - cashReceived);
   const status = due <= 0 ? "COMPLETED" : "PENDING";
 
   const order = await create({
     ...data,
+    products: products.map((p) => ({ ...p, subtotal: p.price * p.quantity })),
+    subtotal,
+    tax,
+    total,
     cashReceived,
     due,
     status,
@@ -168,10 +187,34 @@ const updateOrderService = async (
   };
 };
 
+const getOrderStatsService = async (
+  userId: string,
+  from?: Date,
+  to?: Date,
+) => {
+  const start = from ?? new Date(0);
+  const end = to ?? new Date("2100-01-01T23:59:59.999Z");
+  const { totalRevenue, totalOrders, daily } = await getStats(userId, start, end);
+  const rangeRevenue = daily.reduce((sum, d) => sum + d.revenue, 0);
+  const rangeOrders = daily.reduce((sum, d) => sum + d.orders, 0);
+  return {
+    statusCode: 200,
+    message: "Order statistics fetched successfully",
+    data: {
+      totalRevenue,
+      totalOrders,
+      rangeRevenue,
+      rangeOrders,
+      dailyRevenue: daily,
+    },
+  };
+};
+
 export {
   createOrderService,
   getOrderByIdService,
   getOrdersService,
+  getOrderStatsService,
   searchOrdersService,
   updateOrderService,
 };

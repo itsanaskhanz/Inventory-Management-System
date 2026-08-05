@@ -26,7 +26,7 @@ const findAll = async (
       where,
       skip: start,
       take: limit,
-      include: { products: true },
+      include: { _count: { select: { products: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.count({ where }),
@@ -56,7 +56,7 @@ const searchAll = async (
       where,
       skip: start,
       take: limit,
-      include: { products: true },
+      include: { _count: { select: { products: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.count({ where }),
@@ -74,7 +74,10 @@ const searchAll = async (
 };
 
 const findById = async (id: string) => {
-  return prisma.category.findUnique({ where: { id } });
+  return prisma.category.findUnique({
+    where: { id },
+    include: { _count: { select: { products: true } } },
+  });
 };
 
 const update = async (id: string, data: Partial<ICreateCategory>) => {

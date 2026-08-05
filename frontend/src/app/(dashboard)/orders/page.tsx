@@ -12,7 +12,7 @@ import {
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
-import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
+import { useSearchCustomersQuery } from "@/lib/api/customerApi";
 import { useCreateOrderMutation } from "@/lib/api/orderApi";
 import { useSearchProductsQuery } from "@/lib/api/productApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
@@ -20,6 +20,7 @@ import { formatCurrency } from "@/lib/format";
 import { ReceiptData, ReceiptItem } from "@/lib/receipt";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { CreateOrder } from "@/types/order.types";
+import { Customer } from "@/types/customer.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -48,15 +49,22 @@ const Page = () => {
   const { products: productsData, pagination } = productsResponse?.data || {};
   const totalPages = pagination?.totalPages || 1;
 
-  const { data: customersData } = useGetAllCustomersQuery(
+  const [customerSearch, setCustomerSearch] = useState("");
+  const debouncedCustomerSearch = useDebouncedValue(customerSearch);
+  const { data: customersData } = useSearchCustomersQuery(
+    debouncedCustomerSearch,
+    1,
     appConfig.maxFetchLimit,
   );
-  const customers = customersData || [];
+  const customers = customersData?.data?.customers || [];
   const [cartItems, setCartItems] = useState<
     { id: string; name: string; price: number; quantity: number }[]
   >([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
   const [cashReceived, setCashReceived] = useState("");
   const [markAsCompleted, setMarkAsCompleted] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
@@ -85,7 +93,6 @@ const Page = () => {
   const handleSubmitOrder = () => {
     if (cartItems.length === 0) return;
 
-    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
     const payload: CreateOrder = {
       subtotal,
       tax,
@@ -125,6 +132,7 @@ const Page = () => {
         });
         setCartItems([]);
         setSelectedCustomerId("");
+        setSelectedCustomer(null);
         setCashReceived("");
         setMarkAsCompleted(false);
         queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -357,10 +365,21 @@ const Page = () => {
             <Typography variant="body2" weight="medium">
               Customer
             </Typography>
+            <Input
+              value={customerSearch}
+              onChange={(e) => setCustomerSearch(e.target.value)}
+              placeholder="Search customers..."
+              fullWidth
+              inputSize="sm"
+            />
             <Select
               fullWidth
               value={selectedCustomerId}
-              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              onChange={(e) => {
+                const customer = customers.find((c) => c.id === e.target.value);
+                setSelectedCustomerId(e.target.value);
+                setSelectedCustomer(customer ?? null);
+              }}
             >
               <option value="">Select a customer</option>
               {customers.map((customer) => (

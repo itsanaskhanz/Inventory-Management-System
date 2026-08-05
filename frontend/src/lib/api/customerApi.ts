@@ -1,8 +1,8 @@
 import {
-  Customer,
   CustomersResponse,
   CustomerResponse,
 } from "@/types/customer.types";
+import { OrdersResponse } from "./orderApi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
 
@@ -19,40 +19,39 @@ export const useCreateCustomerMutation = () => {
   });
 };
 
-export const useGetCustomersQuery = (page: number, limit: number) => {
+export const useSearchCustomersQuery = (
+  search: string,
+  page: number,
+  limit: number,
+) => {
   return useQuery({
-    queryKey: ["customers", page, limit],
+    queryKey: ["customers", "search", search, page, limit],
     queryFn: async (): Promise<CustomersResponse> => {
-      const response = await apiClient.get(
-        `/customers?page=${page}&limit=${limit}`,
-      );
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search.trim()) params.set("search", search.trim());
+      const response = await apiClient.get(`/customers/search?${params}`);
       return response.data;
     },
   });
 };
 
-export const useGetAllCustomersQuery = (limit: number) => {
+export const useGetCustomerOrdersQuery = (
+  customerId: string,
+  page: number,
+  limit: number,
+) => {
   return useQuery({
-    queryKey: ["customers", "all", limit],
-    queryFn: async (): Promise<Customer[]> => {
-      const firstPage = await apiClient.get<CustomersResponse>(
-        `/customers?page=1&limit=${limit}`,
+    queryKey: ["customers", customerId, "orders", page, limit],
+    queryFn: async (): Promise<OrdersResponse> => {
+      const response = await apiClient.get(
+        `/customers/${customerId}/orders?page=${page}&limit=${limit}`,
       );
-      const { customers, pagination } = firstPage.data.data;
-      if (pagination.totalPages <= 1) return customers;
-
-      const remaining = await Promise.all(
-        Array.from({ length: pagination.totalPages - 1 }, (_, i) =>
-          apiClient
-            .get<CustomersResponse>(
-              `/customers?page=${i + 2}&limit=${limit}`,
-            )
-            .then((res) => res.data.data.customers),
-        ),
-      );
-
-      return [...customers, ...remaining.flat()];
+      return response.data;
     },
+    enabled: !!customerId,
   });
 };
 

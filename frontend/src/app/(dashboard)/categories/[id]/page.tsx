@@ -32,7 +32,7 @@ const CategoryDetailPage = () => {
             <DetailField label="Name" value={category.name} />
             <DetailField
               label="Products"
-              value={category.products?.length ?? 0}
+              value={category.productsCount ?? 0}
             />
             <DetailField
               label="Created At"

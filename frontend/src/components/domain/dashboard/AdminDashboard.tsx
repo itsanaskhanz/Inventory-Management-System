@@ -1,15 +1,11 @@
 "use client";
 import { Icon, Input, Spinner, StatCard, Typography } from "@/components/ui";
 import appConfig from "@/config/app.config";
-import {
-  FULFILLED_ORDER_STATUSES,
-  OrderStatus,
-} from "@/config/orderStatus";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
-import { useGetAllOrdersQuery } from "@/lib/api/orderApi";
+import { useGetOrderStatsQuery } from "@/lib/api/orderApi";
 import { useGetProductsQuery } from "@/lib/api/productApi";
 import { formatCurrency } from "@/lib/format";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -20,63 +16,27 @@ import {
   YAxis,
 } from "recharts";
 
-const formatDate = (date: Date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
-
 const AdminDashboard = () => {
   const limit = appConfig.maxFetchLimit;
   const { data: productsResponse, isLoading: isProductsLoading } =
     useGetProductsQuery(1, limit);
   const { data: categoriesResponse, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery(1, limit);
-  const { data: ordersResponse, isLoading: isOrdersLoading } =
-    useGetAllOrdersQuery(appConfig.maxFetchLimit);
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const { data: statsResponse, isLoading: isStatsLoading } =
+    useGetOrderStatsQuery(startDate || undefined, endDate || undefined);
+
   const totalProducts = productsResponse?.data.pagination.total ?? 0;
   const totalCategories = categoriesResponse?.data.pagination.total ?? 0;
-  const fulfilledOrders = useMemo(
-    () =>
-      (ordersResponse ?? []).filter((order) =>
-        FULFILLED_ORDER_STATUSES.has(order.status.toUpperCase() as OrderStatus),
-      ),
-    [ordersResponse],
-  );
-  const totalRevenue =
-    fulfilledOrders.reduce((sum, order) => sum + order.total, 0) ?? 0;
+  const totalRevenue = statsResponse?.data.totalRevenue ?? 0;
+  const filteredRevenue = statsResponse?.data.rangeRevenue ?? 0;
+  const filteredOrdersCount = statsResponse?.data.rangeOrders ?? 0;
+  const chartData = statsResponse?.data.dailyRevenue ?? [];
 
-  const filteredOrders = useMemo(() => {
-    if (!fulfilledOrders) return [];
-    const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
-    const end = endDate ? new Date(`${endDate}T23:59:59`) : null;
-    return fulfilledOrders.filter((order) => {
-      const createdAt = new Date(order.createdAt);
-      if (start && createdAt < start) return false;
-      if (end && createdAt > end) return false;
-      return true;
-    });
-  }, [fulfilledOrders, startDate, endDate]);
-
-  const chartData = useMemo(() => {
-    const byDay = new Map<string, number>();
-    for (const order of filteredOrders) {
-      const day = formatDate(new Date(order.createdAt));
-      byDay.set(day, (byDay.get(day) ?? 0) + order.total);
-    }
-    return Array.from(byDay.entries())
-      .map(([date, revenue]) => ({ date, revenue: Number(revenue.toFixed(2)) }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }, [filteredOrders]);
-
-  const filteredRevenue = chartData.reduce((sum, d) => sum + d.revenue, 0);
-
-  const isLoading = isProductsLoading || isCategoriesLoading || isOrdersLoading;
+  const isLoading = isProductsLoading || isCategoriesLoading || isStatsLoading;
 
   if (isLoading) {
     return (
@@ -142,7 +102,7 @@ const AdminDashboard = () => {
 
         <div className="flex items-center justify-between">
           <Typography variant="caption" color="secondary">
-            {filteredOrders.length} order(s) in selected range
+            {filteredOrdersCount} order(s) in selected range
           </Typography>
           <Typography variant="body1" weight="bold">
             {formatCurrency(filteredRevenue)}

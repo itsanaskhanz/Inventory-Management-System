@@ -64,25 +64,30 @@ export const useSearchOrdersQuery = (
   });
 };
 
-export const useGetAllOrdersQuery = (limit: number) => {
+export interface OrderStatsResponse {
+  message: string;
+  success: boolean;
+  data: {
+    totalRevenue: number;
+    totalOrders: number;
+    rangeRevenue: number;
+    rangeOrders: number;
+    dailyRevenue: { date: string; revenue: number; orders: number }[];
+  };
+}
+
+export const useGetOrderStatsQuery = (from?: string, to?: string) => {
   return useQuery({
-    queryKey: ["orders", "all", limit],
-    queryFn: async (): Promise<Order[]> => {
-      const firstPage = await apiClient.get<OrdersResponse>(
-        `/orders?page=1&limit=${limit}`,
+    queryKey: ["orders", "stats", from ?? "", to ?? ""],
+    queryFn: async (): Promise<OrderStatsResponse> => {
+      const params = new URLSearchParams();
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
+      const query = params.toString();
+      const response = await apiClient.get(
+        `/orders/stats${query ? `?${query}` : ""}`,
       );
-      const { orders, pagination } = firstPage.data.data;
-      if (pagination.totalPages <= 1) return orders;
-
-      const remaining = await Promise.all(
-        Array.from({ length: pagination.totalPages - 1 }, (_, i) =>
-          apiClient
-            .get<OrdersResponse>(`/orders?page=${i + 2}&limit=${limit}`)
-            .then((res) => res.data.data.orders),
-        ),
-      );
-
-      return [...orders, ...remaining.flat()];
+      return response.data;
     },
   });
 };

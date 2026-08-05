@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import AppError from "../../utils/error.js";
 import { getRouteId } from "../../utils/helpers.js";
 import { successRes } from "../../utils/response.js";
 import type { IUser } from "../auth/auth.interface.js";
@@ -8,6 +9,7 @@ import {
   createOrderService,
   getOrderByIdService,
   getOrdersService,
+  getOrderStatsService,
   searchOrdersService,
   updateOrderService,
 } from "./order.service.js";
@@ -57,6 +59,25 @@ const searchOrders = asyncHandler(
   },
 );
 
+const getOrderStats = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getCurrentUserId(req);
+    const rawFrom =
+      typeof req.query.from === "string" ? req.query.from.trim() : "";
+    const rawTo = typeof req.query.to === "string" ? req.query.to.trim() : "";
+    const from = rawFrom ? new Date(`${rawFrom}T00:00:00`) : undefined;
+    const to = rawTo ? new Date(`${rawTo}T23:59:59.999`) : undefined;
+    if (from && Number.isNaN(from.getTime())) {
+      throw new AppError("Invalid from date", 400, true);
+    }
+    if (to && Number.isNaN(to.getTime())) {
+      throw new AppError("Invalid to date", 400, true);
+    }
+    const data = await getOrderStatsService(userId, from, to);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
 const updateOrder = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = getCurrentUserId(req);
@@ -69,4 +90,11 @@ const updateOrder = asyncHandler(
   },
 );
 
-export { createOrder, getOrderById, getOrders, searchOrders, updateOrder };
+export {
+  createOrder,
+  getOrderById,
+  getOrders,
+  getOrderStats,
+  searchOrders,
+  updateOrder,
+};

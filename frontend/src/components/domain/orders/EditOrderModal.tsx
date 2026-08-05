@@ -2,10 +2,11 @@
 import { Input, Modal, Select, Typography } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { ORDER_STATUSES } from "@/config/orderStatus";
-import { useGetAllCustomersQuery } from "@/lib/api/customerApi";
+import { useSearchCustomersQuery } from "@/lib/api/customerApi";
 import { useUpdateOrderMutation } from "@/lib/api/orderApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { formatCurrency } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Order } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -18,7 +19,14 @@ const EditOrderForm = ({
 }: EditOrderModalInnerProps) => {
   const queryClient = useQueryClient();
   const { mutate: updateOrder, isPending } = useUpdateOrderMutation();
-  const { data: customers } = useGetAllCustomersQuery(appConfig.maxFetchLimit);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const debouncedCustomerSearch = useDebouncedValue(customerSearch);
+  const { data: customersResponse } = useSearchCustomersQuery(
+    debouncedCustomerSearch,
+    1,
+    appConfig.maxFetchLimit,
+  );
+  const customers = customersResponse?.data?.customers || [];
   const initialStatus = order.status.toUpperCase();
   const [status, setStatus] = useState<string>(
     ORDER_STATUSES.includes(initialStatus as (typeof ORDER_STATUSES)[number])
@@ -133,13 +141,27 @@ const EditOrderForm = ({
           <Typography variant="body2" weight="medium">
             Customer
           </Typography>
+          <Input
+            value={customerSearch}
+            onChange={(e) => setCustomerSearch(e.target.value)}
+            placeholder="Search customers..."
+            fullWidth
+            inputSize="sm"
+          />
           <Select
             fullWidth
             value={customerId}
             onChange={(e) => setCustomerId(e.target.value)}
           >
             <option value="">No customer</option>
-            {customers?.map((customer) => (
+            {order.customer &&
+            !customers.some((c) => c.id === order.customer?.id) ? (
+              <option value={order.customer.id}>
+                {order.customer.name || "Unnamed"}
+                {order.customer.phone ? ` (${order.customer.phone})` : ""}
+              </option>
+            ) : null}
+            {customers.map((customer) => (
               <option key={customer.id} value={customer.id}>
                 {customer.name || "Unnamed"}
                 {customer.phone ? ` (${customer.phone})` : ""}

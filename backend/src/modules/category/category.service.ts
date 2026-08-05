@@ -10,6 +10,13 @@ import {
   update,
 } from "./category.repository.js";
 
+const mapCategoryWithCount = <T extends { _count?: { products?: number } }>(
+  category: T,
+) => {
+  const { _count, ...rest } = category;
+  return { ...rest, productsCount: _count?.products ?? 0 };
+};
+
 const ensureOwnership = (
   category: { userId: string | null },
   userId: string,
@@ -81,7 +88,7 @@ const getCategoryByIdService = async (id: string, userId: string) => {
   return {
     statusCode: 200,
     message: "Category found successfully",
-    data: { category },
+    data: { category: mapCategoryWithCount(category) },
   };
 };
 
@@ -96,7 +103,10 @@ const getCategoriesService = async (
   return {
     statusCode: 200,
     message: "Categories found successfully",
-    data: { categories, pagination },
+    data: {
+      categories: categories.map(mapCategoryWithCount),
+      pagination,
+    },
   };
 };
 
@@ -118,7 +128,10 @@ const searchCategoriesService = async (
   return {
     statusCode: 200,
     message: "Categories found successfully",
-    data: { categories, pagination },
+    data: {
+      categories: categories.map(mapCategoryWithCount),
+      pagination,
+    },
   };
 };
 

@@ -4,6 +4,7 @@ import {
   createOrder,
   getOrderById,
   getOrders,
+  getOrderStats,
   searchOrders,
   updateOrder,
 } from "./order.controller.js";
@@ -13,6 +14,7 @@ const router = Router();
 router.get("/", authenticate, getOrders);
 router.post("/", authenticate, createOrder);
 router.get("/search", authenticate, searchOrders);
+router.get("/stats", authenticate, getOrderStats);
 router.get("/:id", authenticate, getOrderById);
 router.put("/:id", authenticate, updateOrder);
 

@@ -33,9 +33,9 @@ export interface IOrder {
   products: IOrderProduct[];
 }
 export interface ICreateOrder {
-  subtotal: number;
+  subtotal?: number;
   tax: number;
-  total: number;
+  total?: number;
   cashReceived?: number;
   due?: number;
   status?: string;

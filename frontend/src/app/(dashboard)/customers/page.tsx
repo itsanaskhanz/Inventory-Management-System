@@ -10,7 +10,7 @@ import {
   TableActions,
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
-import { useGetCustomersQuery } from "@/lib/api/customerApi";
+import { useSearchCustomersQuery } from "@/lib/api/customerApi";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { formatDate } from "@/lib/format";
 import { Customer } from "@/types/customer.types";
@@ -33,23 +33,21 @@ const Page = () => {
   const [selectedCustomerToUpdate, setSelectedCustomerToUpdate] =
     useState<Customer | null>(null);
   const limit = appConfig.defaultPageLimit;
+  const debouncedSearch = useDebouncedValue(search);
 
   const {
     data: response,
     isLoading,
     isError,
-  } = useGetCustomersQuery(page, limit);
+  } = useSearchCustomersQuery(debouncedSearch, page, limit);
 
   const customers: Customer[] = response?.data?.customers || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
-  const filteredCustomers = useDebouncedValue(search)
-    ? customers.filter(
-        (c) =>
-          c.name?.toLowerCase().includes(search.toLowerCase()) ||
-          c.phone?.includes(search),
-      )
-    : customers;
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   const openUpdateModal = (customer: Customer) => {
     setSelectedCustomerToUpdate(customer);
@@ -114,7 +112,7 @@ const Page = () => {
 
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search customers..."
           fullWidth
           leftIcon="Search"
@@ -126,7 +124,7 @@ const Page = () => {
           errorMessage="Failed to load customers. Please try again."
         >
           <Table
-            data={filteredCustomers}
+            data={customers}
             columns={columns}
             page={page}
             setPage={setPage}

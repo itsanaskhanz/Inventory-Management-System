@@ -77,8 +77,8 @@ const Page = () => {
     },
     {
       header: "Products",
-      accessorKey: "products",
-      cell: ({ row }) => row.original.products?.length ?? 0,
+      accessorKey: "productsCount",
+      cell: ({ row }) => row.original.productsCount ?? 0,
     },
     {
       header: "Actions",

@@ -9,6 +9,8 @@ import {
   deleteCustomerService,
   getAllCustomersService,
   getCustomerByIdService,
+  getCustomerOrdersService,
+  searchCustomersService,
   updateCustomerService,
 } from "./customer.service.js";
 
@@ -30,6 +32,30 @@ const getAllCustomers = asyncHandler(
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
     const userId = getCurrentUserId(req);
     const data = await getAllCustomersService(userId, page, limit);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const searchCustomers = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const userId = getCurrentUserId(req);
+    const search =
+      typeof req.query.search === "string"
+        ? req.query.search.trim()
+        : undefined;
+    const data = await searchCustomersService(userId, search, page, limit);
+    successRes(res, data.message, data.statusCode, data.data);
+  },
+);
+
+const getCustomerOrders = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const id = getRouteId(req.params.id);
+    const data = await getCustomerOrdersService(id, page, limit);
     successRes(res, data.message, data.statusCode, data.data);
   },
 );
@@ -61,5 +87,7 @@ export {
   deleteCustomer,
   getAllCustomers,
   getCustomerById,
+  getCustomerOrders,
+  searchCustomers,
   updateCustomer,
 };
