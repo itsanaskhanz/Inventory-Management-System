@@ -12,10 +12,6 @@ import {
 
 const STOCK_HOLDING_STATUSES = new Set(["PENDING", "COMPLETED"]);
 const STOCK_RESTORING_STATUSES = new Set(["CANCELLED"]);
-const VALID_ORDER_STATUSES = [
-  ...STOCK_HOLDING_STATUSES,
-  ...STOCK_RESTORING_STATUSES,
-];
 
 const ensureOwnership = (order: { userId: string | null }, userId: string) => {
   if (!order.userId || order.userId !== userId) {
@@ -28,21 +24,19 @@ const ensureOwnership = (order: { userId: string | null }, userId: string) => {
 };
 
 const createOrderService = async (data: ICreateOrder, userId: string) => {
-  const products = (data.products ?? [])
-    .map((p) => ({
-      productId: p.productId,
-      quantity: Math.max(0, Math.floor(Number(p.quantity) || 0)),
-      price: Math.max(0, Number(p.price) || 0),
-    }))
-    .filter((p) => p.quantity > 0);
+  const products = data.products.map((p) => ({
+    productId: p.productId,
+    quantity: p.quantity,
+    price: p.price,
+  }));
 
   const subtotal = products.reduce(
     (sum, p) => sum + p.price * p.quantity,
     0,
   );
-  const tax = Math.max(0, Number(data.tax) || 0);
+  const tax = data.tax;
   const total = subtotal + tax;
-  const cashReceived = Math.max(0, Number(data.cashReceived) || 0);
+  const cashReceived = data.cashReceived ?? 0;
   const due = Math.max(0, total - cashReceived);
   const status = due <= 0 ? "COMPLETED" : "PENDING";
 
@@ -128,20 +122,10 @@ const updateOrderService = async (
   ensureOwnership(exists, userId);
 
   const previousStatus = exists.status.toUpperCase();
-  const cashReceived =
-    data.cashReceived !== undefined
-      ? Math.max(0, data.cashReceived)
-      : exists.cashReceived;
+  const cashReceived = data.cashReceived ?? exists.cashReceived;
   const due = Math.max(0, exists.total - cashReceived);
 
   const requestedStatus = (data.status ?? previousStatus).toUpperCase();
-  if (!VALID_ORDER_STATUSES.includes(requestedStatus)) {
-    throw new AppError(
-      `Invalid order status. Must be one of: ${VALID_ORDER_STATUSES.join(", ")}`,
-      400,
-      true,
-    );
-  }
 
   let nextStatus = requestedStatus;
   if (

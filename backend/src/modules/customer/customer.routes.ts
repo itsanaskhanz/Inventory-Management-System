@@ -1,5 +1,10 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware.js";
+import validate from "../../middleware/validate.js";
+import {
+  createCustomerSchema,
+  updateCustomerSchema,
+} from "./customer.validation.js";
 import {
   createCustomer,
   deleteCustomer,
@@ -12,12 +17,12 @@ import {
 
 const router = Router();
 
-router.post("/", authenticate, createCustomer);
+router.post("/", authenticate, validate(createCustomerSchema), createCustomer);
 router.get("/", authenticate, getAllCustomers);
 router.get("/search", authenticate, searchCustomers);
 router.get("/:id/orders", authenticate, getCustomerOrders);
 router.get("/:id", authenticate, getCustomerById);
-router.put("/:id", authenticate, updateCustomer);
+router.put("/:id", authenticate, validate(updateCustomerSchema), updateCustomer);
 router.delete("/:id", authenticate, deleteCustomer);
 
 export default router;
