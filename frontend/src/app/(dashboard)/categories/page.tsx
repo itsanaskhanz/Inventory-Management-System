@@ -6,6 +6,7 @@ import {
   AsyncState,
   Button,
   Input,
+  PageHeader,
   Table,
   TableActions,
 } from "@/components/ui";
@@ -97,11 +98,15 @@ const Page = () => {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-end">
-          <Button onClick={() => setIsCreateCategoryModalOpen(true)}>
-            Create New Category
-          </Button>
-        </div>
+        <PageHeader
+          title="Categories"
+          description="Organize your products into categories"
+          actions={
+            <Button onClick={() => setIsCreateCategoryModalOpen(true)}>
+              New Category
+            </Button>
+          }
+        />
 
         <Input
           value={search}

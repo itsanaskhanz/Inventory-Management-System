@@ -21,6 +21,7 @@ const Modal = ({
   children,
   confirmText = "Confirm",
   cancelText = "Cancel",
+  confirmVariant = "primary",
 }: ModalProps) => {
   if (!isOpen) return null;
 
@@ -55,7 +56,11 @@ const Modal = ({
                 {cancelText}
               </Button>
             )}
-            {onConfirm && <Button onClick={onConfirm}>{confirmText}</Button>}
+            {onConfirm && (
+              <Button onClick={onConfirm} variant={confirmVariant}>
+                {confirmText}
+              </Button>
+            )}
           </div>
         )}
       </div>

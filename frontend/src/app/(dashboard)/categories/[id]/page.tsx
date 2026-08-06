@@ -27,7 +27,7 @@ const CategoryDetailPage = () => {
         errorMessage="Failed to load category. Please try again."
       >
         {category && (
-          <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-6 rounded-xl border border-border bg-background-secondary p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-3">
             <DetailField label="Category ID" value={category.id} />
             <DetailField label="Name" value={category.name} />
             <DetailField

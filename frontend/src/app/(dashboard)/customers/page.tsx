@@ -6,6 +6,7 @@ import {
   AsyncState,
   Button,
   Input,
+  PageHeader,
   Table,
   TableActions,
 } from "@/components/ui";
@@ -104,11 +105,15 @@ const Page = () => {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-end">
-          <Button onClick={() => setIsCreateCustomerModalOpen(true)}>
-            Create New Customer
-          </Button>
-        </div>
+        <PageHeader
+          title="Customers"
+          description="Track your customers and their order history"
+          actions={
+            <Button onClick={() => setIsCreateCustomerModalOpen(true)}>
+              New Customer
+            </Button>
+          }
+        />
 
         <Input
           value={search}

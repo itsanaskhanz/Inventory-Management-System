@@ -3,6 +3,7 @@ import EditOrderModal from "@/components/domain/orders/EditOrderModal";
 import {
   AsyncState,
   Input,
+  PageHeader,
   StatusBadge,
   Table,
   TableActions,
@@ -117,6 +118,10 @@ const Page = () => {
   return (
     <div>
       <div className="flex flex-col gap-6">
+        <PageHeader
+          title="Order History"
+          description="View and manage all orders placed in your store"
+        />
         <Input
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}

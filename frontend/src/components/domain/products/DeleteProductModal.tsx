@@ -37,9 +37,11 @@ const DeleteProductModal = ({
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={handleDeleteProduct}
-      title="Delete?"
-      description="Are you sure want to delete product"
+      title="Delete Product"
+      description="Are you sure you want to delete this product?"
       confirmText="Delete"
+      pendingText="Deleting..."
+      danger
     />
   );
 };

@@ -178,7 +178,8 @@ const getOrderStatsService = async (
 ) => {
   const start = from ?? new Date(0);
   const end = to ?? new Date("2100-01-01T23:59:59.999Z");
-  const { totalRevenue, totalOrders, daily } = await getStats(userId, start, end);
+  const { totalRevenue, totalProfit, totalOrders, totalDues, daily } =
+    await getStats(userId, start, end);
   const rangeRevenue = daily.reduce((sum, d) => sum + d.revenue, 0);
   const rangeOrders = daily.reduce((sum, d) => sum + d.orders, 0);
   return {
@@ -186,7 +187,9 @@ const getOrderStatsService = async (
     message: "Order statistics fetched successfully",
     data: {
       totalRevenue,
+      totalProfit,
       totalOrders,
+      totalDues,
       rangeRevenue,
       rangeOrders,
       dailyRevenue: daily,

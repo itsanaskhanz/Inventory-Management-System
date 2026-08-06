@@ -8,14 +8,14 @@ import {
 export const baseStyles = "";
 
 export const variants: Record<TypographyVariant, string> = {
-  h1: "text-4xl md:text-5xl font-bold tracking-tight",
+  h1: "text-4xl md:text-5xl font-bold tracking-tight text-balance",
   h2: "text-3xl md:text-4xl font-bold tracking-tight",
-  h3: "text-2xl md:text-3xl font-semibold",
-  h4: "text-xl md:text-2xl font-semibold",
-  h5: "text-lg md:text-xl font-semibold",
-  h6: "text-base md:text-lg font-semibold",
-  body1: "text-base",
-  body2: "text-sm",
+  h3: "text-2xl md:text-3xl font-semibold tracking-tight",
+  h4: "text-xl md:text-2xl font-semibold tracking-tight",
+  h5: "text-lg md:text-lg font-semibold",
+  h6: "text-base font-semibold",
+  body1: "text-base leading-relaxed",
+  body2: "text-sm leading-relaxed",
   caption: "text-xs text-foreground-tertiary",
 };
 
@@ -35,7 +35,6 @@ export const colors: Record<TypographyColor, string> = {
   info: "text-info",
   muted: "text-foreground-tertiary",
 };
-
 export const aligns: Record<TypographyAlign, string> = {
   left: "text-left",
   center: "text-center",

@@ -15,6 +15,7 @@ const CategoryFilter = ({
       <Button
         variant={selected === ALL ? "primary" : "secondary"}
         size="sm"
+        rounded="lg"
         onClick={() => onSelect(ALL)}
       >
         {ALL}
@@ -32,6 +33,7 @@ const CategoryFilter = ({
             key={cat.id}
             variant={selected === cat.id ? "primary" : "secondary"}
             size="sm"
+            rounded="lg"
             onClick={() => onSelect(cat.id)}
           >
             {cat.name}

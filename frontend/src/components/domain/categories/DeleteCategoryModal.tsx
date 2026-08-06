@@ -37,10 +37,12 @@ const DeleteCategoryModal = ({
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={handleDeleteCategory}
-      title="Delete?"
-      description="Are you sure want to delete category"
+      title="Delete Category"
+      description="Are you sure you want to delete this category?"
       confirmText="Delete"
+      pendingText="Deleting..."
       isPending={isPending}
+      danger
     />
   );
 };

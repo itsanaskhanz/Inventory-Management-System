@@ -1,6 +1,7 @@
 "use client";
 import { useAppContext } from "@/contexts/AppContext";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface ToastProviderProps {
   children: React.ReactNode;
@@ -21,6 +22,8 @@ const ToastProvider = ({ children }: ToastProviderProps) => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        toastClassName="rounded-xl shadow-lg"
+        progressClassName="bg-primary"
         theme={theme === "dark" ? "dark" : "light"}
       />
     </>

@@ -37,10 +37,12 @@ const DeleteCustomerModal = ({
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={handleDeleteCustomer}
-      title="Delete?"
-      description="Are you sure you want to delete this customer"
+      title="Delete Customer"
+      description="Are you sure you want to delete this customer?"
       confirmText="Delete"
+      pendingText="Deleting..."
       isPending={isPending}
+      danger
     />
   );
 };

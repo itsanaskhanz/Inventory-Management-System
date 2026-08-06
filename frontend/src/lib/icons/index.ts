@@ -1,8 +1,10 @@
 import {
+  CircleDollarSign,
   Clock,
   CreditCard,
   Eye,
   EyeClosed,
+  HandCoins,
   LayoutDashboard,
   LayoutGrid,
   Loader,
@@ -46,4 +48,6 @@ export const Icons = {
   Clock,
   Search,
   Settings,
+  CircleDollarSign,
+  HandCoins,
 };

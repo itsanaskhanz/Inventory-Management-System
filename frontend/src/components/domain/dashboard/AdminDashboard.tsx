@@ -32,6 +32,8 @@ const AdminDashboard = () => {
   const totalProducts = productsResponse?.data.pagination.total ?? 0;
   const totalCategories = categoriesResponse?.data.pagination.total ?? 0;
   const totalRevenue = statsResponse?.data.totalRevenue ?? 0;
+  const totalProfit = statsResponse?.data.totalProfit ?? 0;
+  const totalDues = statsResponse?.data.totalDues ?? 0;
   const filteredRevenue = statsResponse?.data.rangeRevenue ?? 0;
   const filteredOrdersCount = statsResponse?.data.rangeOrders ?? 0;
   const chartData = statsResponse?.data.dailyRevenue ?? [];
@@ -48,7 +50,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
           title="Total Products"
           value={String(totalProducts)}
@@ -67,13 +69,30 @@ const AdminDashboard = () => {
           icon={<Icon name="TrendingUp" />}
           variant="secondary"
         />
+        <StatCard
+          title="Total Profit"
+          value={formatCurrency(totalProfit)}
+          icon={<Icon name="CircleDollarSign" />}
+          variant="success"
+        />
+        <StatCard
+          title="Total Dues"
+          value={formatCurrency(totalDues)}
+          icon={<Icon name="HandCoins" />}
+          variant="warning"
+        />
       </div>
 
-      <div className="rounded-lg border border-border p-6 flex flex-col gap-4">
+      <div className="flex flex-col gap-5 rounded-xl border border-border bg-background p-6 shadow-sm">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <Typography variant="h6" weight="bold">
-            Revenue Chart
-          </Typography>
+          <div className="flex flex-col gap-0.5">
+            <Typography variant="h6" weight="bold">
+              Revenue Chart
+            </Typography>
+            <Typography variant="caption" color="secondary">
+              Daily revenue over the selected period
+            </Typography>
+          </div>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Typography variant="caption" color="secondary">
@@ -100,11 +119,11 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between rounded-lg bg-background-secondary px-4 py-3">
           <Typography variant="caption" color="secondary">
             {filteredOrdersCount} order(s) in selected range
           </Typography>
-          <Typography variant="body1" weight="bold">
+          <Typography variant="body1" weight="bold" className="text-primary">
             {formatCurrency(filteredRevenue)}
           </Typography>
         </div>
@@ -116,16 +135,37 @@ const AdminDashboard = () => {
             </Typography>
           </div>
         ) : (
-          <div className="h-64 w-full">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
                 margin={{ top: 8, right: 8, bottom: 0, left: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid
+                  stroke="var(--border)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 12, fill: "var(--foreground-secondary)" }}
+                  axisLine={{ stroke: "var(--border)" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 12, fill: "var(--foreground-secondary)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <Tooltip
+                  cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
+                  contentStyle={{
+                    backgroundColor: "var(--background-secondary)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    color: "var(--foreground)",
+                    boxShadow: "var(--shadow-lg)",
+                  }}
                   formatter={(value) => [
                     formatCurrency(Number(value)),
                     "Revenue",
@@ -135,9 +175,9 @@ const AdminDashboard = () => {
                   type="monotone"
                   dataKey="revenue"
                   stroke="var(--primary)"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: "var(--primary)", strokeWidth: 0 }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>

@@ -1,6 +1,6 @@
 "use client";
 import { AuthBrandPanel } from "@/components/domain/auth";
-import { Button, Input, Typography } from "@/components/ui";
+import { Button, Input, Logo, Typography } from "@/components/ui";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLoginMutation } from "@/lib/api/authApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
@@ -47,13 +47,18 @@ const Page = () => {
 
       {/* ===== Form Panel ===== */}
       <div className="flex items-center justify-center bg-background px-6 py-12">
-        <div className="w-full max-w-md">
-          <div className="flex flex-col gap-8 rounded-lg border border-border bg-background-secondary p-8 shadow-sm md:p-10">
-            <div className="flex flex-col gap-2">
-              <Typography variant="h3">Welcome back</Typography>
-              <Typography variant="body2" color="secondary">
-                Sign in to your account to continue
-              </Typography>
+        <div className="w-full max-w-md animate-slide-up">
+          <div className="flex flex-col gap-8 rounded-2xl border border-border bg-background p-8 shadow-xl shadow-slate-950/5 md:p-10">
+            <div className="flex flex-col gap-3">
+              <div className="w-32">
+                <Logo size="sm" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Typography variant="h3">Welcome back</Typography>
+                <Typography variant="body2" color="secondary">
+                  Sign in to your account to continue
+                </Typography>
+              </div>
             </div>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
@@ -120,7 +125,7 @@ const Page = () => {
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/register"
-                className="font-medium text-foreground underline underline-offset-4"
+                className="font-medium text-primary hover:underline underline-offset-4"
               >
                 Create one
               </Link>

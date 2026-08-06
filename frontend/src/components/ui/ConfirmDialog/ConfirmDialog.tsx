@@ -9,6 +9,7 @@ const ConfirmDialog = ({
   pendingText,
   cancelText = "Cancel",
   isPending = false,
+  danger = false,
   onConfirm,
   onClose,
   children,
@@ -23,6 +24,7 @@ const ConfirmDialog = ({
       description={description}
       confirmText={isPending ? (pendingText ?? confirmText) : confirmText}
       cancelText={cancelText}
+      confirmVariant={danger ? "danger" : "primary"}
     >
       {children}
     </Modal>

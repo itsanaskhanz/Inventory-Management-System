@@ -108,7 +108,7 @@ const OrderDetailPage = () => {
       >
         {order && (
           <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
+            <div className="grid grid-cols-1 gap-x-8 gap-y-6 rounded-xl border border-border bg-background-secondary p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-3">
               <DetailField label="Order ID" value={order.id} />
               <DetailField label="Status">
                 <div className="pt-1">
@@ -142,8 +142,8 @@ const OrderDetailPage = () => {
               )}
             </div>
 
-            <div className="rounded-lg border border-border p-4">
-              <Typography variant="h6" weight="bold" className="mb-3">
+            <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
+              <Typography variant="h6" weight="bold" className="mb-4">
                 Items
               </Typography>
               <Table
@@ -155,18 +155,20 @@ const OrderDetailPage = () => {
               />
             </div>
 
-            <div className="flex flex-col gap-1 text-sm rounded-lg border border-border p-4">
+            <div className="flex flex-col gap-2 text-sm rounded-xl border border-border bg-background-secondary p-6 shadow-sm">
               <div className="flex justify-between">
                 <span className="text-foreground-secondary">Subtotal</span>
-                <span>{formatCurrency(order.subtotal)}</span>
+                <span className="font-medium">
+                  {formatCurrency(order.subtotal)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-secondary">Tax</span>
-                <span>{formatCurrency(order.tax)}</span>
+                <span className="font-medium">{formatCurrency(order.tax)}</span>
               </div>
-              <div className="flex justify-between font-bold">
+              <div className="mt-2 flex justify-between border-t border-border pt-3 text-base font-bold">
                 <span>Total</span>
-                <span>{formatCurrency(order.total)}</span>
+                <span className="text-primary">{formatCurrency(order.total)}</span>
               </div>
             </div>
           </div>

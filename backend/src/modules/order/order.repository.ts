@@ -176,12 +176,16 @@ interface DailyRevenueRow {
   orders: number;
 }
 
+interface StatsValueRow {
+  value: number;
+}
+
 const getStats = async (userId: string, from: Date, to: Date) => {
   const where: Prisma.OrderWhereInput = {
     userId,
     status: { equals: "COMPLETED", mode: "insensitive" },
   };
-  const [allTime, dailyRows] = await Promise.all([
+  const [allTime, dailyRows, profitRows, duesRows] = await Promise.all([
     prisma.order.aggregate({
       where,
       _sum: { total: true },
@@ -199,6 +203,21 @@ const getStats = async (userId: string, from: Date, to: Date) => {
       GROUP BY to_char("createdAt", 'YYYY-MM-DD')
       ORDER BY date ASC
     `,
+    prisma.$queryRaw<StatsValueRow[]>`
+      SELECT COALESCE(SUM((op."price" - p."costPrice") * op."quantity"), 0)::float8 AS value
+      FROM "OrderProducts" op
+      INNER JOIN "Order" o ON o."id" = op."orderId"
+      INNER JOIN "Product" p ON p."id" = op."productId"
+      WHERE o."userId" = ${userId}
+        AND UPPER(o."status") = 'COMPLETED'
+    `,
+    prisma.$queryRaw<StatsValueRow[]>`
+      SELECT COALESCE(SUM(o."due"), 0)::float8 AS value
+      FROM "Order" o
+      WHERE o."userId" = ${userId}
+        AND UPPER(o."status") <> 'CANCELLED'
+        AND o."due" > 0
+    `,
   ]);
 
   const daily = dailyRows.map((row) => ({
@@ -209,7 +228,9 @@ const getStats = async (userId: string, from: Date, to: Date) => {
 
   return {
     totalRevenue: allTime._sum.total ?? 0,
+    totalProfit: Number(profitRows[0]?.value ?? 0),
     totalOrders: allTime._count,
+    totalDues: Number(duesRows[0]?.value ?? 0),
     daily,
   };
 };

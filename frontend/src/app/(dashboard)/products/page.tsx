@@ -7,6 +7,7 @@ import {
   Button,
   CategoryFilter,
   Input,
+  PageHeader,
   StatusBadge,
   Table,
   TableActions,
@@ -14,8 +15,8 @@ import {
 import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useSearchProductsQuery } from "@/lib/api/productApi";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { formatCurrency } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -130,11 +131,15 @@ const Page = () => {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-end gap-3">
-          <Button onClick={() => setIsCreateProductModalOpen(true)}>
-            Create New Product
-          </Button>
-        </div>
+        <PageHeader
+          title="Products"
+          description="Manage your product catalog and stock levels"
+          actions={
+            <Button onClick={() => setIsCreateProductModalOpen(true)}>
+              New Product
+            </Button>
+          }
+        />
         <Input
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
@@ -142,12 +147,15 @@ const Page = () => {
           fullWidth
           leftIcon="Search"
         />
-
-        <CategoryFilter
-          categories={categoriesData}
-          selected={selectedCategory}
-          onSelect={handleCategoryChange}
-        />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+          <div className="flex items-center gap-2">
+            <CategoryFilter
+              categories={categoriesData}
+              selected={selectedCategory}
+              onSelect={handleCategoryChange}
+            />
+          </div>
+        </div>
 
         <AsyncState
           isLoading={isLoading}

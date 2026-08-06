@@ -69,7 +69,9 @@ export interface OrderStatsResponse {
   success: boolean;
   data: {
     totalRevenue: number;
+    totalProfit: number;
     totalOrders: number;
+    totalDues: number;
     rangeRevenue: number;
     rangeOrders: number;
     dailyRevenue: { date: string; revenue: number; orders: number }[];
@@ -109,6 +111,12 @@ export interface OrdersResponse {
   data: {
     orders: Order[];
     pagination: Pagination;
+    summary?: {
+      totalOrders: number;
+      totalAmount: number;
+      totalCashReceived: number;
+      totalDue: number;
+    };
   };
 }
 

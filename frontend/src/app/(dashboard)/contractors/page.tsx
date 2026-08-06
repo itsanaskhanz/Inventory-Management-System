@@ -1,5 +1,5 @@
 "use client";
-import { AsyncState, Button, Table, TableActions } from "@/components/ui";
+import { AsyncState, Button, PageHeader, Table, TableActions } from "@/components/ui";
 import CreateContractorModal from "@/components/domain/contractors/CreateContractorModal";
 import DeleteContractorModal from "@/components/domain/contractors/DeleteContractorModal";
 import { UserRole } from "@/config/roles";
@@ -84,11 +84,15 @@ const Page = () => {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-end">
-          <Button onClick={() => setIsCreateContractorModalOpen(true)}>
-            Create New Contractor
-          </Button>
-        </div>
+        <PageHeader
+          title="Contractors"
+          description="Manage administrative accounts across your workspace"
+          actions={
+            <Button onClick={() => setIsCreateContractorModalOpen(true)}>
+              New Contractor
+            </Button>
+          }
+        />
 
         <AsyncState
           isLoading={isLoading}

@@ -1,5 +1,11 @@
 "use client";
-import { Button, ConfirmDialog, Input, Typography } from "@/components/ui";
+import {
+  Button,
+  ConfirmDialog,
+  Input,
+  PageHeader,
+  Typography,
+} from "@/components/ui";
 import {
   useDeleteAccountMutation,
   useUpdateProfileMutation,
@@ -8,6 +14,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { User, Mail, KeyRound, LogOut, AlertTriangle } from "lucide-react";
 
 const SettingsPage = () => {
   const { user, setUser, logout } = useAppContext();
@@ -61,35 +68,53 @@ const SettingsPage = () => {
   return (
     <>
       <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
-        <Typography variant="h5" weight="bold" align="center">
-          Settings
-        </Typography>
+        <PageHeader
+          title="Settings"
+          description="Manage your account and preferences"
+        />
 
-        <div className="flex flex-col gap-4 rounded-lg border border-border p-6">
-          <Typography variant="h6" weight="medium">
-            Account Information
-          </Typography>
+        <section className="flex flex-col gap-4 rounded-xl border border-border bg-background-secondary p-6 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <User className="h-4 w-4" />
+            </span>
+            <Typography variant="h6" weight="medium">
+              Account Information
+            </Typography>
+          </div>
           <div className="flex flex-col gap-3">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-              fullWidth
-            />
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              type="email"
-              fullWidth
-            />
-            <Input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="New password"
-              type="password"
-              fullWidth
-            />
+            <div className="relative">
+              <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                fullWidth
+                className="pl-9"
+              />
+            </div>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                type="email"
+                fullWidth
+                className="pl-9"
+              />
+            </div>
+            <div className="relative">
+              <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
+              <Input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="New password"
+                type="password"
+                fullWidth
+                className="pl-9"
+              />
+            </div>
           </div>
           <div className="flex justify-end">
             <Button
@@ -100,12 +125,17 @@ const SettingsPage = () => {
               {isUpdating ? "Saving..." : "Save Changes"}
             </Button>
           </div>
-        </div>
+        </section>
 
-        <div className="flex flex-col gap-4 rounded-lg border border-border p-6">
-          <Typography variant="h6" weight="medium">
-            Session
-          </Typography>
+        <section className="flex flex-col gap-4 rounded-xl border border-border bg-background-secondary p-6 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
+              <LogOut className="h-4 w-4" />
+            </span>
+            <Typography variant="h6" weight="medium">
+              Session
+            </Typography>
+          </div>
           <Typography variant="body2" color="secondary">
             Log out of your account on this device.
           </Typography>
@@ -117,12 +147,17 @@ const SettingsPage = () => {
               Logout
             </Button>
           </div>
-        </div>
+        </section>
 
-        <div className="flex flex-col gap-4 rounded-lg border border-red-200 p-6">
-          <Typography variant="h6" weight="medium">
-            Danger Zone
-          </Typography>
+        <section className="flex flex-col gap-4 rounded-xl border border-danger/30 bg-danger/5 p-6 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-danger/10 text-danger">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <Typography variant="h6" weight="medium">
+              Danger Zone
+            </Typography>
+          </div>
           <Typography variant="body2" color="secondary">
             Deleting your account will permanently remove all of your data,
             including products, categories and order history. This action
@@ -130,14 +165,13 @@ const SettingsPage = () => {
           </Typography>
           <div className="flex justify-end">
             <Button
-              variant="secondary"
+              variant="danger"
               onClick={() => setIsDeleteOpen(true)}
-              className="text-red"
             >
               Delete Account
             </Button>
           </div>
-        </div>
+        </section>
       </div>
 
       <ConfirmDialog
@@ -147,7 +181,9 @@ const SettingsPage = () => {
         title="Delete Account"
         description="Are you sure you want to delete your account?"
         confirmText="Delete"
+        pendingText="Deleting..."
         isPending={isDeleting}
+        danger
       >
         <Typography variant="body1">
           All of your data will be permanently deleted. This action cannot be

@@ -40,7 +40,7 @@ const StatCard = ({
       </div>
       <div
         className={clsx(
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-md",
+          "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105",
           iconContainerVariants[variant],
         )}
       >

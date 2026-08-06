@@ -3,12 +3,12 @@ import { DetailFieldProps } from "./DetailField.types";
 
 const DetailField = ({ label, value, children }: DetailFieldProps) => {
   return (
-    <div>
-      <Typography variant="body2" color="secondary">
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-medium uppercase tracking-wider text-foreground-tertiary">
         {label}
-      </Typography>
+      </span>
       {value !== undefined ? (
-        <Typography variant="body1" weight="medium">
+        <Typography variant="body1" weight="medium" className="text-foreground">
           {value}
         </Typography>
       ) : (

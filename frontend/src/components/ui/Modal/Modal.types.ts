@@ -8,4 +8,5 @@ export interface ModalProps {
   children?: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
+  confirmVariant?: "primary" | "danger";
 }

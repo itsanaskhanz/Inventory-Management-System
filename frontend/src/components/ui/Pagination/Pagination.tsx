@@ -33,12 +33,16 @@ const Pagination = ({
   return (
     <nav
       aria-label="Pagination"
-      className={clsx("flex gap-2 mx-auto mt-4", className)}
+      className={clsx(
+        "flex items-center gap-1.5 justify-center mt-4 rounded-xl border border-border bg-background px-2 py-1.5 shadow-sm w-fit mx-auto",
+        className,
+      )}
     >
       <Button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
-        variant="secondary"
+        variant="ghost"
+        size="sm"
       >
         Back
       </Button>
@@ -47,7 +51,7 @@ const Pagination = ({
         value === "..." ? (
           <span
             key={`ellipsis-${index}`}
-            className="flex items-center px-2 text-foreground-secondary"
+            className="flex items-center px-1.5 text-foreground-tertiary"
           >
             …
           </span>
@@ -55,8 +59,10 @@ const Pagination = ({
           <Button
             key={value}
             onClick={() => onPageChange(value)}
-            variant={value === page ? "primary" : "secondary"}
+            variant={value === page ? "primary" : "ghost"}
+            size="sm"
             aria-current={value === page ? "page" : undefined}
+            className="min-w-9 px-2"
           >
             {value}
           </Button>
@@ -66,7 +72,8 @@ const Pagination = ({
       <Button
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}
-        variant="secondary"
+        variant="ghost"
+        size="sm"
       >
         Next
       </Button>

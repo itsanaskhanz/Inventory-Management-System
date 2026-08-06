@@ -34,17 +34,14 @@ const ProductDetailPage = () => {
         errorMessage="Failed to load product. Please try again."
       >
         {product && (
-          <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-6 rounded-xl border border-border bg-background-secondary p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-3">
             <DetailField label="Product ID" value={product.id} />
             <DetailField label="Name" value={product.name} />
             <DetailField
               label="Description"
               value={product.description || "—"}
             />
-            <DetailField
-              label="Price"
-              value={formatCurrency(product.price)}
-            />
+            <DetailField label="Price" value={formatCurrency(product.price)} />
             <DetailField
               label="Cost Price"
               value={formatCurrency(product.costPrice)}
@@ -60,7 +57,10 @@ const ProductDetailPage = () => {
                 <StatusBadge status={product.status} />
               </div>
             </DetailField>
-            <DetailField label="Category" value={product.category?.name || "—"} />
+            <DetailField
+              label="Category"
+              value={product.category?.name || "—"}
+            />
             <DetailField
               label="Created At"
               value={new Date(product.createdAt).toLocaleString()}

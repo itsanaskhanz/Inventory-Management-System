@@ -218,19 +218,19 @@ const Page = () => {
                   <button
                     key={key}
                     onClick={() => addToCart(product.id)}
-                    className="hover:bg-background-tertiary border border-border rounded-lg p-3 transition-all hover:border-primary/20 cursor-pointer"
+                    className="group hover:bg-background-secondary border border-border rounded-xl p-3 transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
                   >
-                    <div className="aspect-square bg-background-tertiary rounded-lg mb-2 flex items-center justify-center">
+                    <div className="aspect-square bg-background-tertiary rounded-lg mb-2 flex items-center justify-center transition-colors group-hover:bg-primary/10">
                       <Icon
                         name="Package"
-                        className="text-foreground-tertiary/40"
+                        className="text-foreground-tertiary/50 transition-colors group-hover:text-primary"
                       />
                     </div>
-                    <Typography variant="body2" weight="medium">
+                    <Typography variant="body2" weight="medium" className="line-clamp-1">
                       {product.name}
                     </Typography>
                     <Typography variant="caption" color="secondary">
-                      Price: {product.price}
+                      {formatCurrency(product.price)}
                     </Typography>
                   </button>
                 ))
@@ -253,11 +253,13 @@ const Page = () => {
           </div>
         </div>
 
-        <div className="lg:w-150 w-full h-full border border-border rounded-lg p-6 flex flex-col ">
-          <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center mb-4">
-            <Typography variant="h3">{formatCurrency(total)}</Typography>
+        <div className="lg:w-150 w-full h-full border border-border rounded-2xl bg-background p-6 flex flex-col shadow-sm">
+          <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 text-center mb-4">
+            <Typography variant="h3" className="text-primary">
+              {formatCurrency(total)}
+            </Typography>
             <Typography variant="caption" color="secondary">
-              {cartItems.length} items
+              {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
             </Typography>
           </div>
 
@@ -274,11 +276,13 @@ const Page = () => {
             </Button>
           </div>
 
-          <div className="flex-1 px-2 ">
+          <div className="flex-1 px-2 overflow-y-auto max-h-[40vh]">
             {cartItems.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center">
-                <Icon name="ShoppingBag" className="mb-2 opacity-30" />
-                <Typography variant="body2">Cart is empty</Typography>
+              <div className="h-full flex flex-col items-center justify-center gap-2">
+                <Icon name="ShoppingBag" className="opacity-20" />
+                <Typography variant="body2" color="secondary">
+                  Cart is empty
+                </Typography>
               </div>
             ) : (
               cartItems.map((item, key) => (
@@ -286,24 +290,30 @@ const Page = () => {
                   key={key}
                   className="flex items-center justify-between py-3 border-b border-border"
                 >
-                  <div className="flex-1">
-                    <Typography variant="body2">{item.name}</Typography>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <Typography variant="body2" className="truncate">
+                      {item.name}
+                    </Typography>
                     <Typography variant="caption" color="secondary">
                       {formatCurrency(item.price)} × {item.quantity}
                     </Typography>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Button
                       size="sm"
                       variant="secondary"
+                      className="px-2"
                       onClick={() => updateQuantity(item.id, -1)}
                     >
                       <Icon name="Minus" />
                     </Button>
-                    <Typography variant="body2">{item.quantity}</Typography>
+                    <Typography variant="body2" className="w-6 text-center">
+                      {item.quantity}
+                    </Typography>
                     <Button
                       size="sm"
                       variant="secondary"
+                      className="px-2"
                       onClick={() => updateQuantity(item.id, 1)}
                     >
                       <Icon name="Plus" />
@@ -314,7 +324,7 @@ const Page = () => {
             )}
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mt-3 pt-4 border-t border-border">
             <div className="flex justify-between text-sm">
               <Typography variant="body2" color="secondary">
                 Subtotal
@@ -333,7 +343,7 @@ const Page = () => {
               <Typography variant="body1" weight="bold">
                 Total
               </Typography>
-              <Typography variant="body1" weight="bold">
+              <Typography variant="body1" weight="bold" className="text-primary">
                 {formatCurrency(total)}
               </Typography>
             </div>

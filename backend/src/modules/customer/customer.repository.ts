@@ -95,7 +95,7 @@ const findOrdersByCustomerId = async (
   limit: number,
 ) => {
   const where: Prisma.OrderWhereInput = { customerId };
-  const [orders, total] = await Promise.all([
+  const [orders, total, totals] = await Promise.all([
     prisma.order.findMany({
       where,
       skip: start,
@@ -104,6 +104,10 @@ const findOrdersByCustomerId = async (
       orderBy: { createdAt: "desc" },
     }),
     prisma.order.count({ where }),
+    prisma.order.aggregate({
+      where: { customerId },
+      _sum: { total: true, cashReceived: true, due: true },
+    }),
   ]);
 
   return {
@@ -114,6 +118,12 @@ const findOrdersByCustomerId = async (
       totalPages: Math.ceil(total / limit),
       hasNextPage: end < total,
       hasPreviousPage: start > 0,
+    },
+    summary: {
+      totalOrders: total,
+      totalAmount: totals._sum.total ?? 0,
+      totalCashReceived: totals._sum.cashReceived ?? 0,
+      totalDue: totals._sum.due ?? 0,
     },
   };
 };

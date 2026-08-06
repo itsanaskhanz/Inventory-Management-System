@@ -6,6 +6,7 @@ export interface ConfirmDialogProps {
   pendingText?: string;
   cancelText?: string;
   isPending?: boolean;
+  danger?: boolean;
   onConfirm: () => void;
   onClose: () => void;
   children?: React.ReactNode;

@@ -16,9 +16,9 @@ import {
 import { formatCurrency, formatDate } from "@/lib/format";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import Link from "next/link";
 
 interface CustomerOrder extends Order {
   products: IOrderProduct[];
@@ -29,8 +29,11 @@ const CustomerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [page, setPage] = useState(1);
   const limit = appConfig.defaultPageLimit;
-  const { data: response, isLoading: isCustomerLoading, isError } =
-    useGetCustomerByIdQuery(id);
+  const {
+    data: response,
+    isLoading: isCustomerLoading,
+    isError,
+  } = useGetCustomerByIdQuery(id);
   const {
     data: ordersResponse,
     isLoading: isOrdersLoading,
@@ -41,6 +44,7 @@ const CustomerDetailPage = () => {
   const orders: CustomerOrder[] = ordersResponse?.data?.orders || [];
   const totalOrders = ordersResponse?.data?.pagination.total ?? 0;
   const totalPages = ordersResponse?.data?.pagination.totalPages || 1;
+  const summary = ordersResponse?.data?.summary;
 
   const columns: ColumnDef<CustomerOrder>[] = [
     {
@@ -76,6 +80,16 @@ const CustomerDetailPage = () => {
       cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
+      header: "Cash",
+      accessorKey: "cashReceived",
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
+      header: "Due",
+      accessorKey: "due",
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
       header: "Status",
       accessorKey: "status",
       cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
@@ -105,15 +119,26 @@ const CustomerDetailPage = () => {
       >
         {customer && (
           <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
+            <div className="grid grid-cols-1 gap-x-8 gap-y-6 rounded-xl border border-border bg-background-secondary p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
               <DetailField label="Customer ID" value={customer.id} />
               <DetailField label="Name" value={customer.name || "—"} />
               <DetailField label="Phone" value={customer.phone || "—"} />
-              <DetailField label="Total Orders" value={totalOrders} />
+              <DetailField
+                label="Total Orders"
+                value={summary?.totalOrders ?? totalOrders}
+              />
+              <DetailField
+                label="Cash Received"
+                value={formatCurrency(summary?.totalCashReceived ?? 0)}
+              />
+              <DetailField
+                label="Total Due"
+                value={formatCurrency(summary?.totalDue ?? 0)}
+              />
             </div>
 
-            <div className="rounded-lg border border-border p-4">
-              <Typography variant="h6" weight="bold" className="mb-3">
+            <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
+              <Typography variant="h6" weight="bold" className="mb-4">
                 Order History
               </Typography>
               {orders.length === 0 ? (

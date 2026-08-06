@@ -21,14 +21,16 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
-        <Spinner size="lg" />
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+        </div>
       </div>
     );
   }
   return (
-    <div className={clsx("h-screen flex overflow-hidden")}>
+    <div className={clsx("flex h-screen overflow-hidden bg-background")}>
       {sidebarOpen && user && <Sidebar />}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0">
         {topBarOpen && user && (
           <>
             <Topbar />
@@ -36,7 +38,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         )}
         <main
           className={clsx(
-            "flex-1 overflow-auto p-6 mx-auto w-full",
+            "flex-1 overflow-auto px-6 py-8 mx-auto w-full",
             WIDTH_CLASSES[appConfig.appWidth],
           )}
         >

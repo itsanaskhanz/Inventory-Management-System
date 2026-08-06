@@ -1,14 +1,14 @@
 import type { StatCardVariant } from "./StatCard.types";
 
 export const baseStyles =
-  "flex items-center justify-between gap-4 rounded-lg border border-border bg-background-secondary p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md";
+  "group flex items-center justify-between gap-4 rounded-xl border border-border bg-background-secondary p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-border-dark";
 
 export const iconContainerVariants: Record<StatCardVariant, string> = {
-  primary: "bg-primary text-background",
-  secondary: "bg-background-tertiary text-foreground",
-  success: "bg-success text-background",
-  warning: "bg-warning text-background",
-  danger: "bg-danger text-background",
+  primary: "bg-primary/10 text-primary",
+  secondary: "bg-background-tertiary text-foreground-secondary",
+  success: "bg-success/10 text-success",
+  warning: "bg-warning/10 text-warning",
+  danger: "bg-danger/10 text-danger",
 };
 
 export const trendStyles = {

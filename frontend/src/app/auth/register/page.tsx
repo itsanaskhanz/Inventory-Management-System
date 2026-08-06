@@ -1,6 +1,6 @@
 "use client";
 import { AuthBrandPanel } from "@/components/domain/auth";
-import { Button, Input, Typography } from "@/components/ui";
+import { Button, Input, Logo, Typography } from "@/components/ui";
 import { useRegisterMutation } from "@/lib/api/authApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { ArrowRight, Lock, Mail, User } from "lucide-react";
@@ -44,13 +44,18 @@ const Page = () => {
 
       {/* ===== Form Panel ===== */}
       <div className="flex items-center justify-center bg-background px-6 py-12">
-        <div className="w-full max-w-md">
-          <div className="flex flex-col gap-8 rounded-lg border border-border bg-background-secondary p-8 shadow-sm md:p-10">
-            <div className="flex flex-col gap-2">
-              <Typography variant="h3">Create your account</Typography>
-              <Typography variant="body2" color="secondary">
-                Get started in a few seconds
-              </Typography>
+        <div className="w-full max-w-md animate-slide-up">
+          <div className="flex flex-col gap-8 rounded-2xl border border-border bg-background p-8 shadow-xl shadow-slate-950/5 md:p-10">
+            <div className="flex flex-col gap-3">
+              <div className="w-32">
+                <Logo size="sm" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Typography variant="h3">Create your account</Typography>
+                <Typography variant="body2" color="secondary">
+                  Get started in a few seconds
+                </Typography>
+              </div>
             </div>
 
             <form onSubmit={handleRegister} className="flex flex-col gap-5">
@@ -131,7 +136,7 @@ const Page = () => {
               Already have an account?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-foreground underline underline-offset-4"
+                className="font-medium text-primary hover:underline underline-offset-4"
               >
                 Sign in
               </Link>

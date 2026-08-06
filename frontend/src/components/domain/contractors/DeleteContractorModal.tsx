@@ -40,9 +40,11 @@ const DeleteContractorModal = ({
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={handleDeleteContractor}
-      title="Delete?"
-      description="Are you sure want to delete contractor"
+      title="Delete Contractor"
+      description="Are you sure you want to delete this contractor?"
       confirmText="Delete"
+      pendingText="Deleting..."
+      danger
     />
   );
 };

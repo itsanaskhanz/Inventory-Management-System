@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { Icon } from "../Icon";
 import { labelSizes, sizes } from "./Spinner.styles";
 import { SpinnerProps } from "./Spinner.types";
 
@@ -7,13 +6,19 @@ const Spinner = ({ size = "md", label, className }: SpinnerProps) => {
   return (
     <div
       className={clsx(
-        "flex flex-col items-center justify-center gap-2",
+        "flex flex-col items-center justify-center gap-3",
         className,
       )}
+      role="status"
+      aria-live="polite"
     >
-      <span className={clsx("animate-spin", sizes[size])}>
-        <Icon name="Loader" />
-      </span>
+      <span
+        aria-hidden="true"
+        className={clsx(
+          "inline-block animate-spin rounded-full border-2 border-border-dark border-t-primary",
+          sizes[size],
+        )}
+      />
       {label && (
         <span className={clsx("text-foreground-secondary", labelSizes[size])}>
           {label}
