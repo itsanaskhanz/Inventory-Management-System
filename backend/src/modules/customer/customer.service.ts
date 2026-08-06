@@ -4,12 +4,23 @@ import {
   deleteById,
   findById,
   findOrdersByCustomerId,
+  findByPhone,
   searchAll,
   updateCustomer,
 } from "./customer.repository.js";
 import AppError from "../../utils/error.js";
 
 const createCustomerService = async (data: any, userId: string) => {
+  if (data.phone) {
+    const existing = await findByPhone(userId, data.phone);
+    if (existing) {
+      throw new AppError(
+        "Customer with this phone number already exists",
+        409,
+        true,
+      );
+    }
+  }
   const customer = await create({ ...data, userId });
   return {
     statusCode: 201,
@@ -80,7 +91,21 @@ const getCustomerOrdersService = async (
   };
 };
 
-const updateCustomerService = async (id: string, data: any) => {
+const updateCustomerService = async (
+  id: string,
+  userId: string,
+  data: any,
+) => {
+  if (data.phone) {
+    const existing = await findByPhone(userId, data.phone);
+    if (existing && existing.id !== id) {
+      throw new AppError(
+        "Customer with this phone number already exists",
+        409,
+        true,
+      );
+    }
+  }
   const customer = await updateCustomer(id, data);
   return {
     statusCode: 200,

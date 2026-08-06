@@ -70,7 +70,8 @@ const getCustomerById = asyncHandler(
 const updateCustomer = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const id = getRouteId(req.params.id);
-    const data = await updateCustomerService(id, req.body);
+    const userId = getCurrentUserId(req);
+    const data = await updateCustomerService(id, userId, req.body);
     successRes(res, data.message, data.statusCode, data.data);
   },
 );

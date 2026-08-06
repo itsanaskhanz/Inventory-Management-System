@@ -72,12 +72,14 @@ model Category {
 model Customer {
   id            String      @id @default(cuid())
   name          String?
-  phone         String?   @unique
+  phone         String?
   orders        Order[]
   userId        String?
   user          User?  @relation(fields: [userId], references: [id], onDelete: Cascade) 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@unique([userId, phone])
 }
 
 model Order {

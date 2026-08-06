@@ -88,6 +88,12 @@ const findById = async (id: string) => {
   });
 };
 
+const findByPhone = async (userId: string, phone: string) => {
+  return prisma.customer.findFirst({
+    where: { userId, phone },
+  });
+};
+
 const findOrdersByCustomerId = async (
   customerId: string,
   start: number,
@@ -143,6 +149,7 @@ export {
   findAll,
   findById,
   findOrdersByCustomerId,
+  findByPhone,
   searchAll,
   updateCustomer,
 };
