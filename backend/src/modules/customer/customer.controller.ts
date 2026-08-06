@@ -1,85 +1,79 @@
-import { Response } from "express";
-import { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
+import type { Response } from "express";
+import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { getRouteId } from "../../utils/helpers.js";
-import { successRes } from "../../utils/response.js";
-import { IUser } from "../auth/auth.interface.js";
+import {
+  getPagination,
+  getRouteId,
+  getSearchParam,
+  getUserId,
+} from "../../utils/request.js";
+import { sendSuccess } from "../../utils/response.js";
 import {
   createCustomerService,
   deleteCustomerService,
-  getAllCustomersService,
   getCustomerByIdService,
   getCustomerOrdersService,
-  searchCustomersService,
+  listCustomersService,
   updateCustomerService,
 } from "./customer.service.js";
 
-const getCurrentUserId = (req: AuthenticatedRequest): string => {
-  return (req.user as IUser).id;
-};
-
 const createCustomer = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const data = await createCustomerService(req.body, userId);
-    successRes(res, data.message, data.statusCode, data.data);
+    sendSuccess(res, await createCustomerService(req.body, getUserId(req)));
   },
 );
 
 const getAllCustomers = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-    const userId = getCurrentUserId(req);
-    const data = await getAllCustomersService(userId, page, limit);
-    successRes(res, data.message, data.statusCode, data.data);
+    const { page, limit } = getPagination(req);
+    sendSuccess(
+      res,
+      await listCustomersService(getUserId(req), undefined, page, limit),
+    );
   },
 );
 
 const searchCustomers = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-    const userId = getCurrentUserId(req);
-    const search =
-      typeof req.query.search === "string"
-        ? req.query.search.trim()
-        : undefined;
-    const data = await searchCustomersService(userId, search, page, limit);
-    successRes(res, data.message, data.statusCode, data.data);
+    const { page, limit } = getPagination(req);
+    sendSuccess(
+      res,
+      await listCustomersService(getUserId(req), getSearchParam(req), page, limit),
+    );
   },
 );
 
 const getCustomerOrders = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-    const id = getRouteId(req.params.id);
-    const data = await getCustomerOrdersService(id, page, limit);
-    successRes(res, data.message, data.statusCode, data.data);
+    const { page, limit } = getPagination(req);
+    sendSuccess(
+      res,
+      await getCustomerOrdersService(getRouteId(req), getUserId(req), page, limit),
+    );
   },
 );
 
 const getCustomerById = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const id = getRouteId(req.params.id);
-    const data = await getCustomerByIdService(id);
-    successRes(res, data.message, data.statusCode, data.data);
+    sendSuccess(
+      res,
+      await getCustomerByIdService(getRouteId(req), getUserId(req)),
+    );
   },
 );
+
 const updateCustomer = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const id = getRouteId(req.params.id);
-    const userId = getCurrentUserId(req);
-    const data = await updateCustomerService(id, userId, req.body);
-    successRes(res, data.message, data.statusCode, data.data);
+    sendSuccess(
+      res,
+      await updateCustomerService(getRouteId(req), getUserId(req), req.body),
+    );
   },
 );
+
 const deleteCustomer = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const id = getRouteId(req.params.id);
-    const data = await deleteCustomerService(id);
-    successRes(res, data.message, data.statusCode);
+    sendSuccess(res, await deleteCustomerService(getRouteId(req), getUserId(req)));
   },
 );
 

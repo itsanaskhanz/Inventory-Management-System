@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
-import { findById } from "../modules/auth/auth.repository.js";
+import type { IUser } from "../modules/auth/auth.interface.js";
+import { findUserById } from "../modules/auth/auth.repository.js";
 import AppError from "../utils/error.js";
 import { excludePassword } from "../utils/helpers.js";
 import { verifyToken } from "../utils/jwt.js";
-import type { IUser } from "../modules/auth/auth.interface.js";
 
 export interface AuthenticatedRequest extends Request {
   user?: IUser;
@@ -20,7 +20,7 @@ const authenticate = async (
   }
 
   const decoded = verifyToken(token);
-  const user = await findById(decoded.id);
+  const user = await findUserById(decoded.id);
   if (!user) {
     throw new AppError("User no longer exists", 401, true);
   }

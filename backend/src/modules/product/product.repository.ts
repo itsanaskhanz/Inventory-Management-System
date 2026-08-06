@@ -1,17 +1,16 @@
 import prisma from "../../config/database.js";
 import { Prisma } from "../../generated/prisma/client.js";
-import {
+import { buildPagination } from "../../utils/pagination.js";
+import type {
   ICreateProduct,
   IUpdateProduct,
+  ProductFilters,
 } from "./product.interface.js";
 
-interface ProductFilters {
-  search?: string;
-  categoryId?: string;
-  isActive?: boolean;
-}
-
-const buildWhere = (userId: string, filters: ProductFilters) => {
+const buildWhere = (
+  userId: string,
+  filters: ProductFilters,
+): Prisma.ProductWhereInput => {
   const where: Prisma.ProductWhereInput = { userId };
   if (filters.categoryId) {
     where.categoryId = filters.categoryId;
@@ -28,95 +27,54 @@ const buildWhere = (userId: string, filters: ProductFilters) => {
   return where;
 };
 
-const findAll = async (
-  userId: string,
-  start: number,
-  end: number,
-  limit: number,
-) => {
-  const where = buildWhere(userId, {});
-  const [products, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      skip: start,
-      take: limit,
-      include: { category: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.product.count({ where }),
-  ]);
-  return {
-    products,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
-  };
-};
-
-const searchAll = async (
+const listProducts = async (
   userId: string,
   filters: ProductFilters,
-  start: number,
-  end: number,
+  page: number,
   limit: number,
 ) => {
   const where = buildWhere(userId, filters);
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      skip: start,
+      skip: (page - 1) * limit,
       take: limit,
       include: { category: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.product.count({ where }),
   ]);
-  return {
-    products,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
-  };
+  return { products, pagination: buildPagination(total, page, limit) };
 };
 
-const findById = async (id: string) => {
-  const product = await prisma.product.findUnique({
+const findProductById = async (id: string) => {
+  return prisma.product.findUnique({
     where: { id },
     include: { category: true },
   });
-  return product;
 };
 
-const create = async (data: ICreateProduct) => {
+const createProduct = async (data: ICreateProduct) => {
   return prisma.product.create({ data });
 };
 
-const update = async (id: string, data: IUpdateProduct) => {
+const updateProduct = async (id: string, data: IUpdateProduct) => {
   return prisma.product.update({ where: { id }, data });
 };
 
-const remove = async (id: string) => {
+const deleteProduct = async (id: string) => {
   return prisma.product.delete({ where: { id } });
 };
 
-const countByCategoryId = async (categoryId: string) => {
+const countProductsByCategoryId = async (categoryId: string) => {
   return prisma.product.count({ where: { categoryId } });
 };
 
 export {
-  countByCategoryId,
-  create,
-  findAll,
-  findById,
-  remove,
-  searchAll,
-  update,
+  countProductsByCategoryId,
+  createProduct,
+  deleteProduct,
+  findProductById,
+  listProducts,
+  updateProduct,
 };

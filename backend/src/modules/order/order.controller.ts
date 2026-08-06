@@ -2,91 +2,82 @@ import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import AppError from "../../utils/error.js";
-import { getRouteId } from "../../utils/helpers.js";
-import { successRes } from "../../utils/response.js";
-import type { IUser } from "../auth/auth.interface.js";
+import {
+  getPagination,
+  getRouteId,
+  getSearchParam,
+  getStringParam,
+  getUserId,
+} from "../../utils/request.js";
+import { sendSuccess } from "../../utils/response.js";
 import {
   createOrderService,
   getOrderByIdService,
-  getOrdersService,
   getOrderStatsService,
-  searchOrdersService,
+  listOrdersService,
   updateOrderService,
 } from "./order.service.js";
 
-const getCurrentUserId = (req: AuthenticatedRequest): string => {
-  return (req.user as IUser).id;
+const parseDateParam = (
+  value: string | undefined,
+  endOfDay: boolean,
+): Date | undefined => {
+  if (!value) return undefined;
+  const date = endOfDay
+    ? new Date(`${value}T23:59:59.999`)
+    : new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    throw new AppError(`Invalid date: ${value}`, 400, true);
+  }
+  return date;
 };
 
 const createOrder = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const data = await createOrderService(req.body, userId);
-    successRes(res, data.message, data.statusCode, data.data);
+    sendSuccess(res, await createOrderService(req.body, getUserId(req)));
   },
 );
 
 const getOrders = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-    const data = await getOrdersService(userId, page, limit);
-    successRes(res, data.message, data.statusCode, data.data);
+    const { page, limit } = getPagination(req);
+    sendSuccess(
+      res,
+      await listOrdersService(getUserId(req), undefined, page, limit),
+    );
   },
 );
 
 const getOrderById = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const orderId = getRouteId(req.params.id);
-    const data = await getOrderByIdService(orderId, userId);
-    successRes(res, data.message, data.statusCode, data.data);
+    sendSuccess(res, await getOrderByIdService(getRouteId(req), getUserId(req)));
   },
 );
 
 const searchOrders = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-    const search =
-      typeof req.query.search === "string"
-        ? req.query.search.trim()
-        : undefined;
-    const data = await searchOrdersService(userId, search, page, limit);
-    successRes(res, data.message, data.statusCode, data.data);
+    const { page, limit } = getPagination(req);
+    sendSuccess(
+      res,
+      await listOrdersService(getUserId(req), getSearchParam(req), page, limit),
+    );
   },
 );
 
 const getOrderStats = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const rawFrom =
-      typeof req.query.from === "string" ? req.query.from.trim() : "";
-    const rawTo = typeof req.query.to === "string" ? req.query.to.trim() : "";
-    const from = rawFrom ? new Date(`${rawFrom}T00:00:00`) : undefined;
-    const to = rawTo ? new Date(`${rawTo}T23:59:59.999`) : undefined;
-    if (from && Number.isNaN(from.getTime())) {
-      throw new AppError("Invalid from date", 400, true);
-    }
-    if (to && Number.isNaN(to.getTime())) {
-      throw new AppError("Invalid to date", 400, true);
-    }
-    const data = await getOrderStatsService(userId, from, to);
-    successRes(res, data.message, data.statusCode, data.data);
+    const from = parseDateParam(getStringParam(req, "from"), false);
+    const to = parseDateParam(getStringParam(req, "to"), true);
+    sendSuccess(res, await getOrderStatsService(getUserId(req), from, to));
   },
 );
 
 const updateOrder = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const userId = getCurrentUserId(req);
-    const data = await updateOrderService(
-      getRouteId(req.params.id),
-      req.body,
-      userId,
+    sendSuccess(
+      res,
+      await updateOrderService(getRouteId(req), req.body, getUserId(req)),
     );
-    successRes(res, data.message, data.statusCode, data.data);
   },
 );
 

@@ -16,7 +16,6 @@ const defaultOptions: CookieOptions = {
   sameSite: "lax",
   maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
   path: "/",
-  //   domain: process.env.DOMAIN,
 };
 const setCookies = (res: Response, token: string, options?: CookieOptions) => {
   res.cookie("token", token, { ...defaultOptions, ...options });

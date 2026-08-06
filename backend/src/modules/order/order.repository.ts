@@ -1,24 +1,21 @@
 import prisma from "../../config/database.js";
 import { Prisma } from "../../generated/prisma/client.js";
-import { Status } from "../../generated/prisma/enums.js";
 import AppError from "../../utils/error.js";
-import {
-  ICreateOrder,
-  ICreateOrderProduct,
-  IUpdateOrder,
+import { buildPagination } from "../../utils/pagination.js";
+import { getProductStatus } from "../../utils/productStatus.js";
+import type {
+  CreateOrderData,
+  OrderItemInput,
+  UpdateOrderInput,
 } from "./order.interface.js";
 
-const getProductStatus = (stock: number, minStock: number): Status => {
-  if (stock <= 0) return Status.OUT_OF_STOCK;
-  if (stock <= minStock) return Status.LOW_STOCK;
-  return Status.IN_STOCK;
-};
+export type StockAction = "deduct" | "restore" | null;
 
 const deductStock = async (
   tx: Prisma.TransactionClient,
-  products: ICreateOrderProduct[],
+  items: OrderItemInput[],
 ) => {
-  for (const item of products) {
+  for (const item of items) {
     const product = await tx.product.findUnique({
       where: { id: item.productId },
     });
@@ -49,9 +46,9 @@ const deductStock = async (
 
 const restoreStock = async (
   tx: Prisma.TransactionClient,
-  products: ICreateOrderProduct[],
+  items: OrderItemInput[],
 ) => {
-  for (const item of products) {
+  for (const item of items) {
     const product = await tx.product.findUnique({
       where: { id: item.productId },
     });
@@ -70,103 +67,88 @@ const restoreStock = async (
   }
 };
 
-const create = async (orderData: ICreateOrder) => {
-  const { products } = orderData;
+const createOrder = async (data: CreateOrderData) => {
+  return prisma.$transaction(async (tx) => {
+    await deductStock(tx, data.products);
 
-  return await prisma.$transaction(async (tx) => {
-    await deductStock(tx, products);
-
-    return await tx.order.create({
+    return tx.order.create({
       data: {
-        subtotal: orderData.subtotal,
-        tax: orderData.tax,
-        total: orderData.total,
-        cashReceived: orderData.cashReceived ?? 0,
-        due: orderData.due ?? 0,
-        ...(orderData.status !== undefined && { status: orderData.status }),
-        ...(orderData.userId !== undefined && { userId: orderData.userId }),
-        customerId: orderData.customerId,
+        subtotal: data.subtotal,
+        tax: data.tax,
+        total: data.total,
+        cashReceived: data.cashReceived,
+        due: data.due,
+        status: data.status,
+        userId: data.userId,
+        customerId: data.customerId,
         products: {
-          create: products.map((product: ICreateOrderProduct) => ({
-            quantity: product.quantity,
-            price: product.price,
-            subtotal: product.subtotal,
-            productId: product.productId,
+          create: data.products.map((item) => ({
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.subtotal ?? item.price * item.quantity,
+            productId: item.productId,
           })),
         },
       } as Prisma.OrderUncheckedCreateInput,
     });
   });
 };
-const findAll = async (
-  userId: string,
-  start: number,
-  end: number,
-  limit: number,
-) => {
-  const where: Prisma.OrderWhereInput = { userId };
-  const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where,
-      skip: start,
-      take: limit,
-      include: { products: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.order.count({ where }),
-  ]);
-  return {
-    orders,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
-  };
-};
 
-const searchAll = async (
+const buildWhere = (
   userId: string,
-  search: string | undefined,
-  start: number,
-  end: number,
-  limit: number,
-) => {
+  search?: string,
+): Prisma.OrderWhereInput => {
   const where: Prisma.OrderWhereInput = { userId };
   if (search) {
     where.id = { contains: search, mode: "insensitive" };
   }
+  return where;
+};
+
+const listOrders = async (
+  userId: string,
+  search: string | undefined,
+  page: number,
+  limit: number,
+) => {
+  const where = buildWhere(userId, search);
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where,
-      skip: start,
+      skip: (page - 1) * limit,
       take: limit,
       include: { products: true, customer: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.order.count({ where }),
   ]);
-  return {
-    orders,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
-  };
+  return { orders, pagination: buildPagination(total, page, limit) };
 };
 
-const findById = async (id: string) => {
+const findOrderById = async (id: string) => {
   return prisma.order.findUnique({
     where: { id },
     include: {
       products: { include: { product: true } },
       customer: true,
     },
+  });
+};
+
+const updateOrder = async (
+  id: string,
+  data: UpdateOrderInput,
+  stockAction: StockAction,
+  items: OrderItemInput[],
+) => {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.update({ where: { id }, data });
+    if (stockAction === "restore") {
+      await restoreStock(tx, items);
+    } else if (stockAction === "deduct") {
+      await deductStock(tx, items);
+    }
+    return order;
   });
 };
 
@@ -180,14 +162,15 @@ interface StatsValueRow {
   value: number;
 }
 
-const getStats = async (userId: string, from: Date, to: Date) => {
-  const where: Prisma.OrderWhereInput = {
+const getOrderStats = async (userId: string, from: Date, to: Date) => {
+  const completedOrders: Prisma.OrderWhereInput = {
     userId,
     status: { equals: "COMPLETED", mode: "insensitive" },
   };
-  const [allTime, dailyRows, profitRows, duesRows] = await Promise.all([
+
+  const [aggregate, dailyRevenueRows, profitRows, duesRows] = await Promise.all([
     prisma.order.aggregate({
-      where,
+      where: completedOrders,
       _sum: { total: true },
       _count: { _all: true },
     }),
@@ -220,38 +203,17 @@ const getStats = async (userId: string, from: Date, to: Date) => {
     `,
   ]);
 
-  const daily = dailyRows.map((row) => ({
-    date: row.date,
-    revenue: Number(row.revenue),
-    orders: Number(row.orders),
-  }));
-
   return {
-    totalRevenue: allTime._sum.total ?? 0,
+    totalRevenue: aggregate._sum.total ?? 0,
     totalProfit: Number(profitRows[0]?.value ?? 0),
-    totalOrders: allTime._count,
+    totalOrders: aggregate._count._all,
     totalDues: Number(duesRows[0]?.value ?? 0),
-    daily,
+    daily: dailyRevenueRows.map((row) => ({
+      date: row.date,
+      revenue: Number(row.revenue),
+      orders: Number(row.orders),
+    })),
   };
 };
 
-export type StockAction = "deduct" | "restore" | null;
-
-const update = async (
-  id: string,
-  data: IUpdateOrder,
-  stockAction: StockAction,
-  products: ICreateOrderProduct[],
-) => {
-  return await prisma.$transaction(async (tx) => {
-    const order = await tx.order.update({ where: { id }, data });
-    if (stockAction === "restore") {
-      await restoreStock(tx, products);
-    } else if (stockAction === "deduct") {
-      await deductStock(tx, products);
-    }
-    return order;
-  });
-};
-
-export { create, findAll, findById, getStats, searchAll, update };
+export { createOrder, findOrderById, getOrderStats, listOrders, updateOrder };

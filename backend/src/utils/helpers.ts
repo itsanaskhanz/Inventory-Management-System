@@ -4,10 +4,3 @@ export const excludePassword = <T extends { password?: string }>(
   const { password: _password, ...rest } = user;
   return rest;
 };
-
-export const getRouteId = (id: string | string[] | undefined): string => {
-  if (Array.isArray(id)) {
-    throw new TypeError("Route parameter must be a string");
-  }
-  return id as string;
-};

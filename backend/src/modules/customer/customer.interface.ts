@@ -1,18 +1,16 @@
-export interface ICustomer {
-  id: string;
-  name?: string;
-  phone?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface ICreateCustomer {
   name?: string;
   phone?: string;
+  userId: string;
 }
 
-export interface IUpdateCustomer {
-  id: string;
-  name?: string;
-  phone?: string;
+export type IUpdateCustomerData = Partial<
+  Pick<ICreateCustomer, "name" | "phone">
+>;
+
+export interface CustomerOrdersSummary {
+  totalOrders: number;
+  totalAmount: number;
+  totalCashReceived: number;
+  totalDue: number;
 }

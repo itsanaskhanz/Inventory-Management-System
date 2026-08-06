@@ -1,16 +1,13 @@
 import prisma from "../../config/database.js";
 import { Prisma } from "../../generated/prisma/client.js";
-import { ICreateCustomer } from "./customer.interface.js";
+import { buildPagination } from "../../utils/pagination.js";
+import type { ICreateCustomer, IUpdateCustomerData } from "./customer.interface.js";
 
-const create = async (data: ICreateCustomer) => {
-  const customer = prisma.customer.create({
-    data,
-  });
-  return customer;
-};
-
-const buildWhere = (userId: string, search?: string) => {
-  const where: Prisma.CustomerWhereInput = { userId: userId };
+const buildWhere = (
+  userId: string,
+  search?: string,
+): Prisma.CustomerWhereInput => {
+  const where: Prisma.CustomerWhereInput = { userId };
   if (search) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
@@ -20,91 +17,46 @@ const buildWhere = (userId: string, search?: string) => {
   return where;
 };
 
-const findAll = async (
-  userId: string,
-  start: number,
-  end: number,
-  limit: number,
-) => {
-  const where = buildWhere(userId);
-  const [customers, total] = await Promise.all([
-    prisma.customer.findMany({
-      where,
-      skip: start,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.customer.count({ where }),
-  ]);
-
-  return {
-    customers,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
-  };
-};
-
-const searchAll = async (
+const listCustomers = async (
   userId: string,
   search: string | undefined,
-  start: number,
-  end: number,
+  page: number,
   limit: number,
 ) => {
   const where = buildWhere(userId, search);
   const [customers, total] = await Promise.all([
     prisma.customer.findMany({
       where,
-      skip: start,
+      skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: "desc" },
     }),
     prisma.customer.count({ where }),
   ]);
-
-  return {
-    customers,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
-  };
+  return { customers, pagination: buildPagination(total, page, limit) };
 };
 
-const findById = async (id: string) => {
+const findCustomerById = async (id: string) => {
   return prisma.customer.findUnique({
     where: { id },
-    include: {
-      _count: { select: { orders: true } },
-    },
+    include: { _count: { select: { orders: true } } },
   });
 };
 
-const findByPhone = async (userId: string, phone: string) => {
-  return prisma.customer.findFirst({
-    where: { userId, phone },
-  });
+const findCustomerByPhone = async (userId: string, phone: string) => {
+  return prisma.customer.findFirst({ where: { userId, phone } });
 };
 
 const findOrdersByCustomerId = async (
   customerId: string,
-  start: number,
-  end: number,
+  page: number,
   limit: number,
 ) => {
   const where: Prisma.OrderWhereInput = { customerId };
   const [orders, total, totals] = await Promise.all([
     prisma.order.findMany({
       where,
-      skip: start,
+      skip: (page - 1) * limit,
       take: limit,
       include: { products: { include: { product: true } }, customer: true },
       orderBy: { createdAt: "desc" },
@@ -115,16 +67,9 @@ const findOrdersByCustomerId = async (
       _sum: { total: true, cashReceived: true, due: true },
     }),
   ]);
-
   return {
     orders,
-    pagination: {
-      total,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: end < total,
-      hasPreviousPage: start > 0,
-    },
+    pagination: buildPagination(total, page, limit),
     summary: {
       totalOrders: total,
       totalAmount: totals._sum.total ?? 0,
@@ -134,22 +79,24 @@ const findOrdersByCustomerId = async (
   };
 };
 
-const deleteById = async (id: string) => {
+const createCustomer = async (data: ICreateCustomer) => {
+  return prisma.customer.create({ data });
+};
+
+const updateCustomer = async (id: string, data: IUpdateCustomerData) => {
+  return prisma.customer.update({ where: { id }, data });
+};
+
+const deleteCustomer = async (id: string) => {
   return prisma.customer.delete({ where: { id } });
 };
-const updateCustomer = async (id: string, data: ICreateCustomer) => {
-  return prisma.customer.update({
-    where: { id },
-    data,
-  });
-};
+
 export {
-  create,
-  deleteById,
-  findAll,
-  findById,
+  createCustomer,
+  deleteCustomer,
+  findCustomerById,
+  findCustomerByPhone,
   findOrdersByCustomerId,
-  findByPhone,
-  searchAll,
+  listCustomers,
   updateCustomer,
 };

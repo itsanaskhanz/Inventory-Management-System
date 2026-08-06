@@ -1,16 +1,10 @@
-import { IProduct } from "../product/product.interface.js";
+import type { Category } from "../../generated/prisma/client.js";
 
-interface ICategory {
-  id: string;
-  name: string;
-  userId: string;
-  products?: IProduct[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ICreateCategory {
+export interface ICreateCategory {
   name: string;
   userId: string;
 }
-export { ICategory, ICreateCategory };
+
+export type CategoryWithCount = Omit<Category, "products"> & {
+  productsCount: number;
+};

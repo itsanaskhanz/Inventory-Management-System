@@ -1,73 +1,94 @@
+import type { Order } from "../../generated/prisma/client.js";
 import AppError from "../../utils/error.js";
-import type { ICreateOrder, ICreateOrderProduct, IUpdateOrder } from "./order.interface.js";
+import { ensureOwnership } from "../../utils/ownership.js";
+import type { PaginationMeta } from "../../utils/pagination.js";
+import type { ServiceResult } from "../../utils/response.js";
 import {
-  create,
-  findAll,
-  findById,
-  getStats,
-  searchAll,
-  update,
+  OrderStatus,
+  type CreateOrderInput,
+  type OrderItemInput,
+  type OrderStatsData,
+  type UpdateOrderInput,
+} from "./order.interface.js";
+import {
+  createOrder,
+  findOrderById,
+  getOrderStats,
+  listOrders,
+  updateOrder,
   type StockAction,
 } from "./order.repository.js";
 
-const STOCK_HOLDING_STATUSES = new Set(["PENDING", "COMPLETED"]);
-const STOCK_RESTORING_STATUSES = new Set(["CANCELLED"]);
+const STOCK_HOLDING_STATUSES = new Set<OrderStatus>([
+  OrderStatus.PENDING,
+  OrderStatus.COMPLETED,
+]);
+const STOCK_RESTORING_STATUSES = new Set<OrderStatus>([OrderStatus.CANCELLED]);
 
-const ensureOwnership = (order: { userId: string | null }, userId: string) => {
-  if (!order.userId || order.userId !== userId) {
-    throw new AppError(
-      "You do not have permission to access this order",
-      403,
-      true,
-    );
+const computePaymentStatus = (
+  total: number,
+  cashReceived: number,
+): OrderStatus =>
+  total - cashReceived <= 0 ? OrderStatus.COMPLETED : OrderStatus.PENDING;
+
+const getStockAction = (
+  previousStatus: OrderStatus,
+  nextStatus: OrderStatus,
+): StockAction => {
+  if (
+    STOCK_HOLDING_STATUSES.has(previousStatus) &&
+    STOCK_RESTORING_STATUSES.has(nextStatus)
+  ) {
+    return "restore";
   }
+  if (
+    STOCK_RESTORING_STATUSES.has(previousStatus) &&
+    STOCK_HOLDING_STATUSES.has(nextStatus)
+  ) {
+    return "deduct";
+  }
+  return null;
 };
 
-const createOrderService = async (data: ICreateOrder, userId: string) => {
-  const products = data.products.map((p) => ({
-    productId: p.productId,
-    quantity: p.quantity,
-    price: p.price,
+const createOrderService = async (
+  data: CreateOrderInput,
+  userId: string,
+): Promise<ServiceResult<{ order: Order }>> => {
+  const items: OrderItemInput[] = data.products.map((item) => ({
+    ...item,
+    subtotal: item.price * item.quantity,
   }));
 
-  const subtotal = products.reduce(
-    (sum, p) => sum + p.price * p.quantity,
-    0,
-  );
-  const tax = data.tax;
-  const total = subtotal + tax;
+  const subtotal = items.reduce((sum, item) => sum + (item.subtotal ?? 0), 0);
+  const total = subtotal + data.tax;
   const cashReceived = data.cashReceived ?? 0;
   const due = Math.max(0, total - cashReceived);
-  const status = due <= 0 ? "COMPLETED" : "PENDING";
+  const status = computePaymentStatus(total, cashReceived);
 
-  const order = await create({
+  const order = await createOrder({
     ...data,
-    products: products.map((p) => ({ ...p, subtotal: p.price * p.quantity })),
+    products: items,
     subtotal,
-    tax,
     total,
     cashReceived,
     due,
     status,
     userId,
   });
-
   return {
-    message: "Order created successfully",
     statusCode: 201,
+    message: "Order created successfully",
     data: { order },
   };
 };
 
-const getOrdersService = async (
+const listOrdersService = async (
   userId: string,
+  search: string | undefined,
   page: number,
   limit: number,
-) => {
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const { orders, pagination } = await findAll(userId, start, end, limit);
-
+): Promise<ServiceResult<{ orders: Order[]; pagination: PaginationMeta }>> => {
+  const { orders, pagination } = await listOrders(userId, search, page, limit);
   return {
     statusCode: 200,
     message: "Orders fetched successfully",
@@ -75,12 +96,14 @@ const getOrdersService = async (
   };
 };
 
-const getOrderByIdService = async (id: string, userId: string) => {
-  const order = await findById(id);
-  if (!order) {
-    throw new AppError("Order not found", 404, true);
-  }
-  ensureOwnership(order, userId);
+const getOrderByIdService = async (
+  id: string,
+  userId: string,
+): Promise<ServiceResult<{ order: Order }>> => {
+  const order = await findOrderById(id);
+  if (!order) throw new AppError("Order not found", 404, true);
+  ensureOwnership(order, userId, "order");
+
   return {
     statusCode: 200,
     message: "Order fetched successfully",
@@ -88,81 +111,42 @@ const getOrderByIdService = async (id: string, userId: string) => {
   };
 };
 
-const searchOrdersService = async (
-  userId: string,
-  search: string | undefined,
-  page: number,
-  limit: number,
-) => {
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const { orders, pagination } = await searchAll(
-    userId,
-    search,
-    start,
-    end,
-    limit,
-  );
-  return {
-    statusCode: 200,
-    message: "Orders fetched successfully",
-    data: { orders, pagination },
-  };
-};
-
 const updateOrderService = async (
   id: string,
-  data: IUpdateOrder,
+  data: UpdateOrderInput,
   userId: string,
-) => {
-  const exists = await findById(id);
-  if (!exists) {
-    throw new AppError("Order not found", 404, true);
-  }
-  ensureOwnership(exists, userId);
+): Promise<ServiceResult<{ order: Order }>> => {
+  const existing = await findOrderById(id);
+  if (!existing) throw new AppError("Order not found", 404, true);
+  ensureOwnership(existing, userId, "order");
 
-  const previousStatus = exists.status.toUpperCase();
-  const cashReceived = data.cashReceived ?? exists.cashReceived;
-  const due = Math.max(0, exists.total - cashReceived);
+  const previousStatus = existing.status.toUpperCase() as OrderStatus;
+  const cashReceived = data.cashReceived ?? existing.cashReceived;
+  const due = Math.max(0, existing.total - cashReceived);
 
-  const requestedStatus = (data.status ?? previousStatus).toUpperCase();
-
-  let nextStatus = requestedStatus;
+  let nextStatus = (data.status ?? previousStatus).toUpperCase() as OrderStatus;
   if (
-    nextStatus !== "CANCELLED" &&
+    nextStatus !== OrderStatus.CANCELLED &&
     data.cashReceived !== undefined &&
-    previousStatus !== "CANCELLED"
+    previousStatus !== OrderStatus.CANCELLED
   ) {
-    nextStatus = due <= 0 ? "COMPLETED" : "PENDING";
+    nextStatus = computePaymentStatus(existing.total, cashReceived);
   }
 
-  let stockAction: StockAction = null;
-  if (previousStatus !== nextStatus) {
-    if (
-      STOCK_HOLDING_STATUSES.has(previousStatus) &&
-      STOCK_RESTORING_STATUSES.has(nextStatus)
-    ) {
-      stockAction = "restore";
-    } else if (
-      STOCK_RESTORING_STATUSES.has(previousStatus) &&
-      STOCK_HOLDING_STATUSES.has(nextStatus)
-    ) {
-      stockAction = "deduct";
-    }
-  }
+  const stockAction = getStockAction(previousStatus, nextStatus);
 
-  const products: ICreateOrderProduct[] = exists.products.map((p) => ({
-    productId: p.productId,
-    quantity: p.quantity,
-    price: p.price,
-    subtotal: p.subtotal,
+  const items: OrderItemInput[] = existing.products.map((product) => ({
+    productId: product.productId,
+    quantity: product.quantity,
+    price: product.price,
+    subtotal: product.subtotal,
   }));
 
-  const order = await update(
+  const order = await updateOrder(
     id,
     { ...data, status: nextStatus, cashReceived, due },
     stockAction,
-    products,
+    items,
   );
   return {
     statusCode: 200,
@@ -175,13 +159,15 @@ const getOrderStatsService = async (
   userId: string,
   from?: Date,
   to?: Date,
-) => {
+): Promise<ServiceResult<OrderStatsData>> => {
   const start = from ?? new Date(0);
   const end = to ?? new Date("2100-01-01T23:59:59.999Z");
   const { totalRevenue, totalProfit, totalOrders, totalDues, daily } =
-    await getStats(userId, start, end);
-  const rangeRevenue = daily.reduce((sum, d) => sum + d.revenue, 0);
-  const rangeOrders = daily.reduce((sum, d) => sum + d.orders, 0);
+    await getOrderStats(userId, start, end);
+
+  const rangeRevenue = daily.reduce((sum, entry) => sum + entry.revenue, 0);
+  const rangeOrders = daily.reduce((sum, entry) => sum + entry.orders, 0);
+
   return {
     statusCode: 200,
     message: "Order statistics fetched successfully",
@@ -200,8 +186,7 @@ const getOrderStatsService = async (
 export {
   createOrderService,
   getOrderByIdService,
-  getOrdersService,
   getOrderStatsService,
-  searchOrdersService,
+  listOrdersService,
   updateOrderService,
 };

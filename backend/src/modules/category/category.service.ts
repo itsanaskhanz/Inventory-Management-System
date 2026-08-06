@@ -1,37 +1,30 @@
+import type { Category } from "../../generated/prisma/client.js";
 import AppError from "../../utils/error.js";
-import { countByCategoryId } from "../product/product.repository.js";
-import { ICreateCategory } from "./category.interface.js";
+import { ensureOwnership } from "../../utils/ownership.js";
+import type { PaginationMeta } from "../../utils/pagination.js";
+import type { ServiceResult } from "../../utils/response.js";
+import { countProductsByCategoryId } from "../product/product.repository.js";
+import type { CategoryWithCount, ICreateCategory } from "./category.interface.js";
 import {
-  create,
-  findAll,
-  findById,
-  remove,
-  searchAll,
-  update,
+  createCategory,
+  deleteCategory,
+  findCategoryById,
+  listCategories,
+  updateCategory,
 } from "./category.repository.js";
 
-const mapCategoryWithCount = <T extends { _count?: { products?: number } }>(
-  category: T,
-) => {
+const toCategoryWithCount = (category: {
+  _count?: { products?: number };
+}): CategoryWithCount => {
   const { _count, ...rest } = category;
-  return { ...rest, productsCount: _count?.products ?? 0 };
+  return { ...rest, productsCount: _count?.products ?? 0 } as CategoryWithCount;
 };
 
-const ensureOwnership = (
-  category: { userId: string | null },
+const createCategoryService = async (
   userId: string,
-) => {
-  if (!category.userId || category.userId !== userId) {
-    throw new AppError(
-      "You do not have permission to access this category",
-      403,
-      true,
-    );
-  }
-};
-
-const createCategoryService = async (userId: string, data: ICreateCategory) => {
-  const category = await create({ name: data.name, userId });
+  data: ICreateCategory,
+): Promise<ServiceResult<{ category: Category }>> => {
+  const category = await createCategory({ name: data.name, userId });
   return {
     statusCode: 201,
     message: "Category created successfully",
@@ -43,13 +36,12 @@ const updateCategoryService = async (
   id: string,
   data: Partial<ICreateCategory>,
   userId: string,
-) => {
-  const exists = await findById(id);
-  if (!exists) {
-    throw new AppError("Category not found", 404, true);
-  }
-  ensureOwnership(exists, userId);
-  const category = await update(id, data);
+): Promise<ServiceResult<{ category: Category }>> => {
+  const existing = await findCategoryById(id);
+  if (!existing) throw new AppError("Category not found", 404, true);
+  ensureOwnership(existing, userId, "category");
+
+  const category = await updateCategory(id, data);
   return {
     statusCode: 200,
     message: "Category updated successfully",
@@ -57,13 +49,15 @@ const updateCategoryService = async (
   };
 };
 
-const deleteCategoryService = async (id: string, userId: string) => {
-  const exists = await findById(id);
-  if (!exists) {
-    throw new AppError("Category not found", 404, true);
-  }
-  ensureOwnership(exists, userId);
-  const productCount = await countByCategoryId(id);
+const deleteCategoryService = async (
+  id: string,
+  userId: string,
+): Promise<ServiceResult<{ category: Category }>> => {
+  const existing = await findCategoryById(id);
+  if (!existing) throw new AppError("Category not found", 404, true);
+  ensureOwnership(existing, userId, "category");
+
+  const productCount = await countProductsByCategoryId(id);
   if (productCount > 0) {
     throw new AppError(
       "Cannot delete category with products. Reassign or delete its products first.",
@@ -71,7 +65,8 @@ const deleteCategoryService = async (id: string, userId: string) => {
       true,
     );
   }
-  const category = await remove(id);
+
+  const category = await deleteCategory(id);
   return {
     statusCode: 200,
     message: "Category deleted successfully",
@@ -79,67 +74,46 @@ const deleteCategoryService = async (id: string, userId: string) => {
   };
 };
 
-const getCategoryByIdService = async (id: string, userId: string) => {
-  const category = await findById(id);
-  if (!category) {
-    throw new AppError("Category not found", 404, true);
-  }
-  ensureOwnership(category, userId);
+const getCategoryByIdService = async (
+  id: string,
+  userId: string,
+): Promise<ServiceResult<{ category: CategoryWithCount }>> => {
+  const category = await findCategoryById(id);
+  if (!category) throw new AppError("Category not found", 404, true);
+  ensureOwnership(category, userId, "category");
+
   return {
     statusCode: 200,
     message: "Category found successfully",
-    data: { category: mapCategoryWithCount(category) },
+    data: { category: toCategoryWithCount(category) },
   };
 };
 
-const getCategoriesService = async (
-  userId: string,
-  page: number,
-  limit: number,
-) => {
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const { categories, pagination } = await findAll(userId, start, end, limit);
-  return {
-    statusCode: 200,
-    message: "Categories found successfully",
-    data: {
-      categories: categories.map(mapCategoryWithCount),
-      pagination,
-    },
-  };
-};
-
-const searchCategoriesService = async (
+const listCategoriesService = async (
   userId: string,
   search: string | undefined,
   page: number,
   limit: number,
-) => {
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const { categories, pagination } = await searchAll(
+): Promise<
+  ServiceResult<{ categories: CategoryWithCount[]; pagination: PaginationMeta }>
+> => {
+  const { categories, pagination } = await listCategories(
     userId,
     search,
-    start,
-    end,
+    page,
     limit,
   );
   return {
     statusCode: 200,
     message: "Categories found successfully",
-    data: {
-      categories: categories.map(mapCategoryWithCount),
-      pagination,
-    },
+    data: { categories: categories.map(toCategoryWithCount), pagination },
   };
 };
 
 export {
   createCategoryService,
   deleteCategoryService,
-  getCategoriesService,
   getCategoryByIdService,
-  searchCategoriesService,
+  listCategoriesService,
   updateCategoryService,
 };

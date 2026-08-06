@@ -1,17 +1,15 @@
 import { z } from "zod";
+import { OrderStatus } from "./order.interface.js";
 
-export const orderStatusSchema = z.enum(["PENDING", "COMPLETED", "CANCELLED"]);
+export const orderStatusSchema = z.nativeEnum(OrderStatus);
 
 const nonNegativeNumber = z
   .number()
   .min(0, "Must be a non-negative number");
 
 export const createOrderSchema = z.object({
-  subtotal: nonNegativeNumber.optional(),
   tax: nonNegativeNumber,
-  total: nonNegativeNumber.optional(),
   cashReceived: nonNegativeNumber.optional(),
-  status: orderStatusSchema.optional(),
   customerId: z.string().trim().min(1).nullable().optional(),
   products: z
     .array(

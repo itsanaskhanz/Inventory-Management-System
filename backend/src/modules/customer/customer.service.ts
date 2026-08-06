@@ -1,27 +1,46 @@
+import type { Customer, Order } from "../../generated/prisma/client.js";
+import AppError from "../../utils/error.js";
+import { ensureOwnership } from "../../utils/ownership.js";
+import type { PaginationMeta } from "../../utils/pagination.js";
+import type { ServiceResult } from "../../utils/response.js";
+import type {
+  CustomerOrdersSummary,
+  ICreateCustomer,
+  IUpdateCustomerData,
+} from "./customer.interface.js";
 import {
-  create,
-  findAll,
-  deleteById,
-  findById,
+  createCustomer,
+  deleteCustomer,
+  findCustomerById,
+  findCustomerByPhone,
   findOrdersByCustomerId,
-  findByPhone,
-  searchAll,
+  listCustomers,
   updateCustomer,
 } from "./customer.repository.js";
-import AppError from "../../utils/error.js";
 
-const createCustomerService = async (data: any, userId: string) => {
-  if (data.phone) {
-    const existing = await findByPhone(userId, data.phone);
-    if (existing) {
-      throw new AppError(
-        "Customer with this phone number already exists",
-        409,
-        true,
-      );
-    }
+const ensureUniquePhone = async (
+  userId: string,
+  phone: string | undefined,
+  excludeCustomerId?: string,
+) => {
+  if (!phone) return;
+  const existing = await findCustomerByPhone(userId, phone);
+  if (existing && existing.id !== excludeCustomerId) {
+    throw new AppError(
+      "Customer with this phone number already exists",
+      409,
+      true,
+    );
   }
-  const customer = await create({ ...data, userId });
+};
+
+const createCustomerService = async (
+  data: ICreateCustomer,
+  userId: string,
+): Promise<ServiceResult<{ customer: Customer }>> => {
+  await ensureUniquePhone(userId, data.phone);
+
+  const customer = await createCustomer({ ...data, userId });
   return {
     statusCode: 201,
     message: "Customer created successfully",
@@ -29,26 +48,28 @@ const createCustomerService = async (data: any, userId: string) => {
   };
 };
 
-const getAllCustomersService = async (
+const listCustomersService = async (
   userId: string,
+  search: string | undefined,
   page: number,
   limit: number,
-) => {
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const result = await findAll(userId, start, end, limit);
+): Promise<ServiceResult<{ customers: Customer[]; pagination: PaginationMeta }>> => {
+  const { customers, pagination } = await listCustomers(userId, search, page, limit);
   return {
     statusCode: 200,
     message: "Customers fetched successfully",
-    data: result,
+    data: { customers, pagination },
   };
 };
 
-const getCustomerByIdService = async (id: string) => {
-  const customer = await findById(id);
-  if (!customer) {
-    throw new AppError("Customer not found", 404, true);
-  }
+const getCustomerByIdService = async (
+  id: string,
+  userId: string,
+): Promise<ServiceResult<{ customer: Customer }>> => {
+  const customer = await findCustomerById(id);
+  if (!customer) throw new AppError("Customer not found", 404, true);
+  ensureOwnership(customer, userId, "customer");
+
   return {
     statusCode: 200,
     message: "Customer fetched successfully",
@@ -56,34 +77,23 @@ const getCustomerByIdService = async (id: string) => {
   };
 };
 
-const searchCustomersService = async (
-  userId: string,
-  search: string | undefined,
-  page: number,
-  limit: number,
-) => {
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const result = await searchAll(userId, search, start, end, limit);
-  return {
-    statusCode: 200,
-    message: "Customers fetched successfully",
-    data: result,
-  };
-};
-
 const getCustomerOrdersService = async (
   customerId: string,
+  userId: string,
   page: number,
   limit: number,
-) => {
-  const customer = await findById(customerId);
-  if (!customer) {
-    throw new AppError("Customer not found", 404, true);
-  }
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const result = await findOrdersByCustomerId(customerId, start, end, limit);
+): Promise<
+  ServiceResult<{
+    orders: Order[];
+    pagination: PaginationMeta;
+    summary: CustomerOrdersSummary;
+  }>
+> => {
+  const customer = await findCustomerById(customerId);
+  if (!customer) throw new AppError("Customer not found", 404, true);
+  ensureOwnership(customer, userId, "customer");
+
+  const result = await findOrdersByCustomerId(customerId, page, limit);
   return {
     statusCode: 200,
     message: "Customer orders fetched successfully",
@@ -94,18 +104,13 @@ const getCustomerOrdersService = async (
 const updateCustomerService = async (
   id: string,
   userId: string,
-  data: any,
-) => {
-  if (data.phone) {
-    const existing = await findByPhone(userId, data.phone);
-    if (existing && existing.id !== id) {
-      throw new AppError(
-        "Customer with this phone number already exists",
-        409,
-        true,
-      );
-    }
-  }
+  data: IUpdateCustomerData,
+): Promise<ServiceResult<{ customer: Customer }>> => {
+  const existing = await findCustomerById(id);
+  if (!existing) throw new AppError("Customer not found", 404, true);
+  ensureOwnership(existing, userId, "customer");
+  await ensureUniquePhone(userId, data.phone, id);
+
   const customer = await updateCustomer(id, data);
   return {
     statusCode: 200,
@@ -114,20 +119,27 @@ const updateCustomerService = async (
   };
 };
 
-const deleteCustomerService = async (id: string) => {
-  await deleteById(id);
+const deleteCustomerService = async (
+  id: string,
+  userId: string,
+): Promise<ServiceResult<null>> => {
+  const existing = await findCustomerById(id);
+  if (!existing) throw new AppError("Customer not found", 404, true);
+  ensureOwnership(existing, userId, "customer");
+
+  await deleteCustomer(id);
   return {
     statusCode: 200,
     message: "Customer deleted successfully",
+    data: null,
   };
 };
 
 export {
   createCustomerService,
   deleteCustomerService,
-  getAllCustomersService,
   getCustomerByIdService,
   getCustomerOrdersService,
-  searchCustomersService,
+  listCustomersService,
   updateCustomerService,
 };

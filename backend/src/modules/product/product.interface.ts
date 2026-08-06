@@ -1,19 +1,9 @@
-import { Status } from "../../generated/prisma/enums.js";
+import type { Status } from "../../generated/prisma/enums.js";
 
-export interface IProduct {
-  id?: string;
-  name: string;
-  description?: string | null;
-  price: number;
-  costPrice: number;
-  stock: number;
-  minStock: number;
-  userId?: string | null;
-  isActive: boolean;
-  status: Status;
-  categoryId?: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
+export interface ProductFilters {
+  search?: string;
+  categoryId?: string;
+  isActive?: boolean;
 }
 
 export interface ICreateProduct {
@@ -26,7 +16,7 @@ export interface ICreateProduct {
   userId?: string;
   isActive?: boolean;
   status?: Status;
-  categoryId?: string;
+  categoryId?: string | null;
 }
 
 export type IUpdateProduct = Partial<Omit<ICreateProduct, "userId">>;

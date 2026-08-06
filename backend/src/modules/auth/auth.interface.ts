@@ -2,6 +2,7 @@ export enum UserRole {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
 }
+
 export interface IUser {
   id: string;
   email: string;
@@ -11,6 +12,8 @@ export interface IUser {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type PublicUser = Omit<IUser, "password">;
 
 export interface IRegister {
   name: string;

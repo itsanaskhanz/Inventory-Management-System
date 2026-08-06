@@ -1,6 +1,12 @@
 import type { Response } from "express";
 
-const successRes = (
+export interface ServiceResult<T> {
+  statusCode: number;
+  message: string;
+  data: T;
+}
+
+export const successRes = (
   res: Response,
   message: string,
   statusCode: number,
@@ -13,7 +19,7 @@ const successRes = (
   });
 };
 
-const errorRes = (
+export const errorRes = (
   res: Response,
   message: string,
   statusCode: number,
@@ -25,4 +31,7 @@ const errorRes = (
     data,
   });
 };
-export { successRes, errorRes };
+
+export const sendSuccess = <T>(res: Response, result: ServiceResult<T>) => {
+  successRes(res, result.message, result.statusCode, result.data);
+};
