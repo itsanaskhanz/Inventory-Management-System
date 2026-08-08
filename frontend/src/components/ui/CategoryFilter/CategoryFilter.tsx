@@ -1,6 +1,6 @@
 import { Button } from "../Button";
-import { CategoryFilterProps } from "./CategoryFilter.types";
 import { Typography } from "../Typography";
+import { CategoryFilterProps } from "./CategoryFilter.types";
 
 const ALL = "All";
 
@@ -11,7 +11,11 @@ const CategoryFilter = ({
   className,
 }: CategoryFilterProps) => {
   return (
-    <div className={className ? `flex gap-2 flex-wrap ${className}` : "flex gap-2 flex-wrap"}>
+    <div
+      className={
+        className ? `flex gap-2 flex-wrap ${className}` : "flex gap-2 flex-wrap"
+      }
+    >
       <Button
         variant={selected === ALL ? "primary" : "secondary"}
         size="sm"
@@ -36,7 +40,7 @@ const CategoryFilter = ({
             rounded="lg"
             onClick={() => onSelect(cat.id)}
           >
-            {cat.name}
+            {cat.name} ({cat.productsCount})
           </Button>
         ))
       )}

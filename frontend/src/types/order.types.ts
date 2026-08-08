@@ -10,7 +10,6 @@ export interface IOrderProduct {
   id: string;
   quantity: number;
   price: number;
-  subtotal: number;
   orderId: string;
   order: Order;
   productId: string;
@@ -20,14 +19,11 @@ export interface IOrderProduct {
 export interface CreateOrderProduct {
   quantity: number;
   price: number;
-  subtotal: number;
   productId: string;
 }
 
 export interface Order {
   id: string;
-  subtotal: number;
-  tax: number;
   total: number;
   cashReceived: number;
   due: number;
@@ -41,8 +37,6 @@ export interface Order {
 }
 
 export interface CreateOrder {
-  subtotal: number;
-  tax: number;
   total: number;
   cashReceived?: number;
   status?: string;

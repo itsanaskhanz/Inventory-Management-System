@@ -73,8 +73,6 @@ const createOrder = async (data: CreateOrderData) => {
 
     return tx.order.create({
       data: {
-        subtotal: data.subtotal,
-        tax: data.tax,
         total: data.total,
         cashReceived: data.cashReceived,
         due: data.due,
@@ -85,7 +83,6 @@ const createOrder = async (data: CreateOrderData) => {
           create: data.products.map((item) => ({
             quantity: item.quantity,
             price: item.price,
-            subtotal: item.subtotal ?? item.price * item.quantity,
             productId: item.productId,
           })),
         },
@@ -163,30 +160,41 @@ interface StatsValueRow {
 }
 
 const getOrderStats = async (userId: string, from: Date, to: Date) => {
+  // All orders except cancelled
+  const activeOrders: Prisma.OrderWhereInput = {
+    userId,
+    status: { not: { equals: "CANCELLED" }, mode: "insensitive" },
+  };
+
+  // Only completed orders
   const completedOrders: Prisma.OrderWhereInput = {
     userId,
     status: { equals: "COMPLETED", mode: "insensitive" },
   };
 
-  const [aggregate, dailyRevenueRows, profitRows, duesRows] = await Promise.all([
-    prisma.order.aggregate({
-      where: completedOrders,
-      _sum: { total: true },
-      _count: { _all: true },
-    }),
-    prisma.$queryRaw<DailyRevenueRow[]>`
+  const [aggregate, dailyRevenueRows, profitRows, duesRows] = await Promise.all(
+    [
+      // Revenue from ALL non-cancelled orders
+      prisma.order.aggregate({
+        where: activeOrders,
+        _sum: { total: true },
+        _count: { _all: true },
+      }),
+      // Daily revenue breakdown for ALL non-cancelled orders
+      prisma.$queryRaw<DailyRevenueRow[]>`
       SELECT to_char("createdAt", 'YYYY-MM-DD') AS date,
              COALESCE(SUM("total"), 0)::float8 AS revenue,
              COUNT(*)::int AS orders
       FROM "Order"
       WHERE "userId" = ${userId}
-        AND UPPER("status") = 'COMPLETED'
+        AND UPPER("status") <> 'CANCELLED'
         AND "createdAt" >= ${from}
         AND "createdAt" <= ${to}
       GROUP BY to_char("createdAt", 'YYYY-MM-DD')
       ORDER BY date ASC
     `,
-    prisma.$queryRaw<StatsValueRow[]>`
+      // Profit from COMPLETED orders only
+      prisma.$queryRaw<StatsValueRow[]>`
       SELECT COALESCE(SUM((op."price" - p."costPrice") * op."quantity"), 0)::float8 AS value
       FROM "OrderProducts" op
       INNER JOIN "Order" o ON o."id" = op."orderId"
@@ -194,24 +202,26 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
       WHERE o."userId" = ${userId}
         AND UPPER(o."status") = 'COMPLETED'
     `,
-    prisma.$queryRaw<StatsValueRow[]>`
+      // Dues from non-cancelled orders only
+      prisma.$queryRaw<StatsValueRow[]>`
       SELECT COALESCE(SUM(o."due"), 0)::float8 AS value
       FROM "Order" o
       WHERE o."userId" = ${userId}
         AND UPPER(o."status") <> 'CANCELLED'
         AND o."due" > 0
     `,
-  ]);
+    ],
+  );
 
   return {
-    totalRevenue: aggregate._sum.total ?? 0,
-    totalProfit: Number(profitRows[0]?.value ?? 0),
-    totalOrders: aggregate._count._all,
-    totalDues: Number(duesRows[0]?.value ?? 0),
+    totalRevenue: aggregate._sum.total ?? 0, // All non-cancelled
+    totalProfit: Number(profitRows[0]?.value ?? 0), // Only completed
+    totalOrders: aggregate._count._all, // All non-cancelled
+    totalDues: Number(duesRows[0]?.value ?? 0), // All non-cancelled
     daily: dailyRevenueRows.map((row) => ({
       date: row.date,
-      revenue: Number(row.revenue),
-      orders: Number(row.orders),
+      revenue: Number(row.revenue), // All non-cancelled
+      orders: Number(row.orders), // All non-cancelled
     })),
   };
 };

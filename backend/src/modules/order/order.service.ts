@@ -54,21 +54,17 @@ const createOrderService = async (
   data: CreateOrderInput,
   userId: string,
 ): Promise<ServiceResult<{ order: Order }>> => {
-  const items: OrderItemInput[] = data.products.map((item) => ({
-    ...item,
-    subtotal: item.price * item.quantity,
-  }));
-
-  const subtotal = items.reduce((sum, item) => sum + (item.subtotal ?? 0), 0);
-  const total = subtotal + data.tax;
+  const total = data.products.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
   const cashReceived = data.cashReceived ?? 0;
   const due = Math.max(0, total - cashReceived);
   const status = computePaymentStatus(total, cashReceived);
 
   const order = await createOrder({
     ...data,
-    products: items,
-    subtotal,
+    products: data.products,
     total,
     cashReceived,
     due,
@@ -139,7 +135,6 @@ const updateOrderService = async (
     productId: product.productId,
     quantity: product.quantity,
     price: product.price,
-    subtotal: product.subtotal,
   }));
 
   const order = await updateOrder(

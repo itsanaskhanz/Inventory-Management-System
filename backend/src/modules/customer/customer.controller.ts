@@ -48,7 +48,13 @@ const getCustomerOrders = asyncHandler(
     const { page, limit } = getPagination(req);
     sendSuccess(
       res,
-      await getCustomerOrdersService(getRouteId(req), getUserId(req), page, limit),
+      await getCustomerOrdersService(
+        getRouteId(req),
+        getUserId(req),
+        getSearchParam(req),
+        page,
+        limit,
+      ),
     );
   },
 );

@@ -84,8 +84,6 @@ model Customer {
 
 model Order {
   id            String      @id @default(cuid())
-  subtotal      Float
-  tax           Float
   total         Float
   cashReceived  Float       @default(0)
   due           Float       @default(0)
@@ -102,7 +100,6 @@ model OrderProducts {
   id          String   @id @default(cuid())
   quantity    Int
   price       Float
-  subtotal    Float   
   orderId     String
   order       Order  @relation (fields: [orderId], references: [id], onDelete: Cascade)
   productId   String 

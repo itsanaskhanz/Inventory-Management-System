@@ -4,7 +4,6 @@ export interface ReceiptItem {
   name: string;
   quantity: number;
   price: number;
-  subtotal: number;
 }
 
 export interface ReceiptData {
@@ -13,8 +12,6 @@ export interface ReceiptData {
   customerName?: string | null;
   customerPhone?: string | null;
   items: ReceiptItem[];
-  subtotal: number;
-  tax: number;
   total: number;
   cashReceived?: number;
   due?: number;
@@ -43,7 +40,7 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
         <td class="item-name">${escapeHtml(item.name)}</td>
         <td style="text-align:center">${item.quantity}</td>
         <td style="text-align:right">${money(item.price)}</td>
-        <td style="text-align:right">${money(item.subtotal)}</td>
+        <td style="text-align:right">${money(item.price * item.quantity)}</td>
       </tr>`,
     )
     .join("");
@@ -147,8 +144,6 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
       </table>
       <div class="divider"></div>
       <div class="totals">
-        <p><span>Subtotal</span><span>${money(data.subtotal)}</span></p>
-        <p><span>Tax</span><span>${money(data.tax)}</span></p>
         <p class="grand"><span>Total</span><span>${money(data.total)}</span></p>
         ${paymentLines}
       </div>

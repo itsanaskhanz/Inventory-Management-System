@@ -1,7 +1,10 @@
 import prisma from "../../config/database.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { buildPagination } from "../../utils/pagination.js";
-import type { ICreateCustomer, IUpdateCustomerData } from "./customer.interface.js";
+import type {
+  ICreateCustomer,
+  IUpdateCustomerData,
+} from "./customer.interface.js";
 
 const buildWhere = (
   userId: string,
@@ -49,11 +52,22 @@ const findCustomerByPhone = async (userId: string, phone: string) => {
 
 const findOrdersByCustomerId = async (
   customerId: string,
+  search: string | undefined,
   page: number,
   limit: number,
 ) => {
   const where: Prisma.OrderWhereInput = { customerId };
-  const [orders, total, totals] = await Promise.all([
+  if (search) {
+    where.id = { contains: search, mode: "insensitive" };
+  }
+
+  // Separate where for totals (exclude cancelled)
+  const totalsWhere = {
+    customerId,
+    status: { not: "CANCELLED" },
+  };
+
+  const [orders, total, totalNonCancelled, totals] = await Promise.all([
     prisma.order.findMany({
       where,
       skip: (page - 1) * limit,
@@ -61,17 +75,19 @@ const findOrdersByCustomerId = async (
       include: { products: { include: { product: true } }, customer: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.order.count({ where }),
+    prisma.order.count({ where }), // All orders count
+    prisma.order.count({ where: totalsWhere }), // Non-cancelled count
     prisma.order.aggregate({
-      where: { customerId },
+      where: totalsWhere,
       _sum: { total: true, cashReceived: true, due: true },
     }),
   ]);
+
   return {
     orders,
     pagination: buildPagination(total, page, limit),
     summary: {
-      totalOrders: total,
+      totalOrders: totalNonCancelled, // Now consistent with other totals
       totalAmount: totals._sum.total ?? 0,
       totalCashReceived: totals._sum.cashReceived ?? 0,
       totalDue: totals._sum.due ?? 0,

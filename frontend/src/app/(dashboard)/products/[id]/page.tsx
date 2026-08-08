@@ -7,8 +7,8 @@ import {
   StatusBadge,
 } from "@/components/ui";
 import { useGetProductByIdQuery } from "@/lib/api/productApi";
-import { useParams, useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/format";
+import { useParams, useRouter } from "next/navigation";
 
 const ProductDetailPage = () => {
   const router = useRouter();

@@ -40,14 +40,20 @@ export const useSearchCustomersQuery = (
 
 export const useGetCustomerOrdersQuery = (
   customerId: string,
+  search: string,
   page: number,
   limit: number,
 ) => {
   return useQuery({
-    queryKey: ["customers", customerId, "orders", page, limit],
+    queryKey: ["customers", customerId, "orders", search, page, limit],
     queryFn: async (): Promise<OrdersResponse> => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search.trim()) params.set("search", search.trim());
       const response = await apiClient.get(
-        `/customers/${customerId}/orders?page=${page}&limit=${limit}`,
+        `/customers/${customerId}/orders?${params}`,
       );
       return response.data;
     },

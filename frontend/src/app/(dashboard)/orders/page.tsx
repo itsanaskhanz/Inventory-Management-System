@@ -19,8 +19,8 @@ import { getApiErrorMessage } from "@/lib/errorHandling";
 import { formatCurrency } from "@/lib/format";
 import { ReceiptData, ReceiptItem } from "@/lib/receipt";
 import { useDebouncedValue } from "@/lib/useDebounce";
-import { CreateOrder } from "@/types/order.types";
 import { Customer } from "@/types/customer.types";
+import { CreateOrder } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -46,6 +46,7 @@ const Page = () => {
     limit,
     true,
   );
+
   const { products: productsData, pagination } = productsResponse?.data || {};
   const totalPages = pagination?.totalPages || 1;
 
@@ -69,12 +70,10 @@ const Page = () => {
   const [markAsCompleted, setMarkAsCompleted] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
-  const subtotal = cartItems.reduce(
+  const total = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const tax = subtotal * 0.0;
-  const total = subtotal + tax;
 
   const effectiveCashReceived = markAsCompleted
     ? total
@@ -86,6 +85,12 @@ const Page = () => {
       toast.error("Please select a customer");
       return;
     }
+    if (!markAsCompleted && Number(cashReceived) > total) {
+      toast.error(
+        `Amount entered is greater than the total (${formatCurrency(total)}). Please enter a valid amount.`,
+      );
+      return;
+    }
     setIsConfirmOpen(false);
     handleSubmitOrder();
   };
@@ -94,8 +99,6 @@ const Page = () => {
     if (cartItems.length === 0) return;
 
     const payload: CreateOrder = {
-      subtotal,
-      tax,
       total,
       cashReceived: effectiveCashReceived,
       customerId: selectedCustomerId || undefined,
@@ -103,7 +106,6 @@ const Page = () => {
         productId: item.id,
         quantity: item.quantity,
         price: item.price,
-        subtotal: item.price * item.quantity,
       })),
     };
 
@@ -111,7 +113,6 @@ const Page = () => {
       name: item.name,
       quantity: item.quantity,
       price: item.price,
-      subtotal: item.price * item.quantity,
     }));
 
     createOrder(payload, {
@@ -124,8 +125,6 @@ const Page = () => {
           customerName: selectedCustomer?.name ?? null,
           customerPhone: selectedCustomer?.phone ?? null,
           items: receiptItems,
-          subtotal: createdOrder.subtotal,
-          tax: createdOrder.tax,
           total: createdOrder.total,
           cashReceived: createdOrder.cashReceived,
           due: createdOrder.due,
@@ -226,7 +225,11 @@ const Page = () => {
                         className="text-foreground-tertiary/50 transition-colors group-hover:text-primary"
                       />
                     </div>
-                    <Typography variant="body2" weight="medium" className="line-clamp-1">
+                    <Typography
+                      variant="body2"
+                      weight="medium"
+                      className="line-clamp-1"
+                    >
                       {product.name}
                     </Typography>
                     <Typography variant="caption" color="secondary">
@@ -325,25 +328,15 @@ const Page = () => {
           </div>
 
           <div className="flex flex-col gap-3 mt-3 pt-4 border-t border-border">
-            <div className="flex justify-between text-sm">
-              <Typography variant="body2" color="secondary">
-                Subtotal
-              </Typography>
-              <Typography variant="body2">
-                {formatCurrency(subtotal)}
-              </Typography>
-            </div>
-            <div className="flex justify-between">
-              <Typography variant="body2" color="secondary">
-                Tax
-              </Typography>
-              <Typography variant="body2">{formatCurrency(tax)}</Typography>
-            </div>
             <div className="flex justify-between">
               <Typography variant="body1" weight="bold">
                 Total
               </Typography>
-              <Typography variant="body1" weight="bold" className="text-primary">
+              <Typography
+                variant="body1"
+                weight="bold"
+                className="text-primary"
+              >
                 {formatCurrency(total)}
               </Typography>
             </div>
@@ -443,18 +436,6 @@ const Page = () => {
             </div>
           ))}
           <hr className="my-2" />
-          <div className="flex items-center justify-between">
-            <Typography variant="body2" color="secondary">
-              Subtotal
-            </Typography>
-            <Typography variant="body2">{formatCurrency(subtotal)}</Typography>
-          </div>
-          <div className="flex items-center justify-between">
-            <Typography variant="body2" color="secondary">
-              Tax
-            </Typography>
-            <Typography variant="body2">{formatCurrency(tax)}</Typography>
-          </div>
           <div className="flex items-center justify-between">
             <Typography variant="body1" weight="bold">
               Total

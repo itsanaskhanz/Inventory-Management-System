@@ -12,8 +12,8 @@ import {
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchCustomersQuery } from "@/lib/api/customerApi";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { formatDate } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { Customer } from "@/types/customer.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -41,7 +41,6 @@ const Page = () => {
     isLoading,
     isError,
   } = useSearchCustomersQuery(debouncedSearch, page, limit);
-
   const customers: Customer[] = response?.data?.customers || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 

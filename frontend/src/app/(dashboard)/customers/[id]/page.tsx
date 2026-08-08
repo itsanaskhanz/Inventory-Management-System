@@ -1,11 +1,14 @@
 "use client";
+import EditOrderModal from "@/components/domain/orders/EditOrderModal";
 import {
   AsyncState,
   Button,
   DetailField,
+  Input,
   PageHeader,
   StatusBadge,
   Table,
+  TableActions,
   Typography,
 } from "@/components/ui";
 import appConfig from "@/config/app.config";
@@ -14,6 +17,7 @@ import {
   useGetCustomerOrdersQuery,
 } from "@/lib/api/customerApi";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/useDebounce";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -28,7 +32,12 @@ const CustomerDetailPage = () => {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
+  const [selectedOrderToUpdate, setSelectedOrderToUpdate] =
+    useState<Order | null>(null);
   const limit = appConfig.defaultPageLimit;
+  const debouncedSearch = useDebouncedValue(search);
   const {
     data: response,
     isLoading: isCustomerLoading,
@@ -38,13 +47,23 @@ const CustomerDetailPage = () => {
     data: ordersResponse,
     isLoading: isOrdersLoading,
     isError: isOrdersError,
-  } = useGetCustomerOrdersQuery(id, page, limit);
+  } = useGetCustomerOrdersQuery(id, debouncedSearch, page, limit);
 
   const customer = response?.data?.customer;
   const orders: CustomerOrder[] = ordersResponse?.data?.orders || [];
   const totalOrders = ordersResponse?.data?.pagination.total ?? 0;
   const totalPages = ordersResponse?.data?.pagination.totalPages || 1;
   const summary = ordersResponse?.data?.summary;
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleOpenEditModal = (order: Order) => {
+    setSelectedOrderToUpdate(order);
+    setIsEditOrderModalOpen(true);
+  };
 
   const columns: ColumnDef<CustomerOrder>[] = [
     {
@@ -60,24 +79,14 @@ const CustomerDetailPage = () => {
       ),
     },
     {
-      header: "Items",
-      accessorKey: "products",
-      cell: ({ getValue }) => (getValue() as IOrderProduct[]).length,
-    },
-    {
-      header: "Subtotal",
-      accessorKey: "subtotal",
-      cell: ({ getValue }) => formatCurrency(Number(getValue())),
-    },
-    {
-      header: "Tax",
-      accessorKey: "tax",
-      cell: ({ getValue }) => formatCurrency(Number(getValue())),
-    },
-    {
       header: "Total",
       accessorKey: "total",
       cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
+      header: "Items",
+      accessorKey: "products",
+      cell: ({ getValue }) => (getValue() as IOrderProduct[]).length,
     },
     {
       header: "Cash",
@@ -98,6 +107,15 @@ const CustomerDetailPage = () => {
       header: "Date",
       accessorKey: "createdAt",
       cell: ({ getValue }) => formatDate(getValue() as Date),
+    },
+    {
+      header: "Actions",
+      accessorKey: "actions",
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row }) => (
+        <TableActions onEdit={() => handleOpenEditModal(row.original)} />
+      ),
     },
   ];
 
@@ -124,6 +142,10 @@ const CustomerDetailPage = () => {
               <DetailField label="Name" value={customer.name || "—"} />
               <DetailField label="Phone" value={customer.phone || "—"} />
               <DetailField
+                label="Total Amount"
+                value={summary?.totalAmount ?? formatCurrency(0)}
+              />
+              <DetailField
                 label="Total Orders"
                 value={summary?.totalOrders ?? totalOrders}
               />
@@ -137,10 +159,17 @@ const CustomerDetailPage = () => {
               />
             </div>
 
-            <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
+            <div className="flex flex-col gap-6">
               <Typography variant="h6" weight="bold" className="mb-4">
                 Order History
               </Typography>
+              <Input
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search by order id..."
+                fullWidth
+                leftIcon="Search"
+              />
               {orders.length === 0 ? (
                 <div className="text-center text-foreground-secondary py-8">
                   No orders found for this customer.
@@ -158,6 +187,14 @@ const CustomerDetailPage = () => {
           </div>
         )}
       </AsyncState>
+      <EditOrderModal
+        isOpen={isEditOrderModalOpen}
+        order={selectedOrderToUpdate}
+        onClose={() => {
+          setIsEditOrderModalOpen(false);
+          setSelectedOrderToUpdate(null);
+        }}
+      />
     </div>
   );
 };

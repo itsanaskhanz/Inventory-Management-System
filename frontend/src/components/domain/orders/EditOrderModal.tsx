@@ -40,7 +40,9 @@ const EditOrderForm = ({
 
   const parsedCashReceived = Math.max(0, Number(cashReceived) || 0);
   const due = Math.max(0, order.total - parsedCashReceived);
-  const isCancelled = order.status.toUpperCase() === "CANCELLED";
+  const showCashReceived = status.toUpperCase() !== "COMPLETED" &&
+    status.toUpperCase() !== "CANCELLED";
+  const isPendingStatus = status === "PENDING";
 
   const statusOptions = ORDER_STATUSES.includes(
     status as (typeof ORDER_STATUSES)[number],
@@ -50,20 +52,30 @@ const EditOrderForm = ({
 
   const handleCashReceivedChange = (value: string) => {
     setCashReceived(value);
-    if (!isCancelled) {
+    if (showCashReceived) {
       const parsed = Math.max(0, Number(value) || 0);
       setStatus(Math.max(0, order.total - parsed) <= 0 ? "COMPLETED" : "PENDING");
     }
   };
 
   const handleUpdateOrder = () => {
+    if (isPendingStatus && !cashReceived) {
+      toast.error("Cash received is required when the order status is pending.");
+      return;
+    }
+    if (showCashReceived && parsedCashReceived > order.total) {
+      toast.error(
+        `Amount entered is greater than the total (${formatCurrency(order.total)}). Please enter a valid amount.`,
+      );
+      return;
+    }
     updateOrder(
       {
         id: order.id,
         data: {
           status,
           customerId: customerId || undefined,
-          cashReceived: parsedCashReceived,
+          ...(showCashReceived ? { cashReceived: parsedCashReceived } : {}),
         },
       },
       {
@@ -106,37 +118,39 @@ const EditOrderForm = ({
             ))}
           </Select>
         </div>
-        <div className="flex flex-col gap-2">
-          <Typography variant="body2" weight="medium">
-            Cash Received
-          </Typography>
-          <Input
-            type="number"
-            min={0}
-            fullWidth
-            value={cashReceived}
-            onChange={(e) => handleCashReceivedChange(e.target.value)}
-            disabled={isCancelled}
-          />
-          <div className="flex justify-between text-sm">
-            <Typography variant="caption" color="secondary">
-              Total
+        {showCashReceived && (
+          <div className="flex flex-col gap-2">
+            <Typography variant="body2" weight="medium">
+              Cash Received
             </Typography>
-            <Typography variant="caption">
-              {formatCurrency(order.total)}
-            </Typography>
+            <Input
+              type="number"
+              min={0}
+              fullWidth
+              required
+              value={cashReceived}
+              onChange={(e) => handleCashReceivedChange(e.target.value)}
+            />
+            <div className="flex justify-between text-sm">
+              <Typography variant="caption" color="secondary">
+                Total
+              </Typography>
+              <Typography variant="caption">
+                {formatCurrency(order.total)}
+              </Typography>
+            </div>
+            <div className="flex justify-between text-sm">
+              <Typography variant="caption" color="secondary">
+                {due > 0 ? "Due" : "Change"}
+              </Typography>
+              <Typography variant="caption">
+                {formatCurrency(
+                  due > 0 ? due : parsedCashReceived - order.total,
+                )}
+              </Typography>
+            </div>
           </div>
-          <div className="flex justify-between text-sm">
-            <Typography variant="caption" color="secondary">
-              {due > 0 ? "Due" : "Change"}
-            </Typography>
-            <Typography variant="caption">
-              {formatCurrency(
-                due > 0 ? due : parsedCashReceived - order.total,
-              )}
-            </Typography>
-          </div>
-        </div>
+        )}
         <div className="flex flex-col gap-2">
           <Typography variant="body2" weight="medium">
             Customer

@@ -30,7 +30,6 @@ const Page = () => {
     isLoading,
     isError,
   } = useSearchOrdersQuery(debouncedSearch, page, limit);
-
   const orders: Order[] = response?.data?.orders || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
@@ -62,22 +61,12 @@ const Page = () => {
       accessorKey: "products",
       cell: ({ getValue }) => (getValue() as Order["products"]).length,
     },
-    {
-      header: "Subtotal",
-      accessorKey: "subtotal",
-      cell: ({ getValue }) => formatCurrency(Number(getValue())),
-    },
-    // custoemr name with phone number
+    // customer name with phone number
     {
       header: "Customer",
       accessorKey: "customer",
       cell: ({ row }) =>
         `${row.original.customer?.name} (${row.original.customer?.phone})`,
-    },
-    {
-      header: "Tax",
-      accessorKey: "tax",
-      cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
     {
       header: "Total",

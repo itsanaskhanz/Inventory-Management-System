@@ -9,15 +9,16 @@ import {
   Typography,
 } from "@/components/ui";
 import { useGetOrderByIdQuery } from "@/lib/api/orderApi";
+import { formatCurrency } from "@/lib/format";
 import {
   ReceiptData,
   buildReceiptHtml,
   downloadReceipt,
   printReceipt,
 } from "@/lib/receipt";
-import { formatCurrency } from "@/lib/format";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 const getReceiptData = (order: Order): ReceiptData => ({
@@ -29,10 +30,7 @@ const getReceiptData = (order: Order): ReceiptData => ({
     name: p.product?.name || p.productId,
     quantity: p.quantity,
     price: p.price,
-    subtotal: p.subtotal,
   })),
-  subtotal: order.subtotal,
-  tax: order.tax,
   total: order.total,
   cashReceived: order.cashReceived,
   due: order.due,
@@ -47,6 +45,18 @@ const OrderDetailPage = () => {
     {
       header: "Product",
       accessorKey: "product",
+      cell: ({ row }) => (
+        <Link
+          href={`/products/${row.original.product?.id || row.original.productId}`}
+          className="text-primary hover:underline"
+        >
+          {row.original.product?.id || row.original.productId}
+        </Link>
+      ),
+    },
+    {
+      header: "Product",
+      accessorKey: "product",
       cell: ({ row }) => row.original.product?.name || row.original.productId,
     },
     {
@@ -56,11 +66,6 @@ const OrderDetailPage = () => {
     {
       header: "Price",
       accessorKey: "price",
-      cell: ({ getValue }) => formatCurrency(Number(getValue())),
-    },
-    {
-      header: "Subtotal",
-      accessorKey: "subtotal",
       cell: ({ getValue }) => formatCurrency(Number(getValue())),
     },
   ];
@@ -126,13 +131,14 @@ const OrderDetailPage = () => {
               <DetailField
                 label={order.due > 0 ? "Due" : "Change"}
                 value={formatCurrency(
-                  order.due > 0
-                    ? order.due
-                    : order.cashReceived - order.total,
+                  order.due > 0 ? order.due : order.cashReceived - order.total,
                 )}
               />
               {order.customer?.name && (
-                <DetailField label="Customer Name" value={order.customer.name} />
+                <DetailField
+                  label="Customer Name"
+                  value={order.customer.name}
+                />
               )}
               {order.customer?.phone && (
                 <DetailField
@@ -156,19 +162,11 @@ const OrderDetailPage = () => {
             </div>
 
             <div className="flex flex-col gap-2 text-sm rounded-xl border border-border bg-background-secondary p-6 shadow-sm">
-              <div className="flex justify-between">
-                <span className="text-foreground-secondary">Subtotal</span>
-                <span className="font-medium">
-                  {formatCurrency(order.subtotal)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground-secondary">Tax</span>
-                <span className="font-medium">{formatCurrency(order.tax)}</span>
-              </div>
               <div className="mt-2 flex justify-between border-t border-border pt-3 text-base font-bold">
                 <span>Total</span>
-                <span className="text-primary">{formatCurrency(order.total)}</span>
+                <span className="text-primary">
+                  {formatCurrency(order.total)}
+                </span>
               </div>
             </div>
           </div>

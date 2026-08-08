@@ -80,6 +80,7 @@ const getCustomerByIdService = async (
 const getCustomerOrdersService = async (
   customerId: string,
   userId: string,
+  search: string | undefined,
   page: number,
   limit: number,
 ): Promise<
@@ -93,7 +94,7 @@ const getCustomerOrdersService = async (
   if (!customer) throw new AppError("Customer not found", 404, true);
   ensureOwnership(customer, userId, "customer");
 
-  const result = await findOrdersByCustomerId(customerId, page, limit);
+  const result = await findOrdersByCustomerId(customerId, search, page, limit);
   return {
     statusCode: 200,
     message: "Customer orders fetched successfully",

@@ -8,18 +8,15 @@ export interface OrderItemInput {
   productId: string;
   quantity: number;
   price: number;
-  subtotal?: number;
 }
 
 export interface CreateOrderInput {
-  tax: number;
   customerId?: string | null;
   cashReceived?: number;
   products: OrderItemInput[];
 }
 
 export interface CreateOrderData extends CreateOrderInput {
-  subtotal: number;
   total: number;
   due: number;
   cashReceived: number;
