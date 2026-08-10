@@ -11,6 +11,7 @@ import {
   getAllCustomers,
   getCustomerById,
   getCustomerOrders,
+  getCustomerPaymentSummary,
   searchCustomers,
   updateCustomer,
 } from "./customer.controller.js";
@@ -21,6 +22,7 @@ router.post("/", authenticate, validate(createCustomerSchema), createCustomer);
 router.get("/", authenticate, getAllCustomers);
 router.get("/search", authenticate, searchCustomers);
 router.get("/:id/orders", authenticate, getCustomerOrders);
+router.get("/:id/payment-summary", authenticate, getCustomerPaymentSummary);
 router.get("/:id", authenticate, getCustomerById);
 router.put("/:id", authenticate, validate(updateCustomerSchema), updateCustomer);
 router.delete("/:id", authenticate, deleteCustomer);

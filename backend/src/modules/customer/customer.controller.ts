@@ -13,6 +13,7 @@ import {
   deleteCustomerService,
   getCustomerByIdService,
   getCustomerOrdersService,
+  getCustomerPaymentSummaryService,
   listCustomersService,
   updateCustomerService,
 } from "./customer.service.js";
@@ -59,6 +60,15 @@ const getCustomerOrders = asyncHandler(
   },
 );
 
+const getCustomerPaymentSummary = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    sendSuccess(
+      res,
+      await getCustomerPaymentSummaryService(getRouteId(req), getUserId(req)),
+    );
+  },
+);
+
 const getCustomerById = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     sendSuccess(
@@ -89,6 +99,7 @@ export {
   getAllCustomers,
   getCustomerById,
   getCustomerOrders,
+  getCustomerPaymentSummary,
   searchCustomers,
   updateCustomer,
 };

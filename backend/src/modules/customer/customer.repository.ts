@@ -2,6 +2,7 @@ import prisma from "../../config/database.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { buildPagination } from "../../utils/pagination.js";
 import type {
+  CustomerPaymentSummary,
   ICreateCustomer,
   IUpdateCustomerData,
 } from "./customer.interface.js";
@@ -61,13 +62,7 @@ const findOrdersByCustomerId = async (
     where.id = { contains: search, mode: "insensitive" };
   }
 
-  // Separate where for totals (exclude cancelled)
-  const totalsWhere = {
-    customerId,
-    status: { not: "CANCELLED" },
-  };
-
-  const [orders, total, totalNonCancelled, totals] = await Promise.all([
+  const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where,
       skip: (page - 1) * limit,
@@ -75,23 +70,36 @@ const findOrdersByCustomerId = async (
       include: { products: { include: { product: true } }, customer: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.order.count({ where }), // All orders count
-    prisma.order.count({ where: totalsWhere }), // Non-cancelled count
-    prisma.order.aggregate({
-      where: totalsWhere,
-      _sum: { total: true, cashReceived: true, due: true },
-    }),
+    prisma.order.count({ where }),
   ]);
 
   return {
     orders,
     pagination: buildPagination(total, page, limit),
-    summary: {
-      totalOrders: totalNonCancelled, // Now consistent with other totals
-      totalAmount: totals._sum.total ?? 0,
-      totalCashReceived: totals._sum.cashReceived ?? 0,
-      totalDue: totals._sum.due ?? 0,
-    },
+  };
+};
+
+const getCustomerPaymentSummary = async (
+  customerId: string,
+): Promise<CustomerPaymentSummary> => {
+  const where: Prisma.OrderWhereInput = {
+    customerId,
+    status: { not: "CANCELLED" },
+  };
+
+  const [totalOrders, totals] = await Promise.all([
+    prisma.order.count({ where }),
+    prisma.order.aggregate({
+      where,
+      _sum: { total: true, cashReceived: true, due: true },
+    }),
+  ]);
+
+  return {
+    totalOrders,
+    totalAmount: totals._sum.total ?? 0,
+    totalCashReceived: totals._sum.cashReceived ?? 0,
+    totalDue: totals._sum.due ?? 0,
   };
 };
 
@@ -113,6 +121,7 @@ export {
   findCustomerById,
   findCustomerByPhone,
   findOrdersByCustomerId,
+  getCustomerPaymentSummary,
   listCustomers,
   updateCustomer,
 };

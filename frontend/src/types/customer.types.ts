@@ -30,3 +30,18 @@ export interface CustomerResponse {
     customer: Customer;
   };
 }
+
+export interface CustomerPaymentSummary {
+  totalOrders: number;
+  totalAmount: number;
+  totalCashReceived: number;
+  totalDue: number;
+}
+
+export interface CustomerPaymentSummaryResponse {
+  message: string;
+  success: boolean;
+  data: {
+    summary: CustomerPaymentSummary;
+  };
+}

@@ -1,4 +1,5 @@
 import {
+  CustomerPaymentSummaryResponse,
   CustomersResponse,
   CustomerResponse,
 } from "@/types/customer.types";
@@ -54,6 +55,19 @@ export const useGetCustomerOrdersQuery = (
       if (search.trim()) params.set("search", search.trim());
       const response = await apiClient.get(
         `/customers/${customerId}/orders?${params}`,
+      );
+      return response.data;
+    },
+    enabled: !!customerId,
+  });
+};
+
+export const useGetCustomerPaymentSummaryQuery = (customerId: string) => {
+  return useQuery({
+    queryKey: ["customers", customerId, "payment-summary"],
+    queryFn: async (): Promise<CustomerPaymentSummaryResponse> => {
+      const response = await apiClient.get(
+        `/customers/${customerId}/payment-summary`,
       );
       return response.data;
     },

@@ -65,8 +65,14 @@ const Page = () => {
     {
       header: "Customer",
       accessorKey: "customer",
-      cell: ({ row }) =>
-        `${row.original.customer?.name} (${row.original.customer?.phone})`,
+      cell: ({ row }) => {
+        const customer = row.original.customer;
+        return customer
+          ? `${customer.name || "Unnamed"}${
+              customer.phone ? ` (${customer.phone})` : ""
+            }`
+          : "—";
+      },
     },
     {
       header: "Total",

@@ -117,10 +117,18 @@ const updateOrderService = async (
   ensureOwnership(existing, userId, "order");
 
   const previousStatus = existing.status.toUpperCase() as OrderStatus;
-  const cashReceived = data.cashReceived ?? existing.cashReceived;
-  const due = Math.max(0, existing.total - cashReceived);
-
   let nextStatus = (data.status ?? previousStatus).toUpperCase() as OrderStatus;
+
+  let cashReceived = data.cashReceived ?? existing.cashReceived;
+  let due: number;
+
+  if (nextStatus === OrderStatus.COMPLETED) {
+    cashReceived = existing.total;
+    due = 0;
+  } else {
+    due = Math.max(0, existing.total - cashReceived);
+  }
+
   if (
     nextStatus !== OrderStatus.CANCELLED &&
     data.cashReceived !== undefined &&

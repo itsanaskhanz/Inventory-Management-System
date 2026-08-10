@@ -8,7 +8,7 @@ export type IUpdateCustomerData = Partial<
   Pick<ICreateCustomer, "name" | "phone">
 >;
 
-export interface CustomerOrdersSummary {
+export interface CustomerPaymentSummary {
   totalOrders: number;
   totalAmount: number;
   totalCashReceived: number;

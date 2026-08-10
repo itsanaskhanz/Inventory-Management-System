@@ -111,12 +111,6 @@ export interface OrdersResponse {
   data: {
     orders: Order[];
     pagination: Pagination;
-    summary?: {
-      totalOrders: number;
-      totalAmount: number;
-      totalCashReceived: number;
-      totalDue: number;
-    };
   };
 }
 

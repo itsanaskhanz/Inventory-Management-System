@@ -50,14 +50,9 @@ const OrderDetailPage = () => {
           href={`/products/${row.original.product?.id || row.original.productId}`}
           className="text-primary hover:underline"
         >
-          {row.original.product?.id || row.original.productId}
+          {row.original.product?.name || row.original.productId}
         </Link>
       ),
-    },
-    {
-      header: "Product",
-      accessorKey: "product",
-      cell: ({ row }) => row.original.product?.name || row.original.productId,
     },
     {
       header: "Quantity",

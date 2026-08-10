@@ -4,7 +4,7 @@ import { ensureOwnership } from "../../utils/ownership.js";
 import type { PaginationMeta } from "../../utils/pagination.js";
 import type { ServiceResult } from "../../utils/response.js";
 import type {
-  CustomerOrdersSummary,
+  CustomerPaymentSummary,
   ICreateCustomer,
   IUpdateCustomerData,
 } from "./customer.interface.js";
@@ -14,6 +14,7 @@ import {
   findCustomerById,
   findCustomerByPhone,
   findOrdersByCustomerId,
+  getCustomerPaymentSummary,
   listCustomers,
   updateCustomer,
 } from "./customer.repository.js";
@@ -87,7 +88,6 @@ const getCustomerOrdersService = async (
   ServiceResult<{
     orders: Order[];
     pagination: PaginationMeta;
-    summary: CustomerOrdersSummary;
   }>
 > => {
   const customer = await findCustomerById(customerId);
@@ -99,6 +99,22 @@ const getCustomerOrdersService = async (
     statusCode: 200,
     message: "Customer orders fetched successfully",
     data: result,
+  };
+};
+
+const getCustomerPaymentSummaryService = async (
+  customerId: string,
+  userId: string,
+): Promise<ServiceResult<{ summary: CustomerPaymentSummary }>> => {
+  const customer = await findCustomerById(customerId);
+  if (!customer) throw new AppError("Customer not found", 404, true);
+  ensureOwnership(customer, userId, "customer");
+
+  const summary = await getCustomerPaymentSummary(customerId);
+  return {
+    statusCode: 200,
+    message: "Customer payment summary fetched successfully",
+    data: { summary },
   };
 };
 
@@ -141,6 +157,7 @@ export {
   deleteCustomerService,
   getCustomerByIdService,
   getCustomerOrdersService,
+  getCustomerPaymentSummaryService,
   listCustomersService,
   updateCustomerService,
 };

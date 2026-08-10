@@ -59,6 +59,13 @@ const APP_ROUTES: IRoute[] = [
     icon: "Clock",
   },
   {
+    id: "Payment History",
+    label: "Payment History",
+    href: "/paymenthistory",
+    roles: [UserRole.ADMIN],
+    icon: "CreditCard",
+  },
+  {
     id: "Settings",
     label: "Settings",
     href: "/settings",

@@ -15,6 +15,7 @@ import appConfig from "@/config/app.config";
 import {
   useGetCustomerByIdQuery,
   useGetCustomerOrdersQuery,
+  useGetCustomerPaymentSummaryQuery,
 } from "@/lib/api/customerApi";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/useDebounce";
@@ -48,12 +49,17 @@ const CustomerDetailPage = () => {
     isLoading: isOrdersLoading,
     isError: isOrdersError,
   } = useGetCustomerOrdersQuery(id, debouncedSearch, page, limit);
+  const {
+    data: summaryResponse,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+  } = useGetCustomerPaymentSummaryQuery(id);
 
   const customer = response?.data?.customer;
   const orders: CustomerOrder[] = ordersResponse?.data?.orders || [];
   const totalOrders = ordersResponse?.data?.pagination.total ?? 0;
   const totalPages = ordersResponse?.data?.pagination.totalPages || 1;
-  const summary = ordersResponse?.data?.summary;
+  const summary = summaryResponse?.data?.summary;
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -131,8 +137,8 @@ const CustomerDetailPage = () => {
       />
 
       <AsyncState
-        isLoading={isCustomerLoading || isOrdersLoading}
-        isError={isError || isOrdersError || !customer}
+        isLoading={isCustomerLoading || isOrdersLoading || isSummaryLoading}
+        isError={isError || isOrdersError || isSummaryError || !customer}
         errorMessage="Failed to load customer. Please try again."
       >
         {customer && (
