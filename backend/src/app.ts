@@ -9,6 +9,7 @@ import authRouter from "./modules/auth/auth.routes.js";
 import categoryRouter from "./modules/category/category.routes.js";
 import customerRouter from "./modules/customer/customer.routes.js";
 import orderRouter from "./modules/order/order.routes.js";
+import paymentsRouter from "./modules/payment/payment.routes.js";
 import productRouter from "./modules/product/product.routes.js";
 
 const CORS_OPTIONS = {
@@ -27,6 +28,7 @@ app.use("/api/products", productRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/customers", customerRouter);
+app.use("/api/payments", paymentsRouter);
 
 app.get("/health", (_req: Request, res: Response) => {
   res.sendStatus(200);

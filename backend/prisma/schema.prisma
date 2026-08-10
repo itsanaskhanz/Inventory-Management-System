@@ -74,6 +74,7 @@ model Customer {
   name          String?
   phone         String?
   orders        Order[]
+  payments  Payment[] 
   userId        String?
   user          User?  @relation(fields: [userId], references: [id], onDelete: Cascade) 
   createdAt     DateTime @default(now())
@@ -104,4 +105,19 @@ model OrderProducts {
   order       Order  @relation (fields: [orderId], references: [id], onDelete: Cascade)
   productId   String 
   product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+enum PaymentStatus {
+  COMPLETED
+  CANCELLED
+}
+model Payment {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  cashReceived Float
+  status      PaymentStatus @default(COMPLETED)
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

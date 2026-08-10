@@ -1,7 +1,8 @@
 export interface PaymentHistoryItem {
   id: string;
+  customerId: string;
   cashReceived: number;
-  status: string;
+  note: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -12,13 +13,4 @@ export interface PaymentCustomer {
   phoneNumber: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface PaymentData {
-  id: string;
-  totalAmount: number;
-  cashReceived: number;
-  dues: number;
-  customer: PaymentCustomer;
-  paymentHistory: PaymentHistoryItem[];
 }

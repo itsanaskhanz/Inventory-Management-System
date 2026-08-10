@@ -65,8 +65,8 @@ const Page = () => {
     <>
       <div className="flex flex-col gap-6">
         <PageHeader
-          title="Customers"
-          description="Track your customers and their order history"
+          title="Payment History"
+          description="Track your customers and their payment history"
         />
 
         <Input
