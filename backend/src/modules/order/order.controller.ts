@@ -11,11 +11,11 @@ import {
 } from "../../utils/request.js";
 import { successRes } from "../../utils/response.js";
 import {
+  cancelOrderService,
   createOrderService,
   getOrderByIdService,
   getOrderStatsService,
   listOrdersService,
-  updateOrderService,
 } from "./order.service.js";
 
 const parseDateParam = (
@@ -78,7 +78,7 @@ const getOrderStats = asyncHandler(
 
 const updateOrder = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const result = await updateOrderService(
+    const result = await cancelOrderService(
       getRouteId(req),
       req.body,
       getUserId(req),

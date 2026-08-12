@@ -2,6 +2,7 @@ import prisma from "../../config/database.js";
 import { PaymentStatus, Prisma } from "../../generated/prisma/client.js";
 import AppError from "../../utils/error.js";
 import { buildPagination } from "../../utils/pagination.js";
+import { OrderStatus, getOrderPaymentStatus } from "../order/order.interface.js";
 import type { ICreatePayment } from "./payment.interface.js";
 
 const createPayment = async (customerId: string, data: ICreatePayment) => {
@@ -17,7 +18,7 @@ const createPayment = async (customerId: string, data: ICreatePayment) => {
     const orders = await tx.order.findMany({
       where: {
         customerId,
-        status: "PENDING",
+        status: OrderStatus.PENDING,
       },
       orderBy: { createdAt: "asc" },
     });
@@ -31,6 +32,7 @@ const createPayment = async (customerId: string, data: ICreatePayment) => {
       if (due <= 0) continue;
 
       const amountToPay = Math.min(remainingCash, due);
+      const newCashReceived = order.cashReceived + amountToPay;
       const newDue = due - amountToPay;
 
       await tx.order.update({
@@ -40,7 +42,7 @@ const createPayment = async (customerId: string, data: ICreatePayment) => {
             increment: amountToPay,
           },
           due: newDue,
-          status: newDue === 0 ? "COMPLETED" : "PENDING",
+          status: getOrderPaymentStatus(order.total, newCashReceived),
         },
       });
 
@@ -97,7 +99,7 @@ const cancelPayment = async (id: string) => {
     const orderIds = [...new Set(links.map((link) => link.orderId))];
     for (const orderId of orderIds) {
       const order = await tx.order.findUnique({ where: { id: orderId } });
-      if (!order || order.status.toUpperCase() === "CANCELLED") continue;
+      if (!order || order.status.toUpperCase() === OrderStatus.CANCELLED) continue;
 
       const { _sum } = await tx.paymentOrder.aggregate({
         where: { orderId },
@@ -105,7 +107,7 @@ const cancelPayment = async (id: string) => {
       });
       const newCashReceived = _sum.amount ?? 0;
       const newDue = Math.max(0, order.total - newCashReceived);
-      const newStatus = newDue > 0 ? "PENDING" : "COMPLETED";
+      const newStatus = getOrderPaymentStatus(order.total, newCashReceived);
 
       await tx.order.update({
         where: { id: orderId },

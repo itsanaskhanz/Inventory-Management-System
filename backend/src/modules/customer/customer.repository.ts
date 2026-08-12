@@ -1,6 +1,7 @@
 import prisma from "../../config/database.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { buildPagination } from "../../utils/pagination.js";
+import { OrderStatus } from "../order/order.interface.js";
 import type {
   CustomerPaymentSummary,
   ICreateCustomer,
@@ -84,7 +85,7 @@ const getCustomerPaymentSummary = async (
 ): Promise<CustomerPaymentSummary> => {
   const where: Prisma.OrderWhereInput = {
     customerId,
-    status: { not: "CANCELLED" },
+    status: { not: OrderStatus.CANCELLED },
   };
 
   const [totalOrders, totals] = await Promise.all([

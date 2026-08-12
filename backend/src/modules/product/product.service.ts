@@ -26,9 +26,7 @@ const ensureCategoryBelongsToUser = async (
 
   const category = await findCategoryById(categoryId);
   if (!category) throw new AppError("Category not found", 404, true);
-  if (category.userId !== userId) {
-    throw new AppError("Category does not belong to this user", 403, true);
-  }
+  ensureOwnership(category, userId, "category");
 };
 
 const listProductsService = async (

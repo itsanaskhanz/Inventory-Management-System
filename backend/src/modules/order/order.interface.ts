@@ -4,6 +4,12 @@ export enum OrderStatus {
   CANCELLED = "CANCELLED",
 }
 
+export const getOrderPaymentStatus = (
+  total: number,
+  cashReceived: number,
+): OrderStatus =>
+  total - cashReceived <= 0 ? OrderStatus.COMPLETED : OrderStatus.PENDING;
+
 export interface OrderItemInput {
   productId: string;
   quantity: number;
@@ -26,9 +32,6 @@ export interface CreateOrderData extends CreateOrderInput {
 
 export interface UpdateOrderInput {
   status?: OrderStatus;
-  customerId?: string | null;
-  cashReceived?: number;
-  due?: number;
 }
 
 export interface OrderStatsData {

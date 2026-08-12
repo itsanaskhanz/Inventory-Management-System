@@ -5,50 +5,19 @@ import type { PaginationMeta } from "../../utils/pagination.js";
 import type { ServiceResult } from "../../utils/response.js";
 import {
   OrderStatus,
+  getOrderPaymentStatus,
   type CreateOrderInput,
   type OrderItemInput,
   type OrderStatsData,
   type UpdateOrderInput,
 } from "./order.interface.js";
 import {
+  cancelOrder,
   createOrder,
   findOrderById,
   getOrderStats,
   listOrders,
-  updateOrder,
-  type StockAction,
 } from "./order.repository.js";
-
-const STOCK_HOLDING_STATUSES = new Set<OrderStatus>([
-  OrderStatus.PENDING,
-  OrderStatus.COMPLETED,
-]);
-const STOCK_RESTORING_STATUSES = new Set<OrderStatus>([OrderStatus.CANCELLED]);
-
-const computePaymentStatus = (
-  total: number,
-  cashReceived: number,
-): OrderStatus =>
-  total - cashReceived <= 0 ? OrderStatus.COMPLETED : OrderStatus.PENDING;
-
-const getStockAction = (
-  previousStatus: OrderStatus,
-  nextStatus: OrderStatus,
-): StockAction => {
-  if (
-    STOCK_HOLDING_STATUSES.has(previousStatus) &&
-    STOCK_RESTORING_STATUSES.has(nextStatus)
-  ) {
-    return "restore";
-  }
-  if (
-    STOCK_RESTORING_STATUSES.has(previousStatus) &&
-    STOCK_HOLDING_STATUSES.has(nextStatus)
-  ) {
-    return "deduct";
-  }
-  return null;
-};
 
 const createOrderService = async (
   data: CreateOrderInput,
@@ -67,7 +36,7 @@ const createOrderService = async (
     );
   }
   const due = Math.max(0, total - cashReceived);
-  const status = computePaymentStatus(total, cashReceived);
+  const status = getOrderPaymentStatus(total, cashReceived);
 
   const order = await createOrder({
     ...data,
@@ -114,7 +83,7 @@ const getOrderByIdService = async (
   };
 };
 
-const updateOrderService = async (
+const cancelOrderService = async (
   id: string,
   data: UpdateOrderInput,
   userId: string,
@@ -123,9 +92,7 @@ const updateOrderService = async (
   if (!existing) throw new AppError("Order not found", 404, true);
   ensureOwnership(existing, userId, "order");
 
-  const previousStatus = existing.status.toUpperCase() as OrderStatus;
-
-  if (previousStatus === OrderStatus.CANCELLED) {
+  if (existing.status.toUpperCase() === OrderStatus.CANCELLED) {
     throw new AppError(
       "This order is already cancelled and cannot be modified",
       400,
@@ -133,8 +100,8 @@ const updateOrderService = async (
     );
   }
 
-  const nextStatus = (data.status ?? previousStatus).toUpperCase() as OrderStatus;
-  if (nextStatus !== OrderStatus.CANCELLED) {
+  const status = data.status?.toUpperCase() as OrderStatus;
+  if (status !== OrderStatus.CANCELLED) {
     throw new AppError(
       "Placed orders can only be cancelled; no other changes are allowed",
       400,
@@ -142,22 +109,13 @@ const updateOrderService = async (
     );
   }
 
-  const cashReceived = existing.cashReceived;
-  const due = Math.max(0, existing.total - cashReceived);
-  const stockAction = getStockAction(previousStatus, nextStatus);
-
   const items: OrderItemInput[] = existing.products.map((product) => ({
     productId: product.productId,
     quantity: product.quantity,
     price: product.price,
   }));
 
-  const order = await updateOrder(
-    id,
-    { status: nextStatus, cashReceived, due },
-    stockAction,
-    items,
-  );
+  const order = await cancelOrder(id, items);
   return {
     statusCode: 200,
     message: "Order cancelled successfully",
@@ -194,9 +152,9 @@ const getOrderStatsService = async (
 };
 
 export {
+  cancelOrderService,
   createOrderService,
   getOrderByIdService,
   getOrderStatsService,
   listOrdersService,
-  updateOrderService,
 };

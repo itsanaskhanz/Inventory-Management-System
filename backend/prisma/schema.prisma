@@ -55,7 +55,6 @@ enum Status {
   IN_STOCK
   LOW_STOCK
   OUT_OF_STOCK
-  DISCONTINUED
 }
 
 model Category {

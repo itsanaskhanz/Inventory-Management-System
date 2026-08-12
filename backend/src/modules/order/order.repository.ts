@@ -4,13 +4,11 @@ import AppError from "../../utils/error.js";
 import { buildPagination } from "../../utils/pagination.js";
 import { getProductStatus } from "../../utils/productStatus.js";
 import { adjustPaymentsForCancelledOrder } from "../payment/payment.repository.js";
-import type {
-  CreateOrderData,
-  OrderItemInput,
-  UpdateOrderInput,
+import {
+  OrderStatus,
+  type CreateOrderData,
+  type OrderItemInput,
 } from "./order.interface.js";
-
-export type StockAction = "deduct" | "restore" | null;
 
 const deductStock = async (
   tx: Prisma.TransactionClient,
@@ -133,23 +131,14 @@ const findOrderById = async (id: string) => {
   });
 };
 
-const updateOrder = async (
-  id: string,
-  data: UpdateOrderInput,
-  stockAction: StockAction,
-  items: OrderItemInput[],
-) => {
+const cancelOrder = async (id: string, items: OrderItemInput[]) => {
   return prisma.$transaction(async (tx) => {
-    const order = await tx.order.update({ where: { id }, data });
-    if (stockAction === "restore") {
-      await restoreStock(tx, items);
-    } else if (stockAction === "deduct") {
-      await deductStock(tx, items);
-    }
-    if (data.status === "CANCELLED") {
-      await adjustPaymentsForCancelledOrder(tx, id);
-    }
-    return order;
+    await restoreStock(tx, items);
+    await adjustPaymentsForCancelledOrder(tx, id);
+    return tx.order.update({
+      where: { id },
+      data: { status: OrderStatus.CANCELLED },
+    });
   });
 };
 
@@ -167,13 +156,13 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
   // All orders except cancelled
   const activeOrders: Prisma.OrderWhereInput = {
     userId,
-    status: { not: { equals: "CANCELLED" }, mode: "insensitive" },
+    status: { not: { equals: OrderStatus.CANCELLED }, mode: "insensitive" },
   };
 
   // Only completed orders
   const completedOrders: Prisma.OrderWhereInput = {
     userId,
-    status: { equals: "COMPLETED", mode: "insensitive" },
+    status: { equals: OrderStatus.COMPLETED, mode: "insensitive" },
   };
 
   const [aggregate, dailyRevenueRows, profitRows, duesRows] = await Promise.all(
@@ -230,4 +219,4 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
   };
 };
 
-export { createOrder, findOrderById, getOrderStats, listOrders, updateOrder };
+export { cancelOrder, createOrder, findOrderById, getOrderStats, listOrders };
