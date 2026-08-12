@@ -31,7 +31,3 @@ export const errorRes = (
     data,
   });
 };
-
-export const sendSuccess = <T>(res: Response, result: ServiceResult<T>) => {
-  successRes(res, result.message, result.statusCode, result.data);
-};

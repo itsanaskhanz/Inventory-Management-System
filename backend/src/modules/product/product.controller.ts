@@ -9,7 +9,7 @@ import {
   getStringParam,
   getUserId,
 } from "../../utils/request.js";
-import { sendSuccess } from "../../utils/response.js";
+import { successRes } from "../../utils/response.js";
 import type { ProductFilters } from "./product.interface.js";
 import {
   createProductService,
@@ -22,10 +22,8 @@ import {
 const getProducts = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit } = getPagination(req);
-    sendSuccess(
-      res,
-      await listProductsService(getUserId(req), {}, page, limit),
-    );
+    const result = await listProductsService(getUserId(req), {}, page, limit);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
@@ -37,37 +35,40 @@ const searchProducts = asyncHandler(
       categoryId: getStringParam(req, "categoryId"),
       isActive: getBooleanParam(req, "isActive"),
     };
-    sendSuccess(res, await listProductsService(getUserId(req), filters, page, limit));
+    const result = await listProductsService(getUserId(req), filters, page, limit);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const getProductById = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(
-      res,
-      await getProductByIdService(getRouteId(req), getUserId(req)),
-    );
+    const result = await getProductByIdService(getRouteId(req), getUserId(req));
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const createProduct = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(res, await createProductService(req.body, getUserId(req)));
+    const result = await createProductService(req.body, getUserId(req));
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const updateProduct = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(
-      res,
-      await updateProductService(getRouteId(req), req.body, getUserId(req)),
+    const result = await updateProductService(
+      getRouteId(req),
+      req.body,
+      getUserId(req),
     );
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const deleteProduct = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(res, await deleteProductService(getRouteId(req), getUserId(req)));
+    const result = await deleteProductService(getRouteId(req), getUserId(req));
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 

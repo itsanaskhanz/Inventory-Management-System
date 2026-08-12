@@ -2,7 +2,7 @@ import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { getPagination, getRouteId, getUserId } from "../../utils/request.js";
-import { sendSuccess } from "../../utils/response.js";
+import { successRes } from "../../utils/response.js";
 import {
   cancelPaymentService,
   createPaymentService,
@@ -11,26 +11,32 @@ import {
 
 const createPayment = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(
-      res,
-      await createPaymentService(getRouteId(req), getUserId(req), req.body),
+    const result = await createPaymentService(
+      getRouteId(req),
+      getUserId(req),
+      req.body,
     );
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const cancelPayment = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(res, await cancelPaymentService(getUserId(req), req.body));
+    const result = await cancelPaymentService(getUserId(req), req.body);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const getPayments = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit } = getPagination(req);
-    sendSuccess(
-      res,
-      await getPaymentsService(getRouteId(req), getUserId(req), page, limit),
+    const result = await getPaymentsService(
+      getRouteId(req),
+      getUserId(req),
+      page,
+      limit,
     );
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 

@@ -9,7 +9,7 @@ import {
   getStringParam,
   getUserId,
 } from "../../utils/request.js";
-import { sendSuccess } from "../../utils/response.js";
+import { successRes } from "../../utils/response.js";
 import {
   createOrderService,
   getOrderByIdService,
@@ -34,33 +34,36 @@ const parseDateParam = (
 
 const createOrder = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(res, await createOrderService(req.body, getUserId(req)));
+    const result = await createOrderService(req.body, getUserId(req));
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const getOrders = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit } = getPagination(req);
-    sendSuccess(
-      res,
-      await listOrdersService(getUserId(req), undefined, page, limit),
-    );
+    const result = await listOrdersService(getUserId(req), undefined, page, limit);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const getOrderById = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(res, await getOrderByIdService(getRouteId(req), getUserId(req)));
+    const result = await getOrderByIdService(getRouteId(req), getUserId(req));
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const searchOrders = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit } = getPagination(req);
-    sendSuccess(
-      res,
-      await listOrdersService(getUserId(req), getSearchParam(req), page, limit),
+    const result = await listOrdersService(
+      getUserId(req),
+      getSearchParam(req),
+      page,
+      limit,
     );
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
@@ -68,16 +71,19 @@ const getOrderStats = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const from = parseDateParam(getStringParam(req, "from"), false);
     const to = parseDateParam(getStringParam(req, "to"), true);
-    sendSuccess(res, await getOrderStatsService(getUserId(req), from, to));
+    const result = await getOrderStatsService(getUserId(req), from, to);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const updateOrder = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(
-      res,
-      await updateOrderService(getRouteId(req), req.body, getUserId(req)),
+    const result = await updateOrderService(
+      getRouteId(req),
+      req.body,
+      getUserId(req),
     );
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 

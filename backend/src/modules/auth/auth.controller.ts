@@ -3,7 +3,7 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import { clearCookies, setCookies } from "../../utils/cookie.js";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import { getPagination, getUserId } from "../../utils/request.js";
-import { sendSuccess } from "../../utils/response.js";
+import { successRes } from "../../utils/response.js";
 import type { UserRole } from "./auth.interface.js";
 import {
   deleteAccountService,
@@ -15,31 +15,30 @@ import {
 } from "./auth.service.js";
 
 const register = asyncHandler(async (req: Request, res: Response) => {
-  sendSuccess(res, await registerService(req.body));
+  const result = await registerService(req.body);
+  successRes(res, result.message, result.statusCode, result.data);
 });
 
 const login = asyncHandler(async (req: Request, res: Response) => {
   const result = await loginService(req.body);
   setCookies(res, result.data.token);
-  sendSuccess(res, result);
+  successRes(res, result.message, result.statusCode, result.data);
 });
 
 const logout = (_req: Request, res: Response) => {
   clearCookies(res);
-  sendSuccess(res, {
-    statusCode: 200,
-    message: "Logged out successfully",
-    data: null,
-  });
+  successRes(res, "Logged out successfully", 200, null);
 };
 
 const profile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  sendSuccess(res, await profileService(req.user!));
+  const result = await profileService(req.user!);
+  successRes(res, result.message, result.statusCode, result.data);
 });
 
 const updateProfile = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    sendSuccess(res, await updateProfileService(getUserId(req), req.body));
+    const result = await updateProfileService(getUserId(req), req.body);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
@@ -47,16 +46,18 @@ const deleteAccount = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const result = await deleteAccountService(req.user!);
     clearCookies(res);
-    sendSuccess(res, result);
+    successRes(res, result.message, result.statusCode, result.data);
   },
 );
 
 const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
   const { page, limit } = getPagination(req);
-  sendSuccess(
-    res,
-    await getUsersByRoleService(req.params.role as UserRole, page, limit),
+  const result = await getUsersByRoleService(
+    req.params.role as UserRole,
+    page,
+    limit,
   );
+  successRes(res, result.message, result.statusCode, result.data);
 });
 
 export {
