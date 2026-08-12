@@ -1,7 +1,6 @@
 import {
   CircleDollarSign,
   Clock,
-  CreditCard,
   Eye,
   EyeClosed,
   HandCoins,
@@ -44,7 +43,6 @@ export const Icons = {
   Store,
   Plus,
   Minus,
-  CreditCard,
   Printer,
   Clock,
   Search,

@@ -142,3 +142,10 @@ import { ConfirmDialog } from "./ConfirmDialog";
 
 export { ConfirmDialog };
 export type { ConfirmDialogProps };
+
+// Tabs
+import type { TabsProps, TabItem } from "./Tabs";
+import { Tabs } from "./Tabs";
+
+export { Tabs };
+export type { TabsProps, TabItem };
