@@ -21,6 +21,7 @@ import {
   Store,
   Trash,
   TrendingUp,
+  Undo,
   Users,
   X,
 } from "lucide-react";
@@ -50,4 +51,5 @@ export const Icons = {
   Settings,
   CircleDollarSign,
   HandCoins,
+  Undo,
 };

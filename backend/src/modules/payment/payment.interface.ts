@@ -3,6 +3,10 @@ export interface ICreatePayment {
   note?: string;
 }
 
+export interface ICancelPayment {
+  paymentId: string;
+}
+
 export interface IPayment {
   id: string;
   customerId: string;

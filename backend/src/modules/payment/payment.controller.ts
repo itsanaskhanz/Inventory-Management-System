@@ -3,7 +3,11 @@ import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { getPagination, getRouteId, getUserId } from "../../utils/request.js";
 import { sendSuccess } from "../../utils/response.js";
-import { createPaymentService, getPaymentsService } from "./payment.service.js";
+import {
+  cancelPaymentService,
+  createPaymentService,
+  getPaymentsService,
+} from "./payment.service.js";
 
 const createPayment = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -11,6 +15,12 @@ const createPayment = asyncHandler(
       res,
       await createPaymentService(getRouteId(req), getUserId(req), req.body),
     );
+  },
+);
+
+const cancelPayment = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    sendSuccess(res, await cancelPaymentService(getUserId(req), req.body));
   },
 );
 
@@ -24,4 +34,4 @@ const getPayments = asyncHandler(
   },
 );
 
-export { createPayment, getPayments };
+export { cancelPayment, createPayment, getPayments };

@@ -7,8 +7,10 @@ const actionButton =
 const TableActions = ({
   onEdit,
   onDelete,
+  onCancel,
   editLabel = "Edit",
   deleteLabel = "Delete",
+  cancelLabel = "Cancel",
 }: TableActionsProps) => {
   return (
     <div className="flex items-center gap-1">
@@ -21,6 +23,17 @@ const TableActions = ({
           title={editLabel}
         >
           <Icon name="Pencil" size="sm" />
+        </button>
+      )}
+      {onCancel && (
+        <button
+          type="button"
+          className={`${actionButton} text-foreground-secondary hover:bg-danger/10 hover:text-danger`}
+          onClick={onCancel}
+          aria-label={cancelLabel}
+          title={cancelLabel}
+        >
+          <Icon name="X" size="sm" />
         </button>
       )}
       {onDelete && (

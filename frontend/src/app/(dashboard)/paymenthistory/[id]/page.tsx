@@ -2,7 +2,9 @@
 import {
   AsyncState,
   Button,
+  ConfirmDialog,
   DetailField,
+  Icon,
   Input,
   Modal,
   PageHeader,
@@ -15,12 +17,19 @@ import {
   useGetCustomerByIdQuery,
   useGetCustomerPaymentSummaryQuery,
 } from "@/lib/api/customerApi";
-import { useCreatePaymentMutation, useGetPayments } from "@/lib/api/paymentApi";
+import {
+  useCancelPaymentMutation,
+  useCreatePaymentMutation,
+  useGetPayments,
+} from "@/lib/api/paymentApi";
+import { getApiErrorMessage } from "@/lib/errorHandling";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { PaymentHistoryItem } from "@/types/payment.types";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const CustomerDetailPage = () => {
   const router = useRouter();
@@ -45,11 +54,14 @@ const CustomerDetailPage = () => {
     isLoading: isPaymentsLoading,
     isError: isPaymentsError,
   } = useGetPayments(id, page, limit);
-  const {
-    mutate: createPayment,
-    isPending: isCreatingPayment,
-    error: createPaymentError,
-  } = useCreatePaymentMutation();
+  const { mutate: createPayment, isPending: isCreatingPayment } =
+    useCreatePaymentMutation();
+  const { mutate: cancelPayment, isPending: isCancellingPayment } =
+    useCancelPaymentMutation();
+
+  const [paymentToUndo, setPaymentToUndo] = useState<PaymentHistoryItem | null>(
+    null,
+  );
 
   const customer = response?.data?.customer;
   const summary = summaryResponse?.data?.summary;
@@ -63,10 +75,28 @@ const CustomerDetailPage = () => {
       { customerId: id, cashReceived: amount, note: note || undefined },
       {
         onSuccess: () => {
+          toast.success("Payment added successfully");
           setIsAddPaymentOpen(false);
           setCashReceived("");
           setNote("");
         },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to add payment")),
+      },
+    );
+  };
+
+  const handleUndoConfirm = () => {
+    if (!paymentToUndo) return;
+    cancelPayment(
+      { paymentId: paymentToUndo.id, customerId: id },
+      {
+        onSuccess: () => {
+          toast.success("Payment undone successfully");
+          setPaymentToUndo(null);
+        },
+        onError: (error) =>
+          toast.error(getApiErrorMessage(error, "Failed to undo payment")),
       },
     );
   };
@@ -104,12 +134,20 @@ const CustomerDetailPage = () => {
     },
     {
       header: "Action",
-      accessorKey: "id",
-      cell: ({ getValue }) => (
-        <Button variant="danger" size="sm" onClick={() => undefined}>
-          Cancel
-        </Button>
-      ),
+      accessorKey: "status",
+      cell: (row) => {
+        const payment = row.row.original;
+        if (payment.status !== "COMPLETED") return null;
+        return (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setPaymentToUndo(payment)}
+          >
+            <Icon name="X" />
+          </Button>
+        );
+      },
     },
   ];
 
@@ -141,7 +179,17 @@ const CustomerDetailPage = () => {
         {customer && (
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 gap-x-8 gap-y-6 rounded-xl border border-border bg-background-secondary p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-              <DetailField label="Customer ID" value={customer.id} />
+              <DetailField
+                label="Customer ID"
+                value={
+                  <Link
+                    href={`/customers/${customer.id}`}
+                    className="font-medium underline"
+                  >
+                    {customer.id}
+                  </Link>
+                }
+              />
               <DetailField label="Name" value={customer.name || "—"} />
               <DetailField label="Phone" value={customer.phone || "—"} />
               <DetailField
@@ -198,7 +246,7 @@ const CustomerDetailPage = () => {
             fullWidth
             type="number"
             min={0}
-            step="0.01"
+            step={1}
             value={cashReceived}
             onChange={(e) => setCashReceived(e.target.value)}
           />
@@ -208,12 +256,6 @@ const CustomerDetailPage = () => {
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
-          {createPaymentError && (
-            <p className="text-sm text-danger">
-              {(createPaymentError as Error).message ||
-                "Failed to add payment. Please try again."}
-            </p>
-          )}
         </div>
         {isCreatingPayment && (
           <div className="mt-4 text-sm text-foreground-secondary">
@@ -221,6 +263,18 @@ const CustomerDetailPage = () => {
           </div>
         )}
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!paymentToUndo}
+        title="Undo Payment"
+        description={`This will reverse payment of ${formatCurrency(paymentToUndo?.cashReceived ?? 0)} and set it to Cancelled. This action cannot be undone.`}
+        confirmText="Undo Payment"
+        pendingText="Undoing…"
+        danger
+        isPending={isCancellingPayment}
+        onConfirm={handleUndoConfirm}
+        onClose={() => setPaymentToUndo(null)}
+      />
     </div>
   );
 };

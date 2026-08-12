@@ -2,6 +2,7 @@ export interface PaymentHistoryItem {
   id: string;
   customerId: string;
   cashReceived: number;
+  status: string;
   note: string | null;
   createdAt: string;
   updatedAt: string;

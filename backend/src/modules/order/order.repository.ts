@@ -3,6 +3,7 @@ import { Prisma } from "../../generated/prisma/client.js";
 import AppError from "../../utils/error.js";
 import { buildPagination } from "../../utils/pagination.js";
 import { getProductStatus } from "../../utils/productStatus.js";
+import { adjustPaymentsForCancelledOrder } from "../payment/payment.repository.js";
 import type {
   CreateOrderData,
   OrderItemInput,
@@ -71,7 +72,7 @@ const createOrder = async (data: CreateOrderData) => {
   return prisma.$transaction(async (tx) => {
     await deductStock(tx, data.products);
 
-    return tx.order.create({
+    return await tx.order.create({
       data: {
         total: data.total,
         cashReceived: data.cashReceived,
@@ -145,6 +146,9 @@ const updateOrder = async (
     } else if (stockAction === "deduct") {
       await deductStock(tx, items);
     }
+    if (data.status === "CANCELLED") {
+      await adjustPaymentsForCancelledOrder(tx, id);
+    }
     return order;
   });
 };
@@ -183,7 +187,7 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
       // Daily revenue breakdown for ALL non-cancelled orders
       prisma.$queryRaw<DailyRevenueRow[]>`
       SELECT to_char("createdAt", 'YYYY-MM-DD') AS date,
-             COALESCE(SUM("total"), 0)::float8 AS revenue,
+             COALESCE(SUM("total"), 0)::int AS revenue,
              COUNT(*)::int AS orders
       FROM "Order"
       WHERE "userId" = ${userId}
@@ -195,7 +199,7 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
     `,
       // Profit from COMPLETED orders only
       prisma.$queryRaw<StatsValueRow[]>`
-      SELECT COALESCE(SUM((op."price" - p."costPrice") * op."quantity"), 0)::float8 AS value
+      SELECT COALESCE(SUM((op."price" - p."costPrice") * op."quantity"), 0)::int AS value
       FROM "OrderProducts" op
       INNER JOIN "Order" o ON o."id" = op."orderId"
       INNER JOIN "Product" p ON p."id" = op."productId"
@@ -204,7 +208,7 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
     `,
       // Dues from non-cancelled orders only
       prisma.$queryRaw<StatsValueRow[]>`
-      SELECT COALESCE(SUM(o."due"), 0)::float8 AS value
+      SELECT COALESCE(SUM(o."due"), 0)::int AS value
       FROM "Order" o
       WHERE o."userId" = ${userId}
         AND UPPER(o."status") <> 'CANCELLED'

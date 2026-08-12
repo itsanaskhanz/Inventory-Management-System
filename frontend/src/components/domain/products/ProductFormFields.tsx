@@ -69,6 +69,8 @@ const ProductFormFields = ({
         placeholder="Price"
         fullWidth
         type="number"
+        min={0}
+        step={1}
         value={values.price}
         onChange={(e) => set({ price: e.target.value })}
       />
@@ -76,6 +78,8 @@ const ProductFormFields = ({
         placeholder="Cost Price"
         fullWidth
         type="number"
+        min={0}
+        step={1}
         value={values.costPrice}
         onChange={(e) => set({ costPrice: e.target.value })}
       />

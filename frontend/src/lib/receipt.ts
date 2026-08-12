@@ -30,7 +30,7 @@ const formatDate = (date: string | Date): string => {
 };
 
 const money = (value: number): string =>
-  `${appConfig.appCurrencySymbol}${value.toFixed(2)}`;
+  `${appConfig.appCurrencySymbol}${value.toLocaleString()}`;
 
 export const buildReceiptHtml = (data: ReceiptData): string => {
   const rows = data.items

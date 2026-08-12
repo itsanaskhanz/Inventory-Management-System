@@ -63,3 +63,27 @@ export const useCreatePaymentMutation = () => {
     },
   });
 };
+
+export const useCancelPaymentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      paymentId,
+    }: {
+      paymentId: string;
+      customerId: string;
+    }) => {
+      const response = await apiClient.post("/payments/cancel", { paymentId });
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["payments", variables.customerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["customers", variables.customerId, "payment-summary"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};

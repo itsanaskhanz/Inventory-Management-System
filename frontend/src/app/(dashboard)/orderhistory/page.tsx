@@ -1,5 +1,5 @@
 "use client";
-import EditOrderModal from "@/components/domain/orders/EditOrderModal";
+import CancelOrderModal from "@/components/domain/orders/CancelOrderModal";
 import {
   AsyncState,
   Input,
@@ -20,8 +20,8 @@ import { useState } from "react";
 const Page = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
-  const [selectedOrderToUpdate, setSelectedOrderToUpdate] =
+  const [isCancelOrderModalOpen, setIsCancelOrderModalOpen] = useState(false);
+  const [selectedOrderToCancel, setSelectedOrderToCancel] =
     useState<Order | null>(null);
   const limit = appConfig.defaultPageLimit;
   const debouncedSearch = useDebouncedValue(search);
@@ -38,9 +38,9 @@ const Page = () => {
     setPage(1);
   };
 
-  const handleOpenEditModal = (order: Order) => {
-    setSelectedOrderToUpdate(order);
-    setIsEditOrderModalOpen(true);
+  const handleOpenCancelModal = (order: Order) => {
+    setSelectedOrderToCancel(order);
+    setIsCancelOrderModalOpen(true);
   };
 
   const columns: ColumnDef<Order>[] = [
@@ -104,9 +104,10 @@ const Page = () => {
       accessorKey: "actions",
       enableSorting: false,
       enableHiding: false,
-      cell: ({ row }) => (
-        <TableActions onEdit={() => handleOpenEditModal(row.original)} />
-      ),
+      cell: ({ row }) =>
+        row.original.status.toUpperCase() === "CANCELLED" ? null : (
+          <TableActions onCancel={() => handleOpenCancelModal(row.original)} />
+        ),
     },
   ];
 
@@ -139,12 +140,12 @@ const Page = () => {
           />
         </AsyncState>
       </div>
-      <EditOrderModal
-        isOpen={isEditOrderModalOpen}
-        order={selectedOrderToUpdate}
+      <CancelOrderModal
+        isOpen={isCancelOrderModalOpen}
+        order={selectedOrderToCancel}
         onClose={() => {
-          setIsEditOrderModalOpen(false);
-          setSelectedOrderToUpdate(null);
+          setIsCancelOrderModalOpen(false);
+          setSelectedOrderToCancel(null);
         }}
       />
     </div>

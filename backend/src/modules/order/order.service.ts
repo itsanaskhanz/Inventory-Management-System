@@ -59,6 +59,13 @@ const createOrderService = async (
     0,
   );
   const cashReceived = data.cashReceived ?? 0;
+  if (cashReceived > total) {
+    throw new AppError(
+      `Amount received cannot be greater than the total (${total})`,
+      400,
+      true,
+    );
+  }
   const due = Math.max(0, total - cashReceived);
   const status = computePaymentStatus(total, cashReceived);
 
@@ -117,26 +124,26 @@ const updateOrderService = async (
   ensureOwnership(existing, userId, "order");
 
   const previousStatus = existing.status.toUpperCase() as OrderStatus;
-  let nextStatus = (data.status ?? previousStatus).toUpperCase() as OrderStatus;
 
-  let cashReceived = data.cashReceived ?? existing.cashReceived;
-  let due: number;
-
-  if (nextStatus === OrderStatus.COMPLETED) {
-    cashReceived = existing.total;
-    due = 0;
-  } else {
-    due = Math.max(0, existing.total - cashReceived);
+  if (previousStatus === OrderStatus.CANCELLED) {
+    throw new AppError(
+      "This order is already cancelled and cannot be modified",
+      400,
+      true,
+    );
   }
 
-  if (
-    nextStatus !== OrderStatus.CANCELLED &&
-    data.cashReceived !== undefined &&
-    previousStatus !== OrderStatus.CANCELLED
-  ) {
-    nextStatus = computePaymentStatus(existing.total, cashReceived);
+  const nextStatus = (data.status ?? previousStatus).toUpperCase() as OrderStatus;
+  if (nextStatus !== OrderStatus.CANCELLED) {
+    throw new AppError(
+      "Placed orders can only be cancelled; no other changes are allowed",
+      400,
+      true,
+    );
   }
 
+  const cashReceived = existing.cashReceived;
+  const due = Math.max(0, existing.total - cashReceived);
   const stockAction = getStockAction(previousStatus, nextStatus);
 
   const items: OrderItemInput[] = existing.products.map((product) => ({
@@ -147,13 +154,13 @@ const updateOrderService = async (
 
   const order = await updateOrder(
     id,
-    { ...data, status: nextStatus, cashReceived, due },
+    { status: nextStatus, cashReceived, due },
     stockAction,
     items,
   );
   return {
     statusCode: 200,
-    message: "Order updated successfully",
+    message: "Order cancelled successfully",
     data: { order },
   };
 };

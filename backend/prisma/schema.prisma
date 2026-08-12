@@ -35,8 +35,8 @@ model Product {
   id          String   @id @default(cuid())
   name        String
   description String?
-  price       Float
-  costPrice   Float
+  price       Int
+  costPrice   Int
   stock       Int      @default(0)
   minStock    Int      @default(5)
   userId      String?
@@ -85,9 +85,9 @@ model Customer {
 
 model Order {
   id            String      @id @default(cuid())
-  total         Float
-  cashReceived  Float       @default(0)
-  due           Float       @default(0)
+  total         Int
+  cashReceived  Int       @default(0)
+  due           Int       @default(0)
   status        String      @default("completed") 
   createdAt     DateTime    @default(now())  
   userId        String?
@@ -95,12 +95,13 @@ model Order {
   customerId    String?
   customer      Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade) 
   products      OrderProducts[]
+  paymentOrders PaymentOrder[]
 }
 
 model OrderProducts {
   id          String   @id @default(cuid())
   quantity    Int
-  price       Float
+  price       Int
   orderId     String
   order       Order  @relation (fields: [orderId], references: [id], onDelete: Cascade)
   productId   String 
@@ -115,9 +116,22 @@ model Payment {
   id          String    @id @default(cuid())
   customerId  String
   customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  cashReceived Float
+  cashReceived Int
   status      PaymentStatus @default(COMPLETED)
   note        String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  orders      PaymentOrder[]
+}
+
+model PaymentOrder {
+  id        String   @id @default(cuid())
+  amount    Int
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([paymentId, orderId])
 }

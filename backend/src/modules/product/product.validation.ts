@@ -1,14 +1,15 @@
 import { z } from "zod";
 
-const nonNegativeNumber = z
+const nonNegativeInteger = z
   .number()
+  .int("Must be a whole number")
   .min(0, "Must be a non-negative number");
 
 export const createProductSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
   description: z.string().trim().optional(),
-  price: nonNegativeNumber,
-  costPrice: nonNegativeNumber,
+  price: nonNegativeInteger,
+  costPrice: nonNegativeInteger,
   stock: z
     .number()
     .int()
@@ -31,8 +32,8 @@ export const updateProductSchema = z.object({
     .max(200)
     .optional(),
   description: z.string().trim().nullable().optional(),
-  price: nonNegativeNumber.optional(),
-  costPrice: nonNegativeNumber.optional(),
+  price: nonNegativeInteger.optional(),
+  costPrice: nonNegativeInteger.optional(),
   stock: z
     .number()
     .int()

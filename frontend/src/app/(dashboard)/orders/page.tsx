@@ -85,12 +85,6 @@ const Page = () => {
       toast.error("Please select a customer");
       return;
     }
-    if (!markAsCompleted && Number(cashReceived) > total) {
-      toast.error(
-        `Amount entered is greater than the total (${formatCurrency(total)}). Please enter a valid amount.`,
-      );
-      return;
-    }
     setIsConfirmOpen(false);
     handleSubmitOrder();
   };
@@ -400,9 +394,10 @@ const Page = () => {
             <Input
               type="number"
               min={0}
+              step={1}
               value={cashReceived}
               onChange={(e) => setCashReceived(e.target.value)}
-              placeholder={`0.00`}
+              placeholder={`0`}
               disabled={markAsCompleted}
               fullWidth
             />
