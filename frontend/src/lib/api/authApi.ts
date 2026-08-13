@@ -1,5 +1,7 @@
 import { UserRole } from "@/config/roles";
 import {
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   GetUsersByRoleResponse,
   LoginRequest,
   LoginResponse,
@@ -8,6 +10,8 @@ import {
   RegisterResponse,
   ResendOTPRequest,
   ResendOTPResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
   VerifyRequest,
   VerifyResponse,
 } from "@/types/auth.types";
@@ -35,6 +39,24 @@ export const useResendOTPMutation = () => {
   return useMutation({
     mutationFn: async (data: ResendOTPRequest): Promise<ResendOTPResponse> => {
       const response = await apiClient.post("/auth/resend-otp", data);
+      return response.data;
+    },
+  });
+};
+
+export const useForgotPasswordMutation = () => {
+  return useMutation({
+    mutationFn: async (data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+      const response = await apiClient.post("/auth/forgot-password", data);
+      return response.data;
+    },
+  });
+};
+
+export const useResetPasswordMutation = () => {
+  return useMutation({
+    mutationFn: async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+      const response = await apiClient.post("/auth/reset-password", data);
       return response.data;
     },
   });

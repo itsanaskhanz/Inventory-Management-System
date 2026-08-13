@@ -33,6 +33,16 @@ export interface IVerifyEmail {
 export interface IResendOTP {
   email: string;
 }
+
+export interface IForgotPassword {
+  email: string;
+}
+
+export interface IResetPassword {
+  email: string;
+  otpCode: string;
+  password: string;
+}
 export interface ILogin {
   email: string;
   password: string;

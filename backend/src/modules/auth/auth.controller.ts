@@ -7,11 +7,13 @@ import { successRes } from "../../utils/response.js";
 import type { UserRole } from "./auth.interface.js";
 import {
   deleteAccountService,
+  forgotPasswordService,
   getUsersByRoleService,
   loginService,
   profileService,
   registerService,
   resendOTPService,
+  resetPasswordService,
   updateProfileService,
   verifyEmailService,
 } from "./auth.service.js";
@@ -28,6 +30,16 @@ const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
 
 const resendOTP = asyncHandler(async (req: Request, res: Response) => {
   const result = await resendOTPService(req.body);
+  successRes(res, result.message, result.statusCode, result.data);
+});
+
+const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+  const result = await forgotPasswordService(req.body);
+  successRes(res, result.message, result.statusCode, result.data);
+});
+
+const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const result = await resetPasswordService(req.body);
   successRes(res, result.message, result.statusCode, result.data);
 });
 const login = asyncHandler(async (req: Request, res: Response) => {
@@ -63,4 +75,4 @@ const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
   successRes(res, result.message, result.statusCode, result.data);
 });
 
-export { deleteAccount, getUsersByRole, login, logout, profile, register, resendOTP, updateProfile, verifyEmail };
+export { deleteAccount, forgotPassword, getUsersByRole, login, logout, profile, register, resendOTP, resetPassword, updateProfile, verifyEmail };

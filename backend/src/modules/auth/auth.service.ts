@@ -6,7 +6,7 @@ import { generateOTP, verifyOTP } from "../../utils/otp.js";
 import type { PaginationMeta } from "../../utils/pagination.js";
 import type { ServiceResult } from "../../utils/response.js";
 import { sendEmail } from "../../utils/sendEmail.js";
-import type { ILogin, IRegister, IResendOTP, IUpdateProfile, IUser, IVerifyEmail, PublicUser } from "./auth.interface.js";
+import type { IForgotPassword, ILogin, IRegister, IResetPassword, IResendOTP, IUpdateProfile, IUser, IVerifyEmail, PublicUser } from "./auth.interface.js";
 import { UserRole } from "./auth.interface.js";
 import { createUser, deleteUser, findUserByEmail, listUsersByRole, updateOTP, updateUser } from "./auth.repository.js";
 
@@ -57,6 +57,41 @@ const resendOTPService = async ({ email }: IResendOTP): Promise<ServiceResult<nu
   return {
     statusCode: 200,
     message: "Verification code sent successfully",
+    data: null,
+  };
+};
+
+const forgotPasswordService = async ({ email }: IForgotPassword): Promise<ServiceResult<null>> => {
+  const user = await findUserByEmail(email);
+  if (!user) throw new AppError("No account found with this email", 404, true);
+
+  const { OTP, expirationTime } = generateOTP();
+  await updateOTP(user.id, OTP, expirationTime);
+  await sendEmail(
+    user.email,
+    "Reset your password",
+    `Hello ${user.name}, This is your password reset code: ${OTP}. It expires in 15 minutes.`,
+  );
+  return {
+    statusCode: 200,
+    message: "Password reset code sent successfully",
+    data: null,
+  };
+};
+
+const resetPasswordService = async ({ email, otpCode, password }: IResetPassword): Promise<ServiceResult<null>> => {
+  const user = await findUserByEmail(email);
+  if (!user) throw new AppError("No account found with this email", 404, true);
+  if (!user.otpCode || !user.otpExpiry) throw new AppError("No reset code found. Please request a new one.", 400, true);
+
+  const isValid = verifyOTP(otpCode, user.otpCode, user.otpExpiry);
+  if (!isValid) throw new AppError("Invalid or expired reset code", 400, true);
+
+  const hashedPassword = await hashPassword(password);
+  await updateUser(user.id, { password: hashedPassword, otpCode: null, otpExpiry: null });
+  return {
+    statusCode: 200,
+    message: "Password reset successfully. Please sign in.",
     data: null,
   };
 };
@@ -140,11 +175,13 @@ const getUsersByRoleService = async (
 
 export {
   deleteAccountService,
+  forgotPasswordService,
   getUsersByRoleService,
   loginService,
   profileService,
   registerService,
   resendOTPService,
+  resetPasswordService,
   updateProfileService,
   verifyEmailService,
 };

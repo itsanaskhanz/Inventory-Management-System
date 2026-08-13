@@ -100,6 +100,15 @@ const Page = () => {
                 Sign in
               </Button>
 
+              <div className="flex items-center justify-end">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline underline-offset-4"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
                 <span className="text-xs text-foreground-tertiary">or</span>

@@ -56,6 +56,28 @@ export interface ResendOTPResponse {
   data?: object;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  success: boolean;
+  data?: object;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otpCode: string;
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+  success: boolean;
+  data?: object;
+}
+
 export interface ProfileResponse {
   message: string;
   success: boolean;
