@@ -20,14 +20,20 @@ export interface PaymentsResponse {
 
 export const useGetPayments = (
   customerId: string,
+  search: string,
   page: number,
   limit: number,
 ) => {
   return useQuery({
-    queryKey: ["payments", customerId, page, limit],
+    queryKey: ["payments", customerId, search, page, limit],
     queryFn: async (): Promise<PaymentsResponse> => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search.trim()) params.set("search", search.trim());
       const response = await apiClient.get<PaymentsResponse>(
-        `/payments/${customerId}?page=${page}&limit=${limit}`,
+        `/payments/${customerId}?${params}`,
       );
       return response.data;
     },

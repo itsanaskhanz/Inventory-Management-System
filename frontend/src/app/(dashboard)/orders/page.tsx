@@ -362,7 +362,7 @@ const Page = () => {
             <Input
               value={customerSearch}
               onChange={(e) => setCustomerSearch(e.target.value)}
-              placeholder="Search customers..."
+              placeholder="Search by phone number..."
               fullWidth
               inputSize="sm"
             />

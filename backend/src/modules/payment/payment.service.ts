@@ -64,6 +64,7 @@ const cancelPaymentService = async (
 const getPaymentsService = async (
   customerId: string,
   userId: string,
+  search: string | undefined,
   page: number,
   limit: number,
 ): Promise<
@@ -71,7 +72,7 @@ const getPaymentsService = async (
 > => {
   await ensureCustomerOwnership(customerId, userId);
 
-  const result = await getPayments(customerId, page, limit);
+  const result = await getPayments(customerId, search, page, limit);
   return {
     statusCode: 200,
     message: "Payments fetched successfully",

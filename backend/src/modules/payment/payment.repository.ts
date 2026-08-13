@@ -61,8 +61,16 @@ const createPayment = async (customerId: string, data: ICreatePayment) => {
   });
 };
 
-const getPayments = async (customerId: string, page: number, limit: number) => {
+const getPayments = async (
+  customerId: string,
+  search: string | undefined,
+  page: number,
+  limit: number,
+) => {
   const where: Prisma.PaymentWhereInput = { customerId };
+  if (search) {
+    where.id = { contains: search, mode: "insensitive" };
+  }
   const [payments, total] = await Promise.all([
     prisma.payment.findMany({
       where,

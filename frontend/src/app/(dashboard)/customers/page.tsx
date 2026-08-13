@@ -117,7 +117,7 @@ const Page = () => {
         <Input
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Search customers..."
+          placeholder="Search by phone number..."
           fullWidth
           leftIcon="Search"
         />

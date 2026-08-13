@@ -47,12 +47,14 @@ const CustomerDetailPage = () => {
   const [isCancelOrderModalOpen, setIsCancelOrderModalOpen] = useState(false);
   const [selectedOrderToCancel, setSelectedOrderToCancel] = useState<Order | null>(null);
   const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentSearch, setPaymentSearch] = useState("");
   const [cashReceived, setCashReceived] = useState("");
   const [note, setNote] = useState("");
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [paymentToUndo, setPaymentToUndo] = useState<PaymentHistoryItem | null>(null);
   const limit = appConfig.defaultPageLimit;
   const debouncedSearch = useDebouncedValue(search);
+  const debouncedPaymentSearch = useDebouncedValue(paymentSearch);
   const { data: response, isLoading: isCustomerLoading, isError } = useGetCustomerByIdQuery(id);
   const {
     data: ordersResponse,
@@ -68,7 +70,7 @@ const CustomerDetailPage = () => {
     data: paymentsResponse,
     isLoading: isPaymentsLoading,
     isError: isPaymentsError,
-  } = useGetPayments(id, paymentsPage, limit);
+  } = useGetPayments(id, debouncedPaymentSearch, paymentsPage, limit);
   const { mutate: createPayment, isPending: isCreatingPayment } = useCreatePaymentMutation();
   const { mutate: cancelPayment, isPending: isCancellingPayment } = useCancelPaymentMutation();
 
@@ -278,6 +280,16 @@ const CustomerDetailPage = () => {
 
             {activeTab === "payments" && (
               <div className="flex flex-col gap-4">
+                <Input
+                  value={paymentSearch}
+                  onChange={(e) => {
+                    setPaymentSearch(e.target.value);
+                    setPaymentsPage(1);
+                  }}
+                  placeholder="Search by payment id..."
+                  fullWidth
+                  leftIcon="Search"
+                />
                 <AsyncState
                   isLoading={isPaymentsLoading}
                   isError={isPaymentsError}

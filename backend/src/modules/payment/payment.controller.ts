@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { getPagination, getRouteId, getUserId } from "../../utils/request.js";
+import { getPagination, getRouteId, getSearchParam, getUserId } from "../../utils/request.js";
 import { successRes } from "../../utils/response.js";
 import {
   cancelPaymentService,
@@ -33,6 +33,7 @@ const getPayments = asyncHandler(
     const result = await getPaymentsService(
       getRouteId(req),
       getUserId(req),
+      getSearchParam(req),
       page,
       limit,
     );
