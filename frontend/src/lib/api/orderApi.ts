@@ -16,6 +16,7 @@ export const useCreateOrderMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["product"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["customer"] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
   });
 };

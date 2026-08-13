@@ -5,6 +5,30 @@ import { buildPagination } from "../../utils/pagination.js";
 import { OrderStatus, getOrderPaymentStatus } from "../order/order.interface.js";
 import type { ICreatePayment } from "./payment.interface.js";
 
+const createPaymentForOrder = async (
+  tx: Prisma.TransactionClient,
+  customerId: string,
+  orderId: string,
+  amount: number,
+) => {
+  const payment = await tx.payment.create({
+    data: {
+      customerId,
+      cashReceived: amount,
+    },
+  });
+
+  await tx.paymentOrder.create({
+    data: {
+      paymentId: payment.id,
+      orderId,
+      amount,
+    },
+  });
+
+  return payment;
+};
+
 const createPayment = async (customerId: string, data: ICreatePayment) => {
   return await prisma.$transaction(async (tx) => {
     const payment = await tx.payment.create({
@@ -171,6 +195,7 @@ export {
   adjustPaymentsForCancelledOrder,
   cancelPayment,
   createPayment,
+  createPaymentForOrder,
   findPaymentById,
   getPayments,
 };

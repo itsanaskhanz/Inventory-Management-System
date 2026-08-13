@@ -3,7 +3,10 @@ import { Prisma } from "../../generated/prisma/client.js";
 import AppError from "../../utils/error.js";
 import { buildPagination } from "../../utils/pagination.js";
 import { getProductStatus } from "../../utils/productStatus.js";
-import { adjustPaymentsForCancelledOrder } from "../payment/payment.repository.js";
+import {
+  adjustPaymentsForCancelledOrder,
+  createPaymentForOrder,
+} from "../payment/payment.repository.js";
 import {
   OrderStatus,
   type CreateOrderData,
@@ -70,7 +73,7 @@ const createOrder = async (data: CreateOrderData) => {
   return prisma.$transaction(async (tx) => {
     await deductStock(tx, data.products);
 
-    return await tx.order.create({
+    const order = await tx.order.create({
       data: {
         total: data.total,
         cashReceived: data.cashReceived,
@@ -87,6 +90,17 @@ const createOrder = async (data: CreateOrderData) => {
         },
       } as Prisma.OrderUncheckedCreateInput,
     });
+
+    if (data.customerId && data.cashReceived > 0) {
+      await createPaymentForOrder(
+        tx,
+        data.customerId,
+        order.id,
+        data.cashReceived,
+      );
+    }
+
+    return order;
   });
 };
 
