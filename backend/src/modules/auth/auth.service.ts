@@ -5,6 +5,7 @@ import { signToken } from "../../utils/jwt.js";
 import { generateOTP, verifyOTP } from "../../utils/otp.js";
 import type { PaginationMeta } from "../../utils/pagination.js";
 import type { ServiceResult } from "../../utils/response.js";
+import { accountDeletedEmail, loginAlertEmail, passwordResetEmail, resendVerificationEmail, verificationEmail, welcomeEmail } from "../../utils/emailTemplates.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 import type { IForgotPassword, ILogin, IRegister, IResetPassword, IResendOTP, IUpdateProfile, IUser, IVerifyEmail, PublicUser } from "./auth.interface.js";
 import { UserRole } from "./auth.interface.js";
@@ -17,11 +18,8 @@ const registerService = async ({ name, email, password }: IRegister): Promise<Se
   if (existing) throw new AppError("User already exists", 409, true);
 
   const user = await createUser({ name, email, password, role: UserRole.ADMIN });
-  await sendEmail(
-    user.email,
-    "Welcome to our platform",
-    `Hello ${user.name}, This is your verification code: ${user.otpCode}`,
-  );
+  const { subject, html, text } = verificationEmail(user.name, user.otpCode ?? "", 15);
+  await sendEmail(user.email, subject, text, html);
   return {
     statusCode: 201,
     message: "User created successfully. Please verify your email.",
@@ -36,6 +34,8 @@ const verifyEmailService = async ({ email, otpCode }: IVerifyEmail): Promise<Ser
   const isValid = verifyOTP(otpCode, user.otpCode, user.otpExpiry);
   if (!isValid) throw new AppError("Invalid or expired verification code", 400, true);
   await updateUser(user.id, { isVerified: true, otpCode: null, otpExpiry: null });
+  const { subject, html, text } = welcomeEmail(user.name);
+  await sendEmail(user.email, subject, text, html);
   return {
     statusCode: 200,
     message: "Email verified successfully",
@@ -49,11 +49,8 @@ const resendOTPService = async ({ email }: IResendOTP): Promise<ServiceResult<nu
 
   const { OTP, expirationTime } = generateOTP();
   await updateOTP(user.id, OTP, expirationTime);
-  await sendEmail(
-    user.email,
-    "Your verification code",
-    `Hello ${user.name}, This is your new verification code: ${OTP}`,
-  );
+  const { subject, html, text } = resendVerificationEmail(user.name, OTP, 15);
+  await sendEmail(user.email, subject, text, html);
   return {
     statusCode: 200,
     message: "Verification code sent successfully",
@@ -67,11 +64,8 @@ const forgotPasswordService = async ({ email }: IForgotPassword): Promise<Servic
 
   const { OTP, expirationTime } = generateOTP();
   await updateOTP(user.id, OTP, expirationTime);
-  await sendEmail(
-    user.email,
-    "Reset your password",
-    `Hello ${user.name}, This is your password reset code: ${OTP}. It expires in 15 minutes.`,
-  );
+  const { subject, html, text } = passwordResetEmail(user.name, OTP, 15);
+  await sendEmail(user.email, subject, text, html);
   return {
     statusCode: 200,
     message: "Password reset code sent successfully",
@@ -95,10 +89,10 @@ const resetPasswordService = async ({ email, otpCode, password }: IResetPassword
     data: null,
   };
 };
-const loginService = async ({
-  email,
-  password,
-}: ILogin): Promise<ServiceResult<{ user: PublicUser; token: string }>> => {
+const loginService = async (
+  { email, password }: ILogin,
+  context?: { ip: string; device: string },
+): Promise<ServiceResult<{ user: PublicUser; token: string }>> => {
   const user = await findUserByEmail(email);
   if (!user) throw new AppError("Invalid credentials", 401, true);
 
@@ -107,6 +101,11 @@ const loginService = async ({
   if (!user.isVerified) throw new AppError("Email not verified", 401, true);
 
   const token = signToken({ id: user.id, role: user.role as UserRole });
+
+  if (context) {
+    const { subject, html, text } = loginAlertEmail(user.name, context.ip, context.device);
+    await sendEmail(user.email, subject, text, html);
+  }
 
   return {
     statusCode: 200,
@@ -148,6 +147,8 @@ const updateProfileService = async (
 };
 
 const deleteAccountService = async (user: IUser): Promise<ServiceResult<null>> => {
+  const { subject, html, text } = accountDeletedEmail(user.name);
+  await sendEmail(user.email, subject, text, html);
   await deleteUser(user.id);
   return {
     statusCode: 200,

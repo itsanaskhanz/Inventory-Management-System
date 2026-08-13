@@ -43,7 +43,9 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
   successRes(res, result.message, result.statusCode, result.data);
 });
 const login = asyncHandler(async (req: Request, res: Response) => {
-  const result = await loginService(req.body);
+  const ip = req.ip ?? req.socket.remoteAddress ?? "Unknown";
+  const device = req.get("user-agent") ?? "Unknown device";
+  const result = await loginService(req.body, { ip, device });
   setCookies(res, result.data.token);
   successRes(res, result.message, result.statusCode, result.data);
 });
