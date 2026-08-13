@@ -2,7 +2,6 @@
 import { Input, Modal } from "@/components/ui";
 import { useCreateCategoryMutation } from "@/lib/api/categoryApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -15,7 +14,6 @@ const CreateCategoryModal = ({
   isOpen,
   onClose,
 }: CreateCategoryModalProps) => {
-  const queryClient = useQueryClient();
   const { mutate: createCategory, isPending } = useCreateCategoryMutation();
   const [name, setName] = useState("");
 
@@ -33,7 +31,6 @@ const CreateCategoryModal = ({
         toast.success("Category created successfully");
         onClose();
         resetForm();
-        queryClient.invalidateQueries({ queryKey: ["categories"] });
       },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to create category")),

@@ -2,7 +2,6 @@
 import { ConfirmDialog } from "@/components/ui";
 import { useDeleteCustomerMutation } from "@/lib/api/customerApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
 interface DeleteCustomerModalProps {
@@ -16,7 +15,6 @@ const DeleteCustomerModal = ({
   customerId,
   onClose,
 }: DeleteCustomerModalProps) => {
-  const queryClient = useQueryClient();
   const { mutate: deleteCustomer, isPending } = useDeleteCustomerMutation();
 
   const handleDeleteCustomer = () => {
@@ -25,7 +23,6 @@ const DeleteCustomerModal = ({
       onSuccess: () => {
         toast.success("Customer deleted successfully");
         onClose();
-        queryClient.invalidateQueries({ queryKey: ["customers"] });
       },
       onError: (error) =>
         toast.error(getApiErrorMessage(error, "Failed to delete customer")),

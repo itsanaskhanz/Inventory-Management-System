@@ -4,7 +4,11 @@ import {
   CustomerResponse,
 } from "@/types/customer.types";
 import { OrdersResponse } from "./orderApi";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
 
 export interface CreateCustomerRequest {
@@ -13,9 +17,13 @@ export interface CreateCustomerRequest {
 }
 
 export const useCreateCustomerMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateCustomerRequest): Promise<void> => {
       await apiClient.post("/customers", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
     },
   });
 };
@@ -87,6 +95,7 @@ export const useGetCustomerByIdQuery = (id: string) => {
 };
 
 export const useUpdateCustomerMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       id,
@@ -97,13 +106,22 @@ export const useUpdateCustomerMutation = () => {
     }): Promise<void> => {
       await apiClient.put(`/customers/${id}`, data);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer"] });
+    },
   });
 };
 
 export const useDeleteCustomerMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       await apiClient.delete(`/customers/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer"] });
     },
   });
 };

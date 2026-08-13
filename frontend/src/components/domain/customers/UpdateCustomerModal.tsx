@@ -3,7 +3,6 @@ import { Input, Modal } from "@/components/ui";
 import { useUpdateCustomerMutation } from "@/lib/api/customerApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Customer } from "@/types/customer.types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -12,7 +11,6 @@ const UpdateCustomerForm = ({
   isOpen,
   onClose,
 }: UpdateCustomerModalInnerProps) => {
-  const queryClient = useQueryClient();
   const { mutate: updateCustomer, isPending } = useUpdateCustomerMutation();
   const [name, setName] = useState(customer.name ?? "");
   const [phone, setPhone] = useState(customer.phone ?? "");
@@ -34,7 +32,6 @@ const UpdateCustomerForm = ({
         onSuccess: () => {
           toast.success("Customer updated successfully");
           onClose();
-          queryClient.invalidateQueries({ queryKey: ["customers"] });
         },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to update customer")),

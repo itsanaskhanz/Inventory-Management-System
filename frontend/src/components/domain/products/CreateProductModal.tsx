@@ -3,7 +3,6 @@ import { Modal } from "@/components/ui";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useCreateProductMutation } from "@/lib/api/productApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import appConfig from "@/config/app.config";
@@ -18,7 +17,6 @@ interface CreateProductModalProps {
 }
 
 const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
-  const queryClient = useQueryClient();
   const { mutate: createProduct } = useCreateProductMutation();
   const { data: categoriesData } = useGetCategoriesQuery(
     1,
@@ -57,7 +55,6 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
           toast.success("Product created successfully");
           onClose();
           resetForm();
-          queryClient.invalidateQueries({ queryKey: ["products"] });
         },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to create product")),

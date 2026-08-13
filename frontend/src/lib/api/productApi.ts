@@ -1,5 +1,5 @@
 import { ProductsResponse, ProductResponse } from "@/types/product.types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
 
 export interface CreateProductRequest {
@@ -14,9 +14,13 @@ export interface CreateProductRequest {
 }
 
 export const useCreateProductMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateProductRequest): Promise<void> => {
       await apiClient.post("/products", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 };
@@ -68,6 +72,7 @@ export const useGetProductByIdQuery = (id: string) => {
 };
 
 export const useUpdateProductMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       id,
@@ -78,13 +83,22 @@ export const useUpdateProductMutation = () => {
     }): Promise<void> => {
       await apiClient.put(`/products/${id}`, data);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    },
   });
 };
 
 export const useDeleteProductMutation = (id: string) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (): Promise<void> => {
       await apiClient.delete(`/products/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 };

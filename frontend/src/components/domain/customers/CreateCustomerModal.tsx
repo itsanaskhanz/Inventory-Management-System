@@ -2,7 +2,6 @@
 import { Input, Modal } from "@/components/ui";
 import { useCreateCustomerMutation } from "@/lib/api/customerApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -15,7 +14,6 @@ const CreateCustomerModal = ({
   isOpen,
   onClose,
 }: CreateCustomerModalProps) => {
-  const queryClient = useQueryClient();
   const { mutate: createCustomer, isPending } = useCreateCustomerMutation();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,7 +38,6 @@ const CreateCustomerModal = ({
           toast.success("Customer created successfully");
           onClose();
           resetForm();
-          queryClient.invalidateQueries({ queryKey: ["customers"] });
         },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to create customer")),

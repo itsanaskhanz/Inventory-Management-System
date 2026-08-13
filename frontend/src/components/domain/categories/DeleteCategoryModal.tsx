@@ -2,7 +2,6 @@
 import { ConfirmDialog } from "@/components/ui";
 import { useDeleteCategoryMutation } from "@/lib/api/categoryApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
 interface DeleteCategoryModalProps {
@@ -16,7 +15,6 @@ const DeleteCategoryModal = ({
   categoryId,
   onClose,
 }: DeleteCategoryModalProps) => {
-  const queryClient = useQueryClient();
   const { mutate: deleteCategory, isPending } = useDeleteCategoryMutation();
 
   const handleDeleteCategory = () => {
@@ -25,7 +23,6 @@ const DeleteCategoryModal = ({
       onSuccess: () => {
         toast.success("Category deleted successfully");
         onClose();
-        queryClient.invalidateQueries({ queryKey: ["categories"] });
       },
       onError: (error) =>
         toast.error(getApiErrorMessage(error, "Failed to delete category")),

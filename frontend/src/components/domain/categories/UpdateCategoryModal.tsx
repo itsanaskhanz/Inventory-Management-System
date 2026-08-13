@@ -3,7 +3,6 @@ import { Input, Modal } from "@/components/ui";
 import { useUpdateCategoryMutation } from "@/lib/api/categoryApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Category } from "@/types/category.types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -12,7 +11,6 @@ const UpdateCategoryForm = ({
   isOpen,
   onClose,
 }: UpdateCategoryModalInnerProps) => {
-  const queryClient = useQueryClient();
   const { mutate: updateCategory, isPending } = useUpdateCategoryMutation();
   const [name, setName] = useState(category.name);
 
@@ -27,7 +25,6 @@ const UpdateCategoryForm = ({
         onSuccess: () => {
           toast.success("Category updated successfully");
           onClose();
-          queryClient.invalidateQueries({ queryKey: ["categories"] });
         },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to update category")),

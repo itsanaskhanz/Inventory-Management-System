@@ -4,7 +4,6 @@ import { useUpdateOrderMutation } from "@/lib/api/orderApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { formatCurrency } from "@/lib/format";
 import { Order } from "@/types/order.types";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
 interface CancelOrderModalProps {
@@ -14,7 +13,6 @@ interface CancelOrderModalProps {
 }
 
 const CancelOrderModal = ({ isOpen, order, onClose }: CancelOrderModalProps) => {
-  const queryClient = useQueryClient();
   const { mutate: cancelOrder, isPending } = useUpdateOrderMutation();
 
   const handleCancelOrder = () => {
@@ -25,7 +23,6 @@ const CancelOrderModal = ({ isOpen, order, onClose }: CancelOrderModalProps) => 
         onSuccess: () => {
           toast.success("Order cancelled successfully");
           onClose();
-          queryClient.invalidateQueries({ queryKey: ["orders"] });
         },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to cancel order")),

@@ -21,7 +21,6 @@ import { ReceiptData, ReceiptItem } from "@/lib/receipt";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { Customer } from "@/types/customer.types";
 import { CreateOrder } from "@/types/order.types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -31,7 +30,6 @@ const Page = () => {
   const [page, setPage] = useState(1);
   const limit = appConfig.defaultPageLimit;
   const debouncedSearch = useDebouncedValue(search);
-  const queryClient = useQueryClient();
   const { mutate: createOrder, isPending: isCreatingOrderLoading } =
     useCreateOrderMutation();
   const { data: categoriesResponse } = useGetCategoriesQuery(
@@ -128,7 +126,6 @@ const Page = () => {
         setSelectedCustomer(null);
         setCashReceived("");
         setMarkAsCompleted(false);
-        queryClient.invalidateQueries({ queryKey: ["orders"] });
       },
       onError: (error) =>
         toast.error(getApiErrorMessage(error, "Failed to place order")),

@@ -1,13 +1,21 @@
 import { CreateOrder, Order } from "@/types/order.types";
 import { Pagination } from "@/types/product.types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
 
 export const useCreateOrderMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateOrder): Promise<CreateOrderResponse> => {
       const response = await apiClient.post("/orders", data);
       return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer"] });
     },
   });
 };
@@ -17,6 +25,7 @@ export interface UpdateOrderRequest {
 }
 
 export const useUpdateOrderMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       id,
@@ -27,6 +36,13 @@ export const useUpdateOrderMutation = () => {
     }): Promise<CreateOrderResponse> => {
       const response = await apiClient.put(`/orders/${id}`, data);
       return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer"] });
     },
   });
 };

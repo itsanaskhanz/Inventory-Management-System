@@ -4,7 +4,6 @@ import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useUpdateProductMutation } from "@/lib/api/productApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { Product } from "@/types/product.types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import appConfig from "@/config/app.config";
@@ -17,7 +16,6 @@ const UpdateProductForm = ({
   isOpen,
   onClose,
 }: UpdateProductModalInnerProps) => {
-  const queryClient = useQueryClient();
   const { mutate: updateProduct } = useUpdateProductMutation();
   const { data: categoriesData } = useGetCategoriesQuery(
     1,
@@ -64,7 +62,6 @@ const UpdateProductForm = ({
         onSuccess: () => {
           toast.success("Product updated successfully");
           onClose();
-          queryClient.invalidateQueries({ queryKey: ["products"] });
         },
         onError: (error) =>
           toast.error(getApiErrorMessage(error, "Failed to update product")),

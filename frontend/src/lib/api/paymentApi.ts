@@ -60,6 +60,9 @@ export const useCreatePaymentMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["customers", variables.customerId, "payment-summary"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["customers", variables.customerId, "orders"],
+      });
     },
   });
 };
@@ -84,6 +87,9 @@ export const useCancelPaymentMutation = () => {
         queryKey: ["customers", variables.customerId, "payment-summary"],
       });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["customers", variables.customerId, "orders"],
+      });
     },
   });
 };
