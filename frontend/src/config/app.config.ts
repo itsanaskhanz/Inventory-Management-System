@@ -73,7 +73,7 @@ const appConfig: AppConfig = {
   },
   security: {
     cookieName: "token",
-    authPaths: ["/auth/login", "/auth/register"],
+    authPaths: ["/auth/login", "/auth/register", "/auth/verify-email"],
     publicPaths: ["/home", "/color-guid"],
   },
   appCurrencySymbol: "Rs.",

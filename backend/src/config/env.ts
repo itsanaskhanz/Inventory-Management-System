@@ -17,6 +17,10 @@ const env = {
   NODE_ENV: getEnvVar("NODE_ENV", "development"),
   JWT_SECRET: getEnvVar("JWT_SECRET"),
   FRONTEND_URL: getEnvVar("FRONTEND_URL", "http://localhost:3000"),
+  MAIL_HOST: getEnvVar("MAIL_HOST"),
+  MAIL_PORT: Number(getEnvVar("MAIL_PORT", "587")),
+  MAIL_USER: getEnvVar("MAIL_USER"),
+  MAIL_PASS: getEnvVar("MAIL_PASS"),
 };
 
 export default env;

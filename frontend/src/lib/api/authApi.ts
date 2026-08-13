@@ -6,6 +6,10 @@ import {
   ProfileResponse,
   RegisterRequest,
   RegisterResponse,
+  ResendOTPRequest,
+  ResendOTPResponse,
+  VerifyRequest,
+  VerifyResponse,
 } from "@/types/auth.types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient } from "../apiClient";
@@ -14,6 +18,23 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: async (data: LoginRequest): Promise<LoginResponse> => {
       const response = await apiClient.post("/auth/login", data);
+      return response.data;
+    },
+  });
+};
+export const useVerifyEmailMutation = () => {
+  return useMutation({
+    mutationFn: async (data: VerifyRequest): Promise<VerifyResponse> => {
+      const response = await apiClient.post("/auth/verify-email", data);
+      return response.data;
+    },
+  });
+};
+
+export const useResendOTPMutation = () => {
+  return useMutation({
+    mutationFn: async (data: ResendOTPRequest): Promise<ResendOTPResponse> => {
+      const response = await apiClient.post("/auth/resend-otp", data);
       return response.data;
     },
   });
@@ -47,17 +68,11 @@ export const useLogoutMutation = () => {
   });
 };
 
-export const useGetUsersByRole = (
-  role: UserRole = UserRole.ADMIN,
-  page: number,
-  limit: number,
-) => {
+export const useGetUsersByRole = (role: UserRole = UserRole.ADMIN, page: number, limit: number) => {
   return useQuery({
     queryKey: [`users-${role}-${page}-${limit}`],
     queryFn: async (): Promise<GetUsersByRoleResponse> => {
-      const response = await apiClient.get(
-        `/auth/getUsersByRole/${role}?page=${page}&limit=${limit}`,
-      );
+      const response = await apiClient.get(`/auth/getUsersByRole/${role}?page=${page}&limit=${limit}`);
       return response.data;
     },
   });

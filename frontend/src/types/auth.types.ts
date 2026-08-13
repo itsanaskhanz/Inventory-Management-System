@@ -35,6 +35,26 @@ export interface LoginResponse {
     user: User;
   };
 }
+export interface VerifyRequest {
+  email: string;
+  otpCode: string;
+}
+
+export interface VerifyResponse {
+  message: string;
+  success: boolean;
+  data?: object;
+}
+
+export interface ResendOTPRequest {
+  email: string;
+}
+
+export interface ResendOTPResponse {
+  message: string;
+  success: boolean;
+  data?: object;
+}
 
 export interface ProfileResponse {
   message: string;

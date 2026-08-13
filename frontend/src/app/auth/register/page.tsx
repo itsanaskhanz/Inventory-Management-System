@@ -1,9 +1,8 @@
 "use client";
 import { AuthBrandPanel } from "@/components/domain/auth";
-import { Button, Input, Logo, Typography } from "@/components/ui";
+import { Button, Icon, Input, Logo, Typography } from "@/components/ui";
 import { useRegisterMutation } from "@/lib/api/authApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
-import { ArrowRight, Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,10 +26,9 @@ const Page = () => {
       {
         onSuccess: (data) => {
           toast.success(data.message || "Account created successfully");
-          router.push("/auth/login");
+          router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
         },
-        onError: (error) =>
-          toast.error(getApiErrorMessage(error, "Registration failed")),
+        onError: (error) => toast.error(getApiErrorMessage(error, "Registration failed")),
       },
     );
   };
@@ -60,7 +58,6 @@ const Page = () => {
 
             <form onSubmit={handleRegister} className="flex flex-col gap-5">
               <div className="relative">
-                <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
                 <Input
                   type="text"
                   placeholder="Your full name"
@@ -70,11 +67,11 @@ const Page = () => {
                   onChange={(e) => setName(e.target.value)}
                   className="pl-10"
                   autoComplete="name"
+                  leftIcon="User"
                 />
               </div>
 
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
                 <Input
                   type="email"
                   placeholder="you@company.com"
@@ -84,11 +81,11 @@ const Page = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   autoComplete="email"
+                  leftIcon="Mail"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
                 <Input
                   type="password"
                   placeholder="Create a password"
@@ -98,17 +95,11 @@ const Page = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   autoComplete="new-password"
+                  leftIcon="Lock"
                 />
               </div>
 
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                rounded="md"
-                type="submit"
-                loading={isPending}
-              >
+              <Button variant="primary" size="lg" fullWidth rounded="md" type="submit" loading={isPending}>
                 Create account
               </Button>
 
@@ -127,17 +118,14 @@ const Page = () => {
                   className="flex items-center justify-center gap-2"
                 >
                   Browse as guest
-                  <ArrowRight className="h-4 w-4" />
+                  <Icon name="ArrowRight" size="sm" />
                 </Button>
               </Link>
             </form>
 
             <Typography variant="body2" align="center">
               Already have an account?{" "}
-              <Link
-                href="/auth/login"
-                className="font-medium text-primary hover:underline underline-offset-4"
-              >
+              <Link href="/auth/login" className="font-medium text-primary hover:underline underline-offset-4">
                 Sign in
               </Link>
             </Typography>

@@ -20,8 +20,19 @@ export interface IRegister {
   email: string;
   password: string;
   role?: UserRole;
+  isVerified?: boolean;
+  otpCode?: string | null;
+  otpExpiry?: Date | null;
 }
 
+export interface IVerifyEmail {
+  email: string;
+  otpCode: string;
+}
+
+export interface IResendOTP {
+  email: string;
+}
 export interface ILogin {
   email: string;
   password: string;

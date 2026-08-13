@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   CircleDollarSign,
   Clock,
   Eye,
@@ -7,7 +8,9 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Loader,
+  Lock,
   LogOut,
+  Mail,
   Minus,
   Newspaper,
   Package,
@@ -21,6 +24,7 @@ import {
   Trash,
   TrendingUp,
   Undo,
+  User,
   Users,
   X,
 } from "lucide-react";
@@ -50,4 +54,8 @@ export const Icons = {
   CircleDollarSign,
   HandCoins,
   Undo,
+  User,
+  Mail,
+  Lock,
+  ArrowRight,
 };

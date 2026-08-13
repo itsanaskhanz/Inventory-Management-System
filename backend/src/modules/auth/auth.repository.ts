@@ -1,5 +1,6 @@
 import prisma from "../../config/database.js";
 import { hashPassword } from "../../utils/bcrypt.js";
+import { generateOTP } from "../../utils/otp.js";
 import { buildPagination } from "../../utils/pagination.js";
 import { IRegister, UserRole } from "./auth.interface.js";
 
@@ -26,27 +27,22 @@ const listUsersByRole = async (role: UserRole, page: number, limit: number) => {
 
 const createUser = async ({ name, email, password, role }: IRegister) => {
   const hashedPassword = await hashPassword(password);
+  const { OTP, expirationTime } = generateOTP();
   return prisma.user.create({
-    data: { name, email, password: hashedPassword, role },
+    data: { name, email, password: hashedPassword, role, isVerified: false, otpCode: OTP, otpExpiry: expirationTime },
   });
 };
 
-const updateUser = async (
-  id: string,
-  data: { name?: string; email?: string; password?: string },
-) => {
+const updateUser = async (id: string, data: Partial<IRegister>) => {
   return prisma.user.update({ where: { id }, data });
+};
+
+const updateOTP = async (id: string, otpCode: string, otpExpiry: Date) => {
+  return prisma.user.update({ where: { id }, data: { otpCode, otpExpiry } });
 };
 
 const deleteUser = async (id: string) => {
   return prisma.user.delete({ where: { id } });
 };
 
-export {
-  createUser,
-  deleteUser,
-  findUserByEmail,
-  findUserById,
-  listUsersByRole,
-  updateUser,
-};
+export { createUser, deleteUser, findUserByEmail, findUserById, listUsersByRole, updateOTP, updateUser };

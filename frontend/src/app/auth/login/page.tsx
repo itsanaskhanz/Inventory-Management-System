@@ -1,11 +1,10 @@
 "use client";
 import { AuthBrandPanel } from "@/components/domain/auth";
-import { Button, Input, Logo, Typography } from "@/components/ui";
+import { Button, Icon, Input, Logo, Typography } from "@/components/ui";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLoginMutation } from "@/lib/api/authApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { User } from "@/types/auth.types";
-import { ArrowRight, Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -32,8 +31,15 @@ const Page = () => {
           toast.success(data.message || "Login successful");
           router.push("/");
         },
-        onError: (error) =>
-          toast.error(getApiErrorMessage(error, "Login failed")),
+        onError: (error) => {
+          const message = getApiErrorMessage(error, "Login failed");
+          if (message.toLowerCase().includes("email not verified")) {
+            toast.info("Please verify your email first");
+            router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+            return;
+          }
+          toast.error(message);
+        },
       },
     );
   };
@@ -63,7 +69,6 @@ const Page = () => {
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
                 <Input
                   type="email"
                   placeholder="you@company.com"
@@ -73,11 +78,11 @@ const Page = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   autoComplete="email"
+                  leftIcon="Mail"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-tertiary" />
                 <Input
                   type="password"
                   placeholder="Your password"
@@ -87,17 +92,11 @@ const Page = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   autoComplete="current-password"
+                  leftIcon="Lock"
                 />
               </div>
 
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                rounded="md"
-                type="submit"
-                loading={isPending}
-              >
+              <Button variant="primary" size="lg" fullWidth rounded="md" type="submit" loading={isPending}>
                 Sign in
               </Button>
 
@@ -116,17 +115,14 @@ const Page = () => {
                   className="flex items-center justify-center gap-2"
                 >
                   Explore
-                  <ArrowRight className="h-4 w-4" />
+                  <Icon name="ArrowRight" size="sm" />
                 </Button>
               </Link>
             </form>
 
             <Typography variant="body2" align="center">
               Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/register"
-                className="font-medium text-primary hover:underline underline-offset-4"
-              >
+              <Link href="/auth/register" className="font-medium text-primary hover:underline underline-offset-4">
                 Create one
               </Link>
             </Typography>

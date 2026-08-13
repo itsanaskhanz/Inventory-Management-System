@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
+import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { clearCookies, setCookies } from "../../utils/cookie.js";
-import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import { getPagination, getUserId } from "../../utils/request.js";
 import { successRes } from "../../utils/response.js";
 import type { UserRole } from "./auth.interface.js";
@@ -11,7 +11,9 @@ import {
   loginService,
   profileService,
   registerService,
+  resendOTPService,
   updateProfileService,
+  verifyEmailService,
 } from "./auth.service.js";
 
 const register = asyncHandler(async (req: Request, res: Response) => {
@@ -19,6 +21,15 @@ const register = asyncHandler(async (req: Request, res: Response) => {
   successRes(res, result.message, result.statusCode, result.data);
 });
 
+const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+  const result = await verifyEmailService(req.body);
+  successRes(res, result.message, result.statusCode, result.data);
+});
+
+const resendOTP = asyncHandler(async (req: Request, res: Response) => {
+  const result = await resendOTPService(req.body);
+  successRes(res, result.message, result.statusCode, result.data);
+});
 const login = asyncHandler(async (req: Request, res: Response) => {
   const result = await loginService(req.body);
   setCookies(res, result.data.token);
@@ -35,37 +46,21 @@ const profile = asyncHandler(async (req: AuthenticatedRequest, res: Response) =>
   successRes(res, result.message, result.statusCode, result.data);
 });
 
-const updateProfile = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response) => {
-    const result = await updateProfileService(getUserId(req), req.body);
-    successRes(res, result.message, result.statusCode, result.data);
-  },
-);
-
-const deleteAccount = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response) => {
-    const result = await deleteAccountService(req.user!);
-    clearCookies(res);
-    successRes(res, result.message, result.statusCode, result.data);
-  },
-);
-
-const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit } = getPagination(req);
-  const result = await getUsersByRoleService(
-    req.params.role as UserRole,
-    page,
-    limit,
-  );
+const updateProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await updateProfileService(getUserId(req), req.body);
   successRes(res, result.message, result.statusCode, result.data);
 });
 
-export {
-  deleteAccount,
-  getUsersByRole,
-  login,
-  logout,
-  profile,
-  register,
-  updateProfile,
-};
+const deleteAccount = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await deleteAccountService(req.user!);
+  clearCookies(res);
+  successRes(res, result.message, result.statusCode, result.data);
+});
+
+const getUsersByRole = asyncHandler(async (req: Request, res: Response) => {
+  const { page, limit } = getPagination(req);
+  const result = await getUsersByRoleService(req.params.role as UserRole, page, limit);
+  successRes(res, result.message, result.statusCode, result.data);
+});
+
+export { deleteAccount, getUsersByRole, login, logout, profile, register, resendOTP, updateProfile, verifyEmail };
