@@ -14,7 +14,10 @@ const buildWhere = (
 ): Prisma.CustomerWhereInput => {
   const where: Prisma.CustomerWhereInput = { userId };
   if (search) {
-    where.phone = { contains: search, mode: "insensitive" };
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
+    ];
   }
   return where;
 };

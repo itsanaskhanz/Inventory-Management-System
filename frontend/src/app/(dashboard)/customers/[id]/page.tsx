@@ -1,5 +1,6 @@
 "use client";
 import CancelOrderModal from "@/components/domain/orders/CancelOrderModal";
+import AddPaymentModal from "@/components/domain/payments/AddPaymentModal";
 import {
   AsyncState,
   Button,
@@ -7,7 +8,6 @@ import {
   DetailField,
   Icon,
   Input,
-  Modal,
   PageHeader,
   StatusBadge,
   Table,
@@ -20,7 +20,7 @@ import {
   useGetCustomerOrdersQuery,
   useGetCustomerPaymentSummaryQuery,
 } from "@/lib/api/customerApi";
-import { useCancelPaymentMutation, useCreatePaymentMutation, useGetPayments } from "@/lib/api/paymentApi";
+import { useCancelPaymentMutation, useGetPayments } from "@/lib/api/paymentApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/useDebounce";
@@ -48,8 +48,6 @@ const CustomerDetailPage = () => {
   const [selectedOrderToCancel, setSelectedOrderToCancel] = useState<Order | null>(null);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [paymentSearch, setPaymentSearch] = useState("");
-  const [cashReceived, setCashReceived] = useState("");
-  const [note, setNote] = useState("");
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [paymentToUndo, setPaymentToUndo] = useState<PaymentHistoryItem | null>(null);
   const limit = appConfig.defaultPageLimit;
@@ -71,7 +69,6 @@ const CustomerDetailPage = () => {
     isLoading: isPaymentsLoading,
     isError: isPaymentsError,
   } = useGetPayments(id, debouncedPaymentSearch, paymentsPage, limit);
-  const { mutate: createPayment, isPending: isCreatingPayment } = useCreatePaymentMutation();
   const { mutate: cancelPayment, isPending: isCancellingPayment } = useCancelPaymentMutation();
 
   const customer = response?.data?.customer;
@@ -90,23 +87,6 @@ const CustomerDetailPage = () => {
   const handleOpenCancelModal = (order: Order) => {
     setSelectedOrderToCancel(order);
     setIsCancelOrderModalOpen(true);
-  };
-
-  const handleAddPaymentConfirm = () => {
-    const amount = Number(cashReceived);
-    if (!Number.isFinite(amount) || amount <= 0) return;
-    createPayment(
-      { customerId: id, cashReceived: amount, note: note || undefined },
-      {
-        onSuccess: () => {
-          toast.success("Payment added successfully");
-          setIsAddPaymentOpen(false);
-          setCashReceived("");
-          setNote("");
-        },
-        onError: (error) => toast.error(getApiErrorMessage(error, "Failed to add payment")),
-      },
-    );
   };
 
   const handleUndoPaymentConfirm = () => {
@@ -324,29 +304,11 @@ const CustomerDetailPage = () => {
         }}
       />
 
-      <Modal
+<AddPaymentModal
         isOpen={isAddPaymentOpen}
+        customer={customer ?? null}
         onClose={() => setIsAddPaymentOpen(false)}
-        title="Add Payment"
-        description="Enter Amount"
-        onConfirm={handleAddPaymentConfirm}
-        onCancel={() => setIsAddPaymentOpen(false)}
-        confirmText="Add Payment"
-      >
-        <div className="flex flex-col gap-4">
-          <Input
-            placeholder="Enter Amount"
-            fullWidth
-            type="number"
-            min={0}
-            step={1}
-            value={cashReceived}
-            onChange={(e) => setCashReceived(e.target.value)}
-          />
-          <Input placeholder="Note (optional)" fullWidth value={note} onChange={(e) => setNote(e.target.value)} />
-        </div>
-        {isCreatingPayment && <div className="mt-4 text-sm text-foreground-secondary">Adding payment…</div>}
-      </Modal>
+      />
 
       <ConfirmDialog
         isOpen={!!paymentToUndo}

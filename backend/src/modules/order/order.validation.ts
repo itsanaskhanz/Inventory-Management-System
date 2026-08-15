@@ -17,6 +17,7 @@ export const createOrderSchema = z.object({
         productId: z.string().trim().min(1, "Product id is required"),
         quantity: z.number().int().min(1, "Quantity must be at least 1"),
         price: nonNegativeInteger,
+        costPrice: nonNegativeInteger.optional(),
       }),
     )
     .min(1, "At least one product is required"),

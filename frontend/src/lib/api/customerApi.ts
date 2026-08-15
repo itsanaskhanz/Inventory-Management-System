@@ -2,6 +2,7 @@ import {
   CustomerPaymentSummaryResponse,
   CustomersResponse,
   CustomerResponse,
+  Customer,
 } from "@/types/customer.types";
 import { OrdersResponse } from "./orderApi";
 import {
@@ -19,8 +20,9 @@ export interface CreateCustomerRequest {
 export const useCreateCustomerMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: CreateCustomerRequest): Promise<void> => {
-      await apiClient.post("/customers", data);
+    mutationFn: async (data: CreateCustomerRequest): Promise<Customer | null> => {
+      const response = await apiClient.post<CustomerResponse>("/customers", data);
+      return response.data?.data?.customer ?? null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });

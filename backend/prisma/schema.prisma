@@ -104,6 +104,7 @@ model OrderProducts {
   id          String   @id @default(cuid())
   quantity    Int
   price       Int
+  costPrice   Int      @default(0)
   orderId     String
   order       Order  @relation (fields: [orderId], references: [id], onDelete: Cascade)
   productId   String 

@@ -1,5 +1,7 @@
 import {
   ArrowRight,
+  Check,
+  ChevronDown,
   CircleDollarSign,
   Clock,
   Eye,
@@ -25,6 +27,7 @@ import {
   TrendingUp,
   Undo,
   User,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -55,6 +58,9 @@ export const Icons = {
   HandCoins,
   Undo,
   User,
+  UserPlus,
+  Check,
+  ChevronDown,
   Mail,
   Lock,
   ArrowRight,

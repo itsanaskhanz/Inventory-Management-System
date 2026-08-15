@@ -56,14 +56,11 @@ export const buildReceiptHtml = (data: ReceiptData): string => {
 
   const cashReceived = data.cashReceived ?? data.total;
   const due = data.due ?? 0;
-  const change = Math.max(0, cashReceived - data.total);
   const paymentLines = [
     `<p class="totals-row"><span>Cash Received</span><span>${money(cashReceived)}</span></p>`,
     due > 0
       ? `<p class="totals-row"><span>Due</span><span>${money(due)}</span></p>`
-      : change > 0
-        ? `<p class="totals-row"><span>Change</span><span>${money(change)}</span></p>`
-        : "",
+      : "",
   ].join("");
 
   return `<!DOCTYPE html>

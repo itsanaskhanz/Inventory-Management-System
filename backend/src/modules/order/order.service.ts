@@ -113,6 +113,7 @@ const cancelOrderService = async (
     productId: product.productId,
     quantity: product.quantity,
     price: product.price,
+    costPrice: product.costPrice,
   }));
 
   const order = await cancelOrder(id, items);

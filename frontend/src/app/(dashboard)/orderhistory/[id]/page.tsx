@@ -6,19 +6,14 @@ import {
   PageHeader,
   StatusBadge,
   Table,
+  TableActions,
   Typography,
 } from "@/components/ui";
 import { useGetOrderByIdQuery } from "@/lib/api/orderApi";
 import { formatCurrency } from "@/lib/format";
-import {
-  ReceiptData,
-  buildReceiptHtml,
-  downloadReceipt,
-  printReceipt,
-} from "@/lib/receipt";
+import { ReceiptData, buildReceiptHtml, downloadReceipt, printReceipt } from "@/lib/receipt";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 const getReceiptData = (order: Order): ReceiptData => ({
@@ -45,14 +40,7 @@ const OrderDetailPage = () => {
     {
       header: "Product",
       accessorKey: "product",
-      cell: ({ row }) => (
-        <Link
-          href={`/products/${row.original.product?.id || row.original.productId}`}
-          className="text-primary hover:underline"
-        >
-          {row.original.product?.name || row.original.productId}
-        </Link>
-      ),
+      cell: ({ row }) => row.original.product?.name || row.original.productId,
     },
     {
       header: "Quantity",
@@ -62,6 +50,21 @@ const OrderDetailPage = () => {
       header: "Price",
       accessorKey: "price",
       cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
+      header: "Cost",
+      accessorKey: "costPrice",
+      cell: ({ getValue }) => formatCurrency(Number(getValue())),
+    },
+    {
+      header: "Profit",
+      accessorKey: "profit",
+      cell: ({ row }) => formatCurrency((row.original.price - row.original.costPrice) * row.original.quantity),
+    },
+    {
+      header: "action",
+      accessorKey: "action",
+      cell: ({ row }) => <TableActions onView={() => router.push(`/products/${row.original.productId}`)} />,
     },
   ];
 
@@ -115,53 +118,27 @@ const OrderDetailPage = () => {
                   <StatusBadge status={order.status} />
                 </div>
               </DetailField>
-              <DetailField
-                label="Date"
-                value={new Date(order.createdAt).toLocaleString()}
-              />
-              <DetailField
-                label="Cash Received"
-                value={formatCurrency(order.cashReceived)}
-              />
+              <DetailField label="Date" value={new Date(order.createdAt).toLocaleString()} />
+              <DetailField label="Cash Received" value={formatCurrency(order.cashReceived)} />
               <DetailField
                 label={order.due > 0 ? "Due" : "Change"}
-                value={formatCurrency(
-                  order.due > 0 ? order.due : order.cashReceived - order.total,
-                )}
+                value={formatCurrency(order.due > 0 ? order.due : order.cashReceived - order.total)}
               />
-              {order.customer?.name && (
-                <DetailField
-                  label="Customer Name"
-                  value={order.customer.name}
-                />
-              )}
-              {order.customer?.phone && (
-                <DetailField
-                  label="Customer Phone"
-                  value={order.customer.phone}
-                />
-              )}
+              {order.customer?.name && <DetailField label="Customer Name" value={order.customer.name} />}
+              {order.customer?.phone && <DetailField label="Customer Phone" value={order.customer.phone} />}
             </div>
 
-            <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
+            <div>
               <Typography variant="h6" weight="bold" className="mb-4">
                 Items
               </Typography>
-              <Table
-                data={order.products}
-                columns={columns}
-                page={1}
-                setPage={() => undefined}
-                totalPages={1}
-              />
+              <Table data={order.products} columns={columns} page={1} setPage={() => undefined} totalPages={1} />
             </div>
 
             <div className="flex flex-col gap-2 text-sm rounded-xl border border-border bg-background-secondary p-6 shadow-sm">
               <div className="mt-2 flex justify-between border-t border-border pt-3 text-base font-bold">
                 <span>Total</span>
-                <span className="text-primary">
-                  {formatCurrency(order.total)}
-                </span>
+                <span className="text-primary">{formatCurrency(order.total)}</span>
               </div>
             </div>
           </div>

@@ -16,7 +16,8 @@ import {
 const deductStock = async (
   tx: Prisma.TransactionClient,
   items: OrderItemInput[],
-) => {
+): Promise<OrderItemInput[]> => {
+  const stockDeductedItems: OrderItemInput[] = [];
   for (const item of items) {
     const product = await tx.product.findUnique({
       where: { id: item.productId },
@@ -43,7 +44,13 @@ const deductStock = async (
         status: getProductStatus(newStock, product.minStock),
       },
     });
+
+    stockDeductedItems.push({
+      ...item,
+      costPrice: item.costPrice ?? product.costPrice,
+    });
   }
+  return stockDeductedItems;
 };
 
 const restoreStock = async (
@@ -71,7 +78,7 @@ const restoreStock = async (
 
 const createOrder = async (data: CreateOrderData) => {
   return prisma.$transaction(async (tx) => {
-    await deductStock(tx, data.products);
+    const stockDeductedItems = await deductStock(tx, data.products);
 
     const order = await tx.order.create({
       data: {
@@ -82,9 +89,10 @@ const createOrder = async (data: CreateOrderData) => {
         userId: data.userId,
         customerId: data.customerId,
         products: {
-          create: data.products.map((item) => ({
+          create: stockDeductedItems.map((item) => ({
             quantity: item.quantity,
             price: item.price,
+            costPrice: item.costPrice ?? 0,
             productId: item.productId,
           })),
         },
@@ -200,12 +208,11 @@ const getOrderStats = async (userId: string, from: Date, to: Date) => {
       GROUP BY to_char("createdAt", 'YYYY-MM-DD')
       ORDER BY date ASC
     `,
-      // Profit from COMPLETED orders only
+      // Profit from COMPLETED orders only (uses cost price captured at order time)
       prisma.$queryRaw<StatsValueRow[]>`
-      SELECT COALESCE(SUM((op."price" - p."costPrice") * op."quantity"), 0)::int AS value
+      SELECT COALESCE(SUM((op."price" - op."costPrice") * op."quantity"), 0)::int AS value
       FROM "OrderProducts" op
       INNER JOIN "Order" o ON o."id" = op."orderId"
-      INNER JOIN "Product" p ON p."id" = op."productId"
       WHERE o."userId" = ${userId}
         AND UPPER(o."status") = 'COMPLETED'
     `,

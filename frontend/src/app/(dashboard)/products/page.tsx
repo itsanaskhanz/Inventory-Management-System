@@ -19,10 +19,11 @@ import { formatCurrency } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const Page = () => {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
@@ -82,14 +83,6 @@ const Page = () => {
     {
       header: "ID",
       accessorKey: "id",
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <Link href={`/products/${id}`} className="font-medium underline">
-            {id}
-          </Link>
-        );
-      },
     },
     {
       header: "Name",
@@ -121,6 +114,7 @@ const Page = () => {
       enableHiding: false,
       cell: ({ row }) => (
         <TableActions
+          onView={() => router.push(`/products/${row.original.id}`)}
           onEdit={() => openUpdateModal(row.original)}
           onDelete={() => openDeleteModal(row.original.id)}
         />

@@ -10,6 +10,7 @@ export interface IOrderProduct {
   id: string;
   quantity: number;
   price: number;
+  costPrice: number;
   orderId: string;
   order: Order;
   productId: string;
@@ -19,6 +20,7 @@ export interface IOrderProduct {
 export interface CreateOrderProduct {
   quantity: number;
   price: number;
+  costPrice: number;
   productId: string;
 }
 

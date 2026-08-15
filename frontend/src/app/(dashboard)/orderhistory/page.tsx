@@ -1,35 +1,24 @@
 "use client";
 import CancelOrderModal from "@/components/domain/orders/CancelOrderModal";
-import {
-  AsyncState,
-  Input,
-  PageHeader,
-  StatusBadge,
-  Table,
-  TableActions,
-} from "@/components/ui";
+import { AsyncState, Input, PageHeader, StatusBadge, Table, TableActions } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchOrdersQuery } from "@/lib/api/orderApi";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const Page = () => {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [isCancelOrderModalOpen, setIsCancelOrderModalOpen] = useState(false);
-  const [selectedOrderToCancel, setSelectedOrderToCancel] =
-    useState<Order | null>(null);
+  const [selectedOrderToCancel, setSelectedOrderToCancel] = useState<Order | null>(null);
   const limit = appConfig.defaultPageLimit;
   const debouncedSearch = useDebouncedValue(search);
-  const {
-    data: response,
-    isLoading,
-    isError,
-  } = useSearchOrdersQuery(debouncedSearch, page, limit);
+  const { data: response, isLoading, isError } = useSearchOrdersQuery(debouncedSearch, page, limit);
   const orders: Order[] = response?.data?.orders || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
@@ -47,14 +36,6 @@ const Page = () => {
     {
       header: "Order #",
       accessorKey: "id",
-      cell: ({ row }) => (
-        <Link
-          href={`/orderhistory/${row.original.id}`}
-          className="text-primary hover:underline"
-        >
-          {row.original.id}
-        </Link>
-      ),
     },
     {
       header: "Items",
@@ -63,15 +44,17 @@ const Page = () => {
     },
     // customer name with phone number
     {
-      header: "Customer",
+      header: "Customer Name",
       accessorKey: "customer",
       cell: ({ row }) => {
-        const customer = row.original.customer;
-        return customer
-          ? `${customer.name || "Unnamed"}${
-              customer.phone ? ` (${customer.phone})` : ""
-            }`
-          : "—";
+        return row.original.customer?.name || "-";
+      },
+    },
+    {
+      header: "Phone",
+      accessorKey: "phoneNumber",
+      cell: ({ row }) => {
+        return row.original.customer?.phone || "-";
       },
     },
     {
@@ -106,7 +89,10 @@ const Page = () => {
       enableHiding: false,
       cell: ({ row }) =>
         row.original.status.toUpperCase() === "CANCELLED" ? null : (
-          <TableActions onCancel={() => handleOpenCancelModal(row.original)} />
+          <TableActions
+            onView={() => router.push(`/orderhistory/${row.original.id}`)}
+            onCancel={() => handleOpenCancelModal(row.original)}
+          />
         ),
     },
   ];
@@ -114,10 +100,7 @@ const Page = () => {
   return (
     <div>
       <div className="flex flex-col gap-6">
-        <PageHeader
-          title="Order History"
-          description="View and manage all orders placed in your store"
-        />
+        <PageHeader title="Order History" description="View and manage all orders placed in your store" />
         <Input
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
@@ -126,18 +109,8 @@ const Page = () => {
           leftIcon="Search"
         />
 
-        <AsyncState
-          isLoading={isLoading}
-          isError={isError}
-          errorMessage="Failed to load orders. Please try again."
-        >
-          <Table
-            data={orders}
-            columns={columns}
-            page={page}
-            setPage={setPage}
-            totalPages={totalPages}
-          />
+        <AsyncState isLoading={isLoading} isError={isError} errorMessage="Failed to load orders. Please try again.">
+          <Table data={orders} columns={columns} page={page} setPage={setPage} totalPages={totalPages} />
         </AsyncState>
       </div>
       <CancelOrderModal

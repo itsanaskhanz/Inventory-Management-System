@@ -14,6 +14,7 @@ export interface OrderItemInput {
   productId: string;
   quantity: number;
   price: number;
+  costPrice?: number;
 }
 
 export interface CreateOrderInput {

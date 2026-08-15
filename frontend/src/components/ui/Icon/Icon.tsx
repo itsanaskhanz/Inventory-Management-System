@@ -12,7 +12,6 @@ const Icon = ({ name, size = "md", color, className, ...props }: IconProps) => {
 
   return (
     <IconComponent
-      size={size}
       color={color}
       className={clsx(sizeStyles[size], baseStyles, className)}
       {...props}

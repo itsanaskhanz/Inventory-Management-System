@@ -15,10 +15,11 @@ import { useSearchCategoriesQuery } from "@/lib/api/categoryApi";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { Category } from "@/types/category.types";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const Page = () => {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const limit = appConfig.defaultPageLimit;
@@ -63,14 +64,6 @@ const Page = () => {
     {
       header: "ID",
       accessorKey: "id",
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <Link href={`/categories/${id}`} className="font-medium underline">
-            {id}
-          </Link>
-        );
-      },
     },
     {
       header: "Name",
@@ -88,6 +81,7 @@ const Page = () => {
       enableHiding: false,
       cell: ({ row }) => (
         <TableActions
+          onView={() => router.push(`/categories/${row.original.id}`)}
           onEdit={() => openUpdateModal(row.original)}
           onDelete={() => openDeleteModal(row.original.id)}
         />
