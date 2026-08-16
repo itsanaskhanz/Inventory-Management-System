@@ -2,18 +2,10 @@
 import CreateCustomerModal from "@/components/domain/customers/CreateCustomerModal";
 import DeleteCustomerModal from "@/components/domain/customers/DeleteCustomerModal";
 import UpdateCustomerModal from "@/components/domain/customers/UpdateCustomerModal";
-import {
-  AsyncState,
-  Button,
-  Input,
-  PageHeader,
-  Table,
-  TableActions,
-} from "@/components/ui";
+import { AsyncState, Button, PageHeader, SearchBar, Table, TableActions } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchCustomersQuery } from "@/lib/api/customerApi";
 import { formatDate } from "@/lib/format";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { Customer } from "@/types/customer.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -23,30 +15,24 @@ const Page = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isCreateCustomerModalOpen, setIsCreateCustomerModalOpen] =
-    useState(false);
-  const [isUpdateCustomerModalOpen, setIsUpdateCustomerModalOpen] =
-    useState(false);
-  const [isDeleteCustomerModalOpen, setIsDeleteCustomerModalOpen] =
-    useState(false);
-  const [selectedCustomerToDelete, setSelectedCustomerToDelete] = useState<
-    string | null
-  >(null);
-  const [selectedCustomerToUpdate, setSelectedCustomerToUpdate] =
-    useState<Customer | null>(null);
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [isCreateCustomerModalOpen, setIsCreateCustomerModalOpen] = useState(false);
+  const [isUpdateCustomerModalOpen, setIsUpdateCustomerModalOpen] = useState(false);
+  const [isDeleteCustomerModalOpen, setIsDeleteCustomerModalOpen] = useState(false);
+  const [selectedCustomerToDelete, setSelectedCustomerToDelete] = useState<string | null>(null);
+  const [selectedCustomerToUpdate, setSelectedCustomerToUpdate] = useState<Customer | null>(null);
   const limit = appConfig.defaultPageLimit;
-  const debouncedSearch = useDebouncedValue(search);
 
-  const {
-    data: response,
-    isLoading,
-    isError,
-  } = useSearchCustomersQuery(debouncedSearch, page, limit);
+  const { data: response, isLoading, isError } = useSearchCustomersQuery(submittedSearch, page, limit);
   const customers: Customer[] = response?.data?.customers || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(search.trim());
     setPage(1);
   };
 
@@ -102,32 +88,21 @@ const Page = () => {
           title="Customers"
           description="Track your customers and their order history"
           actions={
-            <Button onClick={() => setIsCreateCustomerModalOpen(true)}>
+            <Button size="sm" onClick={() => setIsCreateCustomerModalOpen(true)}>
               New Customer
             </Button>
           }
         />
 
-        <Input
+        <SearchBar
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={handleSearchChange}
+          onSearch={handleSearchSubmit}
           placeholder="Search by phone number..."
-          fullWidth
-          leftIcon="Search"
         />
 
-        <AsyncState
-          isLoading={isLoading}
-          isError={isError}
-          errorMessage="Failed to load customers. Please try again."
-        >
-          <Table
-            data={customers}
-            columns={columns}
-            page={page}
-            setPage={setPage}
-            totalPages={totalPages}
-          />
+        <AsyncState isLoading={isLoading} isError={isError} errorMessage="Failed to load customers. Please try again.">
+          <Table data={customers} columns={columns} page={page} setPage={setPage} totalPages={totalPages} />
         </AsyncState>
       </div>
       <DeleteCustomerModal
@@ -143,10 +118,7 @@ const Page = () => {
           setSelectedCustomerToUpdate(null);
         }}
       />
-      <CreateCustomerModal
-        isOpen={isCreateCustomerModalOpen}
-        onClose={() => setIsCreateCustomerModalOpen(false)}
-      />
+      <CreateCustomerModal isOpen={isCreateCustomerModalOpen} onClose={() => setIsCreateCustomerModalOpen(false)} />
     </>
   );
 };

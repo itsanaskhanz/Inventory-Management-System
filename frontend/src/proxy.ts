@@ -14,43 +14,32 @@ export const proxy = async (request: NextRequest) => {
   const token = request.cookies.get(COOKIE_NAME)?.value;
 
   if (AUTH_PATHS.some((path) => pathname.startsWith(path))) {
-    if (
-      pathname.startsWith("/auth/register") &&
-      !appConfig.features.enableRegistration
-    ) {
+    if (pathname.startsWith("/auth/register") && !appConfig.features.enableRegistration) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
-    return token
-      ? NextResponse.redirect(new URL("/", request.url))
-      : NextResponse.next();
+    return token ? NextResponse.redirect(new URL("/", request.url)) : NextResponse.next();
   }
 
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  if (
-    pathname.startsWith("/api") ||
-    SKIP_MIDDLEWARE.some((path) => pathname.startsWith(path))
-  ) {
+  if (pathname.startsWith("/api") || SKIP_MIDDLEWARE.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!token) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
   if (!JWT_SECRET) {
     console.error("Missing JWT_SECRET environment variable");
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
   try {
-    const decodedToken: JWTVerifyResult<JwtPayload> = await jwtVerify(
-      token,
-      new TextEncoder().encode(JWT_SECRET),
-    );
+    const decodedToken: JWTVerifyResult<JwtPayload> = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
 
     const hasAccess = hasAccessToRoute(pathname, decodedToken.payload.role);
     if (!hasAccess) {
@@ -59,7 +48,7 @@ export const proxy = async (request: NextRequest) => {
 
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 };
 

@@ -1,10 +1,9 @@
 "use client";
 import CancelOrderModal from "@/components/domain/orders/CancelOrderModal";
-import { AsyncState, Input, PageHeader, StatusBadge, Table, TableActions } from "@/components/ui";
+import { AsyncState, PageHeader, SearchBar, StatusBadge, Table, TableActions } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchOrdersQuery } from "@/lib/api/orderApi";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { Order } from "@/types/order.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -14,16 +13,20 @@ const Page = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [isCancelOrderModalOpen, setIsCancelOrderModalOpen] = useState(false);
   const [selectedOrderToCancel, setSelectedOrderToCancel] = useState<Order | null>(null);
   const limit = appConfig.defaultPageLimit;
-  const debouncedSearch = useDebouncedValue(search);
-  const { data: response, isLoading, isError } = useSearchOrdersQuery(debouncedSearch, page, limit);
+  const { data: response, isLoading, isError } = useSearchOrdersQuery(submittedSearch, page, limit);
   const orders: Order[] = response?.data?.orders || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(search.trim());
     setPage(1);
   };
 
@@ -101,12 +104,11 @@ const Page = () => {
     <div>
       <div className="flex flex-col gap-6">
         <PageHeader title="Order History" description="View and manage all orders placed in your store" />
-        <Input
+        <SearchBar
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={handleSearchChange}
+          onSearch={handleSearchSubmit}
           placeholder="Search by order id..."
-          fullWidth
-          leftIcon="Search"
         />
 
         <AsyncState isLoading={isLoading} isError={isError} errorMessage="Failed to load orders. Please try again.">

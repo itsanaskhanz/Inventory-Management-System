@@ -4,12 +4,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import clsx from "clsx";
+import { EmptyState } from "../EmptyState";
 import { Pagination } from "../Pagination";
 import {
   baseStyles,
   cellStyles,
   containerStyles,
-  emptyStateStyles,
   headerCellStyles,
   headerStyles,
   rowStyles,
@@ -67,11 +67,8 @@ const Table = <TData,>({
               ))
             ) : (
               <tr>
-                <td
-                  colSpan={table.getVisibleFlatColumns().length}
-                  className={clsx(emptyStateStyles)}
-                >
-                  No records found
+                <td colSpan={table.getVisibleFlatColumns().length} className="px-4 py-16 text-center">
+                  <EmptyState title="No records found" />
                 </td>
               </tr>
             )}

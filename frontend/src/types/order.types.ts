@@ -24,6 +24,15 @@ export interface CreateOrderProduct {
   productId: string;
 }
 
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  costPrice: number;
+  quantity: number;
+  stock: number;
+}
+
 export interface Order {
   id: string;
   total: number;

@@ -2,17 +2,9 @@
 import CreateCategoryModal from "@/components/domain/categories/CreateCategoryModal";
 import DeleteCategoryModal from "@/components/domain/categories/DeleteCategoryModal";
 import UpdateCategoryModal from "@/components/domain/categories/UpdateCategoryModal";
-import {
-  AsyncState,
-  Button,
-  Input,
-  PageHeader,
-  Table,
-  TableActions,
-} from "@/components/ui";
+import { AsyncState, Button, PageHeader, SearchBar, Table, TableActions } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useSearchCategoriesQuery } from "@/lib/api/categoryApi";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { Category } from "@/types/category.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -22,31 +14,25 @@ const Page = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const limit = appConfig.defaultPageLimit;
-  const debouncedSearch = useDebouncedValue(search);
 
-  const {
-    data: response,
-    isLoading,
-    isError,
-  } = useSearchCategoriesQuery(debouncedSearch, page, limit);
+  const { data: response, isLoading, isError } = useSearchCategoriesQuery(submittedSearch, page, limit);
   const totalPages = response?.data?.pagination.totalPages || 1;
 
-  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] =
-    useState(false);
-  const [isUpdateCategoryModalOpen, setIsUpdateCategoryModalOpen] =
-    useState(false);
-  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] =
-    useState(false);
-  const [selectedCategoryToDelete, setSelectedCategoryToDelete] = useState<
-    string | null
-  >(null);
-  const [selectedCategoryToUpdate, setSelectedCategoryToUpdate] =
-    useState<Category | null>(null);
+  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
+  const [isUpdateCategoryModalOpen, setIsUpdateCategoryModalOpen] = useState(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
+  const [selectedCategoryToDelete, setSelectedCategoryToDelete] = useState<string | null>(null);
+  const [selectedCategoryToUpdate, setSelectedCategoryToUpdate] = useState<Category | null>(null);
 
   const categories: Category[] = response?.data?.categories || [];
   const handleSearchChange = (value: string) => {
     setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(search.trim());
     setPage(1);
   };
 
@@ -96,32 +82,21 @@ const Page = () => {
           title="Categories"
           description="Organize your products into categories"
           actions={
-            <Button onClick={() => setIsCreateCategoryModalOpen(true)}>
+            <Button size="sm" onClick={() => setIsCreateCategoryModalOpen(true)}>
               New Category
             </Button>
           }
         />
 
-        <Input
+        <SearchBar
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={handleSearchChange}
+          onSearch={handleSearchSubmit}
           placeholder="Search categories..."
-          fullWidth
-          leftIcon="Search"
         />
 
-        <AsyncState
-          isLoading={isLoading}
-          isError={isError}
-          errorMessage="Failed to load categories. Please try again."
-        >
-          <Table
-            data={categories}
-            columns={columns}
-            page={page}
-            setPage={setPage}
-            totalPages={totalPages}
-          />
+        <AsyncState isLoading={isLoading} isError={isError} errorMessage="Failed to load categories. Please try again.">
+          <Table data={categories} columns={columns} page={page} setPage={setPage} totalPages={totalPages} />
         </AsyncState>
       </div>
       <DeleteCategoryModal
@@ -137,10 +112,7 @@ const Page = () => {
           setSelectedCategoryToUpdate(null);
         }}
       />
-      <CreateCategoryModal
-        isOpen={isCreateCategoryModalOpen}
-        onClose={() => setIsCreateCategoryModalOpen(false)}
-      />
+      <CreateCategoryModal isOpen={isCreateCategoryModalOpen} onClose={() => setIsCreateCategoryModalOpen(false)} />
     </>
   );
 };

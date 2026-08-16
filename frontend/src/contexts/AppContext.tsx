@@ -27,16 +27,12 @@ const appContext = createContext({} as IAppContext);
 const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(
-    appConfig.showSidebar,
-  );
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(appConfig.showSidebar);
   const [topBarOpen, setIsTopBarOpen] = useState<boolean>(appConfig.showTopbar);
   const [theme, setTheme] = useState<"light" | "dark">(appConfig.appTheme);
   const { data: response, isLoading } = useGetProfileQuery();
   const { mutate: logoutMutate } = useLogoutMutation();
-  const [loadedProfile, setLoadedProfile] = useState<ProfileResponse | null>(
-    null,
-  );
+  const [loadedProfile, setLoadedProfile] = useState<ProfileResponse | null>(null);
 
   if (response && response !== loadedProfile) {
     setLoadedProfile(response);
@@ -48,7 +44,7 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
       onSuccess: () => {
         setUser(null);
         toast.success("Logged out successfully");
-        router.push("/auth/login");
+        router.push("/home");
       },
       onError: () => {
         toast.error("Error logging out");

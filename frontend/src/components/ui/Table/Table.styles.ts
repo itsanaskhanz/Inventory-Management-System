@@ -12,6 +12,3 @@ export const rowStyles =
   "border-b border-border transition-colors duration-150 last:border-0 hover:bg-background-secondary";
 
 export const cellStyles = "px-4 py-4 whitespace-nowrap text-foreground";
-
-export const emptyStateStyles =
-  "px-4 py-16 text-center text-sm text-foreground-tertiary";

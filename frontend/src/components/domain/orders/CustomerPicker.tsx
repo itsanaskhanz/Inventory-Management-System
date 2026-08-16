@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import appConfig from "@/config/app.config";
@@ -40,7 +41,6 @@ const getInitials = (customer: Customer) => {
 const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -62,23 +62,14 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
         setIsCreating(false);
       }
     };
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-        setIsCreating(false);
-      }
-    };
     document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("keydown", handleEscape);
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("keydown", handleEscape);
     };
   }, []);
 
   const openDropdown = () => {
     setIsOpen(true);
-    setHighlightedIndex((prev) => (prev === -1 ? 0 : prev));
   };
 
   const selectCustomer = (customer: Customer) => {
@@ -86,13 +77,11 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
     setQuery("");
     setIsOpen(false);
     setIsCreating(false);
-    setHighlightedIndex(-1);
   };
 
   const clearSelection = () => {
     onChange(null);
     setQuery("");
-    setHighlightedIndex(0);
     setIsOpen(true);
     setIsCreating(false);
     inputRef.current?.focus();
@@ -103,24 +92,6 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
     setQuery(next);
     if (value) onChange(null);
     setIsOpen(true);
-    setHighlightedIndex(-1);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      openDropdown();
-      setHighlightedIndex((prev) => Math.min(prev + 1, Math.max(customers.length - 1, 0)));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setIsOpen(true);
-      setHighlightedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === "Enter") {
-      if (isCreating) return;
-      e.preventDefault();
-      const target = highlightedIndex >= 0 ? customers[highlightedIndex] : customers[0];
-      if (target) selectCustomer(target);
-    }
   };
 
   const handleCreateCustomer = () => {
@@ -142,7 +113,6 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
           if (created) {
             onChange(created);
             setIsOpen(false);
-            setHighlightedIndex(-1);
           }
         },
         onError: (error) => toast.error(getApiErrorMessage(error, "Failed to create customer")),
@@ -169,7 +139,6 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
           value={value ? selectedLabel : query}
           onChange={handleInputChange}
           onFocus={openDropdown}
-          onKeyDown={handleKeyDown}
           placeholder="Search by name or phone..."
           className={clsx(fieldStyles, "py-2.5 pl-10 pr-9")}
         />
@@ -212,7 +181,7 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
             </div>
           ) : customers.length > 0 ? (
             <ul className="max-h-64 overflow-y-auto py-1">
-              {customers.map((customer, index) => {
+              {customers.map((customer) => {
                 const isSelected = value?.id === customer.id;
                 return (
                   <li key={customer.id}>
@@ -221,14 +190,11 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
                       role="option"
                       aria-selected={isSelected}
                       onClick={() => selectCustomer(customer)}
-                      onMouseEnter={() => setHighlightedIndex(index)}
                       className={clsx(
                         "w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors",
                         isSelected
                           ? "bg-primary/10"
-                          : highlightedIndex === index
-                            ? "bg-background-tertiary"
-                            : "hover:bg-background-tertiary",
+                          : "hover:bg-background-tertiary",
                       )}
                     >
                       <div className="h-8 w-8 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center">
@@ -249,10 +215,11 @@ const CustomerPicker = ({ value, onChange }: CustomerPickerProps) => {
               })}
             </ul>
           ) : (
-            <div className="flex flex-col items-center gap-1 py-5 px-4 text-center">
-              <Icon name="User" size="sm" className="text-foreground-tertiary opacity-60" />
-              <p className="text-sm text-foreground-secondary">No customers found for &quot;{query.trim()}&quot;</p>
-            </div>
+            <EmptyState
+              icon="User"
+              title={`No customers found for "${query.trim()}"`}
+              compact
+            />
           )}
 
           <div className="border-t border-border bg-background-secondary/60">

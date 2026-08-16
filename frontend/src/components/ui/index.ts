@@ -149,3 +149,17 @@ import { Tabs } from "./Tabs";
 
 export { Tabs };
 export type { TabsProps, TabItem };
+
+// EmptyState
+import type { EmptyStateProps } from "./EmptyState";
+import { EmptyState } from "./EmptyState";
+
+export { EmptyState };
+export type { EmptyStateProps };
+
+// SearchBar
+import type { SearchBarProps } from "./SearchBar";
+import { SearchBar } from "./SearchBar";
+
+export { SearchBar };
+export type { SearchBarProps };

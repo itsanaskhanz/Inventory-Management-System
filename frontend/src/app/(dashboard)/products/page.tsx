@@ -6,8 +6,8 @@ import {
   AsyncState,
   Button,
   CategoryFilter,
-  Input,
   PageHeader,
+  SearchBar,
   StatusBadge,
   Table,
   TableActions,
@@ -16,7 +16,6 @@ import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useSearchProductsQuery } from "@/lib/api/productApi";
 import { formatCurrency } from "@/lib/format";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { Product } from "@/types/product.types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -24,43 +23,33 @@ import { useState } from "react";
 
 const Page = () => {
   const router = useRouter();
-  const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
-    useState(false);
-  const [isUpdateProductModalOpen, setIsUpdateProductModalOpen] =
-    useState(false);
-  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] =
-    useState(false);
-  const [selectedProductToDelete, setSelectedProductToDelete] = useState<
-    string | null
-  >(null);
-  const [selectedProductToUpdate, setSelectedProductToUpdate] =
-    useState<Product | null>(null);
+  const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
+  const [isUpdateProductModalOpen, setIsUpdateProductModalOpen] = useState(false);
+  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] = useState(false);
+  const [selectedProductToDelete, setSelectedProductToDelete] = useState<string | null>(null);
+  const [selectedProductToUpdate, setSelectedProductToUpdate] = useState<Product | null>(null);
   const limit = appConfig.defaultPageLimit;
   const [page, setPage] = useState(1);
-  const debouncedSearch = useDebouncedValue(search);
-  const { data: categoriesResponse } = useGetCategoriesQuery(
-    1,
-    appConfig.maxFetchLimit,
-  );
+  const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const { data: categoriesResponse } = useGetCategoriesQuery(1, appConfig.maxFetchLimit);
   const categoriesData = categoriesResponse?.data.categories;
   const {
     data: response,
     isLoading,
     isError,
-  } = useSearchProductsQuery(
-    debouncedSearch,
-    selectedCategory === "All" ? null : selectedCategory,
-    page,
-    limit,
-  );
+  } = useSearchProductsQuery(submittedSearch, selectedCategory === "All" ? null : selectedCategory, page, limit);
 
   const products: Product[] = response?.data?.products || [];
   const totalPages = response?.data?.pagination.totalPages || 1;
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(search.trim());
     setPage(1);
   };
 
@@ -129,40 +118,25 @@ const Page = () => {
           title="Products"
           description="Manage your product catalog and stock levels"
           actions={
-            <Button onClick={() => setIsCreateProductModalOpen(true)}>
+            <Button onClick={() => setIsCreateProductModalOpen(true)} size="sm">
               New Product
             </Button>
           }
         />
-        <Input
+        <SearchBar
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={handleSearchChange}
+          onSearch={handleSearchSubmit}
           placeholder="Search products..."
-          fullWidth
-          leftIcon="Search"
         />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
           <div className="flex items-center gap-2">
-            <CategoryFilter
-              categories={categoriesData}
-              selected={selectedCategory}
-              onSelect={handleCategoryChange}
-            />
+            <CategoryFilter categories={categoriesData} selected={selectedCategory} onSelect={handleCategoryChange} />
           </div>
         </div>
 
-        <AsyncState
-          isLoading={isLoading}
-          isError={isError}
-          errorMessage="Failed to load products. Please try again."
-        >
-          <Table
-            data={products}
-            columns={columns}
-            page={page}
-            setPage={setPage}
-            totalPages={totalPages}
-          />
+        <AsyncState isLoading={isLoading} isError={isError} errorMessage="Failed to load products. Please try again.">
+          <Table data={products} columns={columns} page={page} setPage={setPage} totalPages={totalPages} />
         </AsyncState>
       </div>
       <DeleteProductModal
@@ -178,10 +152,7 @@ const Page = () => {
           setSelectedProductToUpdate(null);
         }}
       />
-      <CreateProductModal
-        isOpen={isCreateProductModalOpen}
-        onClose={() => setIsCreateProductModalOpen(false)}
-      />
+      <CreateProductModal isOpen={isCreateProductModalOpen} onClose={() => setIsCreateProductModalOpen(false)} />
     </>
   );
 };

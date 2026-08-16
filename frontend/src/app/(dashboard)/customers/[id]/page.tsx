@@ -6,9 +6,10 @@ import {
   Button,
   ConfirmDialog,
   DetailField,
+  EmptyState,
   Icon,
-  Input,
   PageHeader,
+  SearchBar,
   StatusBadge,
   Table,
   TableActions,
@@ -23,11 +24,9 @@ import {
 import { useCancelPaymentMutation, useGetPayments } from "@/lib/api/paymentApi";
 import { getApiErrorMessage } from "@/lib/errorHandling";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { useDebouncedValue } from "@/lib/useDebounce";
 import { IOrderProduct, Order } from "@/types/order.types";
 import { PaymentHistoryItem } from "@/types/payment.types";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -44,21 +43,21 @@ const CustomerDetailPage = () => {
   const [activeTab, setActiveTab] = useState<DetailTab>("orders");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [isCancelOrderModalOpen, setIsCancelOrderModalOpen] = useState(false);
   const [selectedOrderToCancel, setSelectedOrderToCancel] = useState<Order | null>(null);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [paymentSearch, setPaymentSearch] = useState("");
+  const [submittedPaymentSearch, setSubmittedPaymentSearch] = useState("");
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [paymentToUndo, setPaymentToUndo] = useState<PaymentHistoryItem | null>(null);
   const limit = appConfig.defaultPageLimit;
-  const debouncedSearch = useDebouncedValue(search);
-  const debouncedPaymentSearch = useDebouncedValue(paymentSearch);
   const { data: response, isLoading: isCustomerLoading, isError } = useGetCustomerByIdQuery(id);
   const {
     data: ordersResponse,
     isLoading: isOrdersLoading,
     isError: isOrdersError,
-  } = useGetCustomerOrdersQuery(id, debouncedSearch, page, limit);
+  } = useGetCustomerOrdersQuery(id, submittedSearch, page, limit);
   const {
     data: summaryResponse,
     isLoading: isSummaryLoading,
@@ -68,7 +67,7 @@ const CustomerDetailPage = () => {
     data: paymentsResponse,
     isLoading: isPaymentsLoading,
     isError: isPaymentsError,
-  } = useGetPayments(id, debouncedPaymentSearch, paymentsPage, limit);
+  } = useGetPayments(id, submittedPaymentSearch, paymentsPage, limit);
   const { mutate: cancelPayment, isPending: isCancellingPayment } = useCancelPaymentMutation();
 
   const customer = response?.data?.customer;
@@ -81,7 +80,20 @@ const CustomerDetailPage = () => {
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(search.trim());
     setPage(1);
+  };
+
+  const handlePaymentSearchChange = (value: string) => {
+    setPaymentSearch(value);
+  };
+
+  const handlePaymentSearchSubmit = () => {
+    setSubmittedPaymentSearch(paymentSearch.trim());
+    setPaymentsPage(1);
   };
 
   const handleOpenCancelModal = (order: Order) => {
@@ -107,11 +119,7 @@ const CustomerDetailPage = () => {
     {
       header: "Order #",
       accessorKey: "id",
-      cell: ({ row }) => (
-        <Link href={`/orderhistory/${row.original.id}`} className="text-primary hover:underline">
-          {row.original.id}
-        </Link>
-      ),
+      cell: ({ getValue }) => getValue(),
     },
     {
       header: "Total",
@@ -150,7 +158,10 @@ const CustomerDetailPage = () => {
       enableHiding: false,
       cell: ({ row }) =>
         row.original.status.toUpperCase() === "CANCELLED" ? null : (
-          <TableActions onCancel={() => handleOpenCancelModal(row.original)} />
+          <TableActions
+            onCancel={() => handleOpenCancelModal(row.original)}
+            onView={() => router.push(`/orderhistory/${row.original.id}`)}
+          />
         ),
     },
   ];
@@ -243,15 +254,14 @@ const CustomerDetailPage = () => {
 
             {activeTab === "orders" && (
               <div className="flex flex-col gap-6">
-                <Input
+                <SearchBar
                   value={search}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onChange={handleSearchChange}
+                  onSearch={handleSearchSubmit}
                   placeholder="Search by order id..."
-                  fullWidth
-                  leftIcon="Search"
                 />
                 {orders.length === 0 ? (
-                  <div className="text-center text-foreground-secondary py-8">No orders found for this customer.</div>
+                  <EmptyState icon="ShoppingBag" title="No orders found for this customer." className="py-10" />
                 ) : (
                   <Table data={orders} columns={orderColumns} page={page} setPage={setPage} totalPages={totalPages} />
                 )}
@@ -260,15 +270,11 @@ const CustomerDetailPage = () => {
 
             {activeTab === "payments" && (
               <div className="flex flex-col gap-4">
-                <Input
+                <SearchBar
                   value={paymentSearch}
-                  onChange={(e) => {
-                    setPaymentSearch(e.target.value);
-                    setPaymentsPage(1);
-                  }}
+                  onChange={handlePaymentSearchChange}
+                  onSearch={handlePaymentSearchSubmit}
                   placeholder="Search by payment id..."
-                  fullWidth
-                  leftIcon="Search"
                 />
                 <AsyncState
                   isLoading={isPaymentsLoading}
@@ -276,9 +282,11 @@ const CustomerDetailPage = () => {
                   errorMessage="Failed to load payments. Please try again."
                 >
                   {payments.length === 0 ? (
-                    <div className="text-center text-foreground-secondary py-8">
-                      No payments recorded for this customer.
-                    </div>
+                    <EmptyState
+                      icon="CircleDollarSign"
+                      title="No payments recorded for this customer."
+                      className="py-10"
+                    />
                   ) : (
                     <Table
                       data={payments}
@@ -304,7 +312,7 @@ const CustomerDetailPage = () => {
         }}
       />
 
-<AddPaymentModal
+      <AddPaymentModal
         isOpen={isAddPaymentOpen}
         customer={customer ?? null}
         onClose={() => setIsAddPaymentOpen(false)}

@@ -1,5 +1,5 @@
 "use client";
-import { Icon, Input, Spinner, StatCard, Typography } from "@/components/ui";
+import { EmptyState, Icon, Input, Spinner, StatCard, Typography } from "@/components/ui";
 import appConfig from "@/config/app.config";
 import { useGetCategoriesQuery } from "@/lib/api/categoryApi";
 import { useGetOrderStatsQuery } from "@/lib/api/orderApi";
@@ -129,11 +129,7 @@ const AdminDashboard = () => {
         </div>
 
         {chartData.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-foreground-secondary">
-            <Typography variant="body2">
-              No revenue data for the selected range
-            </Typography>
-          </div>
+          <EmptyState icon="TrendingUp" title="No revenue data for the selected range" className="py-14" />
         ) : (
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
